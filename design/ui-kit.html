@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI-кит / Исламские книги</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Amiri:wght@400;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Токены. Общие для обеих тем ===== */
+body{
+  --head:"Alegreya", Georgia, serif; --head-w:700; --head-track:-0.015em;
+  --ui:"Onest", system-ui, sans-serif;
+  --r-card:14px; --r-btn:12px; --r-chip:10px; --r-cover:5px; --stroke:1.75;
+}
+/* Светлая тема: «Светлая лавка» */
+body[data-theme="light"]{
+  --bg:#F6F1E8; --surface:#FCF9F3; --text:#2A231C; --muted:#7A6E60; --line:#E6DED1;
+  --accent:#4E5A2B; --on-accent:#F8F4EA; --chip:#EDE6D9; --seg-on:var(--surface);
+  --shadow-cover:0 1px 2px rgba(60,45,25,.08), 0 10px 22px -10px rgba(60,45,25,.28);
+  --shadow-phone:0 30px 60px -30px rgba(40,25,10,.35);
+}
+/* Тёмная тема: цвета «Ночной библиотеки» */
+body[data-theme="dark"]{
+  --bg:#141B17; --surface:#1D2620; --text:#E8DDC7; --muted:#9C9482; --line:#2C3830;
+  --accent:#C7A35A; --on-accent:#17140E; --chip:#24302A; --seg-on:var(--line);
+  --shadow-cover:0 2px 4px rgba(0,0,0,.35), 0 16px 32px -14px rgba(0,0,0,.8);
+  --shadow-phone:0 30px 60px -30px rgba(0,0,0,.9);
+}
+
+/* ===== Основа страницы ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.ic{width:22px;height:22px;flex:none;stroke-width:var(--stroke)}
+
+.kitbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:14px 20px}
+.kitbar-in{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
+.kitbar h1{font-family:var(--head);font-weight:var(--head-w);font-size:22px;letter-spacing:var(--head-track)}
+.kitbar p{flex-basis:100%;color:var(--muted);font-size:14px;max-width:760px}
+
+main{max-width:1240px;margin:0 auto;padding:8px 20px 80px}
+.sec{padding:36px 0 8px}
+.sec>h2{font-family:var(--head);font-weight:var(--head-w);letter-spacing:var(--head-track);font-size:28px;line-height:1.1;margin-bottom:6px}
+.sec>p.lead{color:var(--muted);max-width:640px;margin-bottom:20px}
+
+/* Палитра и шрифты */
+.pal-h{font-size:13px;color:var(--muted);margin:0 0 8px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.sw{background:var(--surface);border-radius:var(--r-card);padding:10px;border:1px solid var(--line)}
+.sw i{display:block;height:56px;border-radius:8px;border:1px solid rgba(128,128,128,.25);margin-bottom:8px}
+.sw b{display:block;font-size:13px;font-weight:600}
+.sw span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.type{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:12px}
+.type .h{font-family:var(--head);font-weight:var(--head-w);letter-spacing:var(--head-track);font-size:40px;line-height:.95}
+.type .ar{font-family:"Amiri",serif;font-size:34px;direction:rtl;text-align:right;line-height:1.4}
+.type small{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+
+/* Элементы */
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.part{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:18px}
+.part>small{display:block;color:var(--muted);font-size:12px;margin-bottom:12px}
+.stack{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 22px;border-radius:var(--r-btn);font-weight:600;font-size:16px;transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn-main{background:var(--accent);color:var(--on-accent)}
+.btn-second{background:var(--chip);color:var(--text)}
+.btn-icon{width:44px;height:44px;padding:0;background:var(--chip)}
+.btn-wide{flex:1}
+
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:7px 14px;border-radius:var(--r-chip);background:var(--chip);font-size:14px;font-weight:500;white-space:nowrap}
+.chip.on{background:var(--text);color:var(--bg)}
+
+.search{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border-radius:var(--r-btn);background:var(--chip);color:var(--muted);font-size:15px}
+.search .ic{width:20px;height:20px}
+
+.seg{display:flex;background:var(--chip);border-radius:var(--r-btn);padding:3px;gap:2px}
+.seg button{flex:1;height:36px;border-radius:calc(var(--r-btn) - 3px);font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;padding:0 6px}
+.seg button.on{background:var(--seg-on);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* Панель «Оформление» */
+.look-h{font-weight:600;font-size:15px}
+.looks{display:flex;gap:8px;margin-top:10px}
+.look{flex:1;min-width:0;border-radius:var(--r-btn);padding:8px;background:var(--bg);font-size:12px;font-weight:500;text-align:left}
+.look[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.look .pv{height:44px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line)}
+.look .pv .ic{width:20px;height:20px}
+.pv-auto{background:linear-gradient(90deg,#F6F1E8 50%,#141B17 50%)}
+.pv-light{background:#F6F1E8;color:#2A231C}
+.pv-dark{background:#141B17;color:#E8DDC7}
+
+/* Обложка (нарисованная для примера) */
+.cover{--cw:118px;width:var(--cw);position:relative;aspect-ratio:2/3;border-radius:var(--r-cover);background:var(--c);color:#EFE3C6;
+  overflow:hidden;box-shadow:var(--shadow-cover);display:flex;flex-direction:column;justify-content:space-between;
+  padding:calc(var(--cw)*.16) calc(var(--cw)*.12) calc(var(--cw)*.12) calc(var(--cw)*.16)}
+.cover::before{content:"";position:absolute;inset:6% 6% 6% 10%;border:1px solid rgba(239,227,198,.32);pointer-events:none}
+.cover::after{content:"";position:absolute;top:0;bottom:0;left:0;width:7%;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(0,0,0,0))}
+.cv-ar{font-family:"Amiri",serif;font-size:calc(var(--cw)*.125);line-height:1.3;direction:rtl;text-align:right;position:relative}
+.cv-t{font-family:var(--head);font-weight:var(--head-w);font-size:calc(var(--cw)*.12);line-height:1.05;letter-spacing:var(--head-track);position:relative}
+.cv-a{display:block;font-family:var(--ui);font-size:calc(var(--cw)*.07);opacity:.75;margin-top:calc(var(--cw)*.05);font-weight:500}
+
+.iconset{display:flex;flex-wrap:wrap;gap:18px}
+.iconset div{display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:12px;color:var(--muted);width:72px}
+.iconset .ic{color:var(--text)}
+
+/* ===== Телефоны ===== */
+.phones{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:28px;justify-items:center}
+.phone-wrap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:375px}
+.phone-wrap>small{color:var(--muted);font-size:13px}
+.phone{position:relative;width:100%;height:740px;border-radius:38px;background:var(--bg);border:1px solid var(--line);overflow:hidden;box-shadow:var(--shadow-phone)}
+.screen{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:20px 18px 96px}
+.screen::-webkit-scrollbar{display:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin:0 -4px 14px}
+.topbar .btn-icon{background:transparent}
+.home-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hello{color:var(--muted);font-size:14px}
+.title{font-family:var(--head);font-weight:var(--head-w);letter-spacing:var(--head-track);font-size:34px;line-height:1;margin:2px 0 16px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:24px 0 12px}
+.sec-h h3{font-family:var(--head);font-weight:var(--head-w);letter-spacing:var(--head-track);font-size:21px;line-height:1.1}
+.sec-h a{display:flex;align-items:center;gap:2px;color:var(--muted);font-size:14px;text-decoration:none}
+.sec-h a .ic{width:16px;height:16px}
+
+.shelf-row{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:4px 18px 10px}
+.shelf-row::-webkit-scrollbar{display:none}
+.bcard{flex:none;width:118px}
+.bcard .t{font-weight:600;font-size:14px;line-height:1.25;margin-top:10px}
+.bcard .a{color:var(--muted);font-size:13px;margin-top:2px}
+
+.cont{display:flex;gap:14px;align-items:center;background:var(--surface);border-radius:var(--r-card);padding:12px}
+body[data-theme="dark"] .cont{border:1px solid var(--line)}
+.cont .cover{--cw:56px;flex:none}
+.cont .t{font-weight:600;font-size:15px;line-height:1.25}
+.cont .a{color:var(--muted);font-size:13px}
+.bar{height:4px;border-radius:4px;background:var(--line);margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:inherit}
+.cont .p{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+
+.row{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .cover{--cw:52px;flex:none}
+.row .tx{flex:1;min-width:0}
+.row .t{font-weight:600;font-size:15px;line-height:1.25}
+.row .a{color:var(--muted);font-size:13px;margin-top:2px}
+.row .st{color:var(--accent)}
+
+.tabbar{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;padding:8px 10px 22px;background:var(--bg);border-top:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--muted);min-width:72px}
+.tab.on{color:var(--accent)}
+body[data-theme="light"] .tab.on{color:var(--text)}
+
+/* Выезжающая панель внутри телефона */
+.scrim{position:absolute;inset:0;background:rgba(10,8,5,.4);opacity:0;pointer-events:none;transition:opacity .25s;z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-radius:22px 22px 0 0;padding:10px 18px 28px;
+  transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.sheet::before{content:"";display:block;width:36px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 14px}
+.phone.sheet-open .scrim{opacity:1;pointer-events:auto}
+.phone.sheet-open .sheet{transform:none}
+
+/* Страница книги */
+.bk-cover{width:160px;margin:6px auto 22px}
+.bk-cover .cover{--cw:160px}
+.bk-meta{display:flex;gap:10px;align-items:baseline;justify-content:space-between}
+.bk-ar{font-family:"Amiri",serif;font-size:20px;color:var(--muted);direction:rtl}
+.bk-cat{font-size:13px;color:var(--muted)}
+.bk-title{font-family:var(--head);font-weight:var(--head-w);letter-spacing:var(--head-track);font-size:30px;line-height:1.05;margin:6px 0}
+.bk-author{color:var(--accent);font-weight:500;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.bk-facts{color:var(--muted);font-size:13px;margin-top:8px}
+.bk-actions{display:flex;gap:10px;margin:20px 0}
+.bk-desc{font-size:15px;line-height:1.6}
+.mini-row{display:flex;gap:12px}
+.mini-row .cover{--cw:92px}
+
+/* ===== Читалка: свои темы, не зависят от темы приложения ===== */
+.reader{--fs:18px}
+.reader[data-rt="paper"]{--rb:#F5EEDF;--rt:#2D251C;--rm:#7A6A55;--rr:#2D251C}
+.reader[data-rt="matn"] {--rb:#ECDDB4;--rt:#3B2A17;--rm:#7C6440;--rr:#8A2B1E}
+.reader[data-rt="white"]{--rb:#FFFFFF;--rt:#1A1A1A;--rm:#6B6B6B;--rr:#1A1A1A}
+.reader .phone{background:var(--rb);border-color:color-mix(in srgb,var(--rt) 14%,var(--rb));transition:background .3s}
+.reader .screen{color:var(--rt);padding:16px 22px 200px}
+.reader .topbar .btn-icon{color:var(--rt)}
+.rd-book{font-size:13px;color:var(--rm)}
+.rd-h{font-family:"Literata",Georgia,serif;font-weight:600;font-size:calc(var(--fs)*1.35);line-height:1.15;color:var(--rr);margin:10px 0 2px}
+.rd-sub{font-family:"Literata",Georgia,serif;font-size:calc(var(--fs)*.85);color:var(--rm);margin-bottom:18px}
+.rd-ar{font-family:"Amiri",serif;font-size:calc(var(--fs)*1.33);line-height:2;direction:rtl;text-align:right;margin-bottom:18px}
+.rd-p{font-family:"Literata",Georgia,serif;font-size:var(--fs);line-height:1.65;margin-bottom:14px;hyphens:auto}
+.rd-note{font-size:13px;color:var(--rm);border-top:1px solid color-mix(in srgb,var(--rt) 14%,var(--rb));padding-top:12px;margin-top:18px}
+.rd-panel{position:absolute;left:0;right:0;bottom:0;padding:14px 18px 24px;color:var(--rt);
+  background:color-mix(in srgb,var(--rt) 5%,var(--rb));border-top:1px solid color-mix(in srgb,var(--rt) 14%,var(--rb))}
+.rd-prog{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--rm);margin-bottom:14px;font-variant-numeric:tabular-nums}
+.rd-prog .bar{flex:1;margin:0;background:color-mix(in srgb,var(--rt) 14%,var(--rb))}
+.rd-prog .bar i{background:var(--rr)}
+.themes{display:flex;gap:8px;margin-bottom:12px}
+.th{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--rm)}
+.th i{display:block;width:100%;height:36px;border-radius:10px;border:1px solid rgba(0,0,0,.12);
+  font-style:normal;font-family:"Literata",serif;font-size:16px;line-height:34px;text-align:center}
+.th[aria-pressed="true"]{color:var(--rt);font-weight:600}
+.th[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--rb),0 0 0 3.5px var(--rt)}
+.sizes{display:flex;align-items:center;gap:10px}
+.sizes button{flex:1;height:38px;border-radius:10px;background:color-mix(in srgb,var(--rt) 8%,var(--rb));font-family:"Literata",serif}
+.sizes span{min-width:44px;text-align:center;font-size:13px;color:var(--rm);font-variant-numeric:tabular-nums}
+
+.note{margin-top:28px;color:var(--muted);font-size:13px;max-width:720px}
+@media (max-width:700px){
+  main,.kitbar{padding-left:16px;padding-right:16px}
+  .phones{grid-template-columns:1fr}
+  .type .h{font-size:34px}
+}
+</style>
+</head>
+<body data-theme="light">
+
+<header class="kitbar">
+  <div class="kitbar-in">
+    <h1>UI-кит</h1>
+    <div style="min-width:280px;flex:0 1 380px" id="lookTop"></div>
+    <p>Итог выбора: светлая тема «Светлая лавка», тёмная тема в цветах «Ночной библиотеки». Шрифты Alegreya и Onest, кнопки и скругления одни на обе темы.</p>
+  </div>
+</header>
+
+<main>
+  <section class="sec">
+    <h2>Цвета и шрифты</h2>
+    <p class="lead">Мало цветов: фон, поверхность, текст, приглушённый текст, линии и один акцент. У каждой темы свой набор.</p>
+    <div id="palettes"></div>
+    <div class="type">
+      <div><small>Заголовки / Alegreya</small><div class="h">Сады праведных</div></div>
+      <div><small>Интерфейс / Onest</small><p>Найдите книгу по названию или автору. Добавьте её на полку, чтобы вернуться к чтению позже.</p></div>
+      <div><small>Арабский / Amiri</small><div class="ar">رياض الصالحين</div></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Элементы</h2>
+    <p class="lead">У каждого элемента есть имя. Так проще давать правки: «поменяй основную кнопку».</p>
+    <div class="parts">
+      <div class="part"><small>Основная кнопка / Вторичная кнопка / Кнопка-иконка</small>
+        <div class="stack" id="btnDemo"></div></div>
+      <div class="part"><small>Поле поиска</small>
+        <div class="search" id="searchDemo"></div>
+        <small style="margin:16px 0 10px">Чипы категорий</small>
+        <div class="chips" id="chipsDemo"></div></div>
+      <div class="part"><small>Переключатель-сегменты</small>
+        <div class="seg" id="segDemo"></div>
+        <small style="margin:16px 0 10px">Карточка «Продолжить»</small>
+        <div id="contDemo"></div></div>
+      <div class="part"><small>Панель «Оформление» (работает: выбери тему)</small>
+        <div id="lookDemo"></div></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Иконки</h2>
+    <p class="lead">Один набор (Lucide), одна толщина линии. Значок «Моей полки»: книги на полке.</p>
+    <div class="part"><div class="iconset" id="iconset"></div></div>
+  </section>
+
+  <section class="sec">
+    <h2>Экраны</h2>
+    <p class="lead">На главной нажми кнопку справа от «Библиотеки»: снизу выедет «Оформление». В читалке темы и размер шрифта тоже работают.</p>
+    <div class="phones" id="phones"></div>
+    <p class="note">«Как в Telegram» здесь, в браузере, повторяет тему твоего компьютера. В Telegram будет брать тему из Telegram. Обложки нарисованы кодом для примера, настоящие подставим на Этапе 2. Арабский текст в читалке: хадис из «Сорока хадисов» ан-Навави (классический текст, общественное достояние). Русский текст написан для демонстрации.</p>
+  </section>
+</main>
+
+<script>
+/* Иконки Lucide (линейные, один набор) */
+const P = {
+  home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  library:'<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
+  bookmark:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
+  bookOpen:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  share:'<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
+  back:'<path d="m15 18-6-6 6-6"/>',
+  next:'<path d="m9 18 6-6-6-6"/>',
+  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  type:'<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  sunMoon:'<path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+
+const B = [
+  {id:1,t:'Сорок хадисов',a:'имам ан-Навави',cat:'Хадисы',c:'#4E5A2B',ar:'الأربعون النووية'},
+  {id:2,t:'Сады праведных',a:'имам ан-Навави',cat:'Хадисы',c:'#6E2A22',ar:'رياض الصالحين'},
+  {id:3,t:'Тафсир Ибн Касира',a:'Ибн Касир',cat:'Тафсир',c:'#24453B',ar:'تفسير ابن كثير'},
+  {id:4,t:'Жизнеописание Пророка',a:'Ибн Хишам',cat:'Сира',c:'#8A6A2F',ar:'السيرة النبوية'},
+  {id:5,t:'Достижение цели',a:'Ибн Хаджар аль-Аскаляни',cat:'Фикх',c:'#4A3426',ar:'بلوغ المرام'},
+  {id:6,t:'Аль-Адаб аль-Муфрад',a:'имам аль-Бухари',cat:'Нравственность',c:'#2F4A44',ar:'الأدب المفرد'}
+];
+const book = id => B.find(b => b.id === id);
+const cover = b => `<div class="cover" style="--c:${b.c}"><div class="cv-ar">${b.ar}</div><div class="cv-t">${b.t}<span class="cv-a">${b.a}</span></div></div>`;
+const CATS = ['Все','Хадисы','Фикх','Акыда','Тафсир','Сира','Нравственность'];
+
+const SHELF = {
+  fav:  {label:'Избранное',     icon:'heart', ids:[1,3]},
+  want: {label:'Хочу прочитать',icon:'clock', ids:[4,6,5]},
+  done: {label:'Прочитано',     icon:'check', ids:[2]}
+};
+const READER = {paper:['Бумага','#F5EEDF','#2D251C'], matn:['Матн','#ECDDB4','#3B2A17'], white:['Белая','#FFFFFF','#1A1A1A']};
+const PALETTES = {
+  light:['Светлая тема',{Фон:'#F6F1E8',Поверхность:'#FCF9F3',Текст:'#2A231C',Приглушённый:'#7A6E60',Линии:'#E6DED1',Акцент:'#4E5A2B'}],
+  dark: ['Тёмная тема', {Фон:'#141B17',Поверхность:'#1D2620',Текст:'#E8DDC7',Приглушённый:'#9C9482',Линии:'#2C3830',Акцент:'#C7A35A'}]
+};
+
+let look = 'auto';        // выбор человека: auto (как в Telegram) / light / dark
+let shelfTab = 'fav';
+let rTheme = 'paper', fs = 18; // читалка по умолчанию на «Бумаге»
+
+const sysDark = matchMedia('(prefers-color-scheme: dark)');
+const resolved = () => look === 'auto' ? (sysDark.matches ? 'dark' : 'light') : look;
+
+const lookPanel = () => `<div class="look-h">Оформление</div><div class="looks">
+  <button class="look" data-look="auto" aria-pressed="${look==='auto'}"><div class="pv pv-auto"></div>Как в Telegram</button>
+  <button class="look" data-look="light" aria-pressed="${look==='light'}"><div class="pv pv-light">${ic('sun')}</div>Светлая</button>
+  <button class="look" data-look="dark" aria-pressed="${look==='dark'}"><div class="pv pv-dark">${ic('moon')}</div>Тёмная</button></div>`;
+
+const tabbar = on => `<nav class="tabbar">
+  <div class="tab ${on==='home'?'on':''}">${ic('home')}Главная</div>
+  <div class="tab ${on==='search'?'on':''}">${ic('search')}Поиск</div>
+  <div class="tab ${on==='shelf'?'on':''}">${ic('library')}Моя полка</div></nav>`;
+
+const contCard = () => { const b = book(2); return `<div class="cont">${cover(b)}<div style="flex:1;min-width:0">
+  <div class="t">${b.t}</div><div class="a">${b.a}</div><div class="bar"><i style="width:34%"></i></div><div class="p">Прочитано 34%</div></div></div>`; };
+const row = (b, st) => `<div class="row">${cover(b)}<div class="tx"><div class="t">${b.t}</div><div class="a">${b.a}</div></div>${st?`<span class="st">${ic(st)}</span>`:''}</div>`;
+const segHTML = () => Object.entries(SHELF).map(([k,v]) => `<button data-seg="${k}" class="${k===shelfTab?'on':''}">${v.label}</button>`).join('');
+
+function homeScreen(){
+  return `<div class="screen">
+    <div class="home-head"><div><div class="hello">Ассаляму алейкум</div><div class="title">Библиотека</div></div>
+      <button class="btn btn-icon" data-open-look aria-label="Оформление">${ic('sunMoon')}</button></div>
+    <div class="search">${ic('search')}Название или автор</div>
+    <div class="sec-h"><h3>Продолжить</h3></div>
+    ${contCard()}
+    <div class="sec-h"><h3>Категории</h3></div>
+    <div class="chips" style="margin:0 -18px;padding:0 18px">${CATS.map((c,i)=>`<span class="chip ${i===0?'on':''}">${c}</span>`).join('')}</div>
+    <div class="sec-h"><h3>Новинки</h3><a href="#" onclick="return false">Все${ic('next')}</a></div>
+    <div class="shelf-row">${[3,4,5,6,1].map(id=>{const b=book(id);return `<div class="bcard">${cover(b)}<div class="t">${b.t}</div><div class="a">${b.a}</div></div>`}).join('')}</div>
+    <div class="sec-h"><h3>С чего начать</h3></div>
+    ${row(book(1))}${row(book(6))}
+  </div>${tabbar('home')}
+  <div class="scrim" data-close-look></div>
+  <div class="sheet" id="sheetLook">${lookPanel()}</div>`;
+}
+function bookScreen(){
+  const b = book(1);
+  return `<div class="screen">
+    <div class="topbar"><button class="btn btn-icon" aria-label="Назад">${ic('back')}</button><button class="btn btn-icon" aria-label="Поделиться">${ic('share')}</button></div>
+    <div class="bk-cover">${cover(b)}</div>
+    <div class="bk-meta"><span class="bk-cat">${b.cat}</span><span class="bk-ar">${b.ar}</span></div>
+    <div class="bk-title">${b.t}</div>
+    <a class="bk-author" href="#" onclick="return false">${b.a}</a>
+    <div class="bk-facts">42 хадиса / арабский и русский</div>
+    <div class="bk-actions"><button class="btn btn-main btn-wide">${ic('bookOpen')}Читать</button><button class="btn btn-second">${ic('bookmark')}На полку</button></div>
+    <p class="bk-desc">Сборник имама ан-Навави: сорок два хадиса, которые учёные называют основами религии. С этой книги традиционно начинают изучение хадисов.</p>
+    <div class="sec-h"><h3>Похожие</h3></div>
+    <div class="mini-row">${[2,6,5].map(id=>cover(book(id))).join('')}</div>
+  </div>${tabbar('home')}`;
+}
+function shelfScreen(){
+  const s = SHELF[shelfTab];
+  return `<div class="screen">
+    <div class="title" style="margin-top:20px">Моя полка</div>
+    <div class="seg">${segHTML()}</div>
+    <div style="margin-top:10px">${s.ids.map(id=>row(book(id), s.icon)).join('')}</div>
+  </div>${tabbar('shelf')}`;
+}
+function readerScreen(){
+  return `<div class="screen">
+    <div class="topbar"><button class="btn btn-icon" aria-label="Назад">${ic('back')}</button><span class="rd-book">Сорок хадисов</span><button class="btn btn-icon" aria-label="Закладка">${ic('bookmark')}</button></div>
+    <div class="rd-h">Хадис 1</div>
+    <div class="rd-sub">О намерении</div>
+    <p class="rd-ar">عَنْ أَمِيرِ الْمُؤْمِنِينَ أَبِي حَفْصٍ عُمَرَ بْنِ الْخَطَّابِ رَضِيَ اللهُ عَنْهُ قَالَ: سَمِعْتُ رَسُولَ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ يَقُولُ: «إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى»</p>
+    <p class="rd-p">Передают со слов повелителя верующих Абу Хафса Умара ибн аль-Хаттаба, да будет доволен им Аллах, что он сказал: «Я слышал, как Посланник Аллаха, мир ему и благословение Аллаха, говорил: „Поистине, дела оцениваются только по намерениям, и каждому человеку достанется лишь то, что он намеревался обрести“».</p>
+    <p class="rd-p">Многие учёные открывали этим хадисом свои книги, потому что намерение лежит в основе каждого дела: и поклонения, и учёбы, и чтения.</p>
+    <p class="rd-note">Демонстрационная глава. Здесь будет полный текст книги в нашем формате: свой шрифт, тёплые темы, закладки и место, где вы остановились.</p>
+  </div>
+  <div class="rd-panel">
+    <div class="rd-prog"><span>Хадис 1 из 42</span><div class="bar"><i style="width:3%"></i></div><span>3%</span></div>
+    <div class="themes">${Object.entries(READER).map(([k,v])=>`<button class="th" data-rt="${k}" aria-pressed="${k===rTheme}"><i style="background:${v[1]};color:${v[2]}">Аа</i>${v[0]}</button>`).join('')}</div>
+    <div class="sizes"><button data-fs="-1" aria-label="Меньше" style="font-size:14px">A</button><span id="fsVal">${fs}</span><button data-fs="1" aria-label="Больше" style="font-size:20px">A</button></div>
+  </div>`;
+}
+
+function renderStatic(){
+  document.getElementById('palettes').innerHTML = Object.values(PALETTES).map(([name,cols]) =>
+    `<div class="pal-h">${name}</div><div class="swatches">${Object.entries(cols).map(([n,c])=>`<div class="sw"><i style="background:${c}"></i><b>${n}</b><span>${c}</span></div>`).join('')}</div>`).join('');
+  document.getElementById('btnDemo').innerHTML = `<button class="btn btn-main">${ic('bookOpen')}Читать</button><button class="btn btn-second">${ic('bookmark')}На полку</button><button class="btn btn-icon" aria-label="Поделиться">${ic('share')}</button>`;
+  document.getElementById('searchDemo').innerHTML = `${ic('search')}Название или автор`;
+  document.getElementById('chipsDemo').innerHTML = CATS.slice(0,5).map((c,i)=>`<span class="chip ${i===1?'on':''}">${c}</span>`).join('');
+  document.getElementById('contDemo').innerHTML = contCard();
+  const all = [['home','Главная'],['search','Поиск'],['library','Моя полка'],['bookOpen','Читать'],['bookmark','Закладка'],['share','Поделиться'],['heart','Избранное'],['clock','Хочу прочитать'],['check','Прочитано'],['back','Назад'],['type','Шрифт'],['sunMoon','Оформление'],['sun','Светлая'],['moon','Тёмная']];
+  document.getElementById('iconset').innerHTML = all.map(([n,l])=>`<div>${ic(n)}${l}</div>`).join('');
+}
+function renderDynamic(){
+  document.getElementById('segDemo').innerHTML = segHTML();
+  document.getElementById('lookDemo').innerHTML = lookPanel();
+  document.getElementById('lookTop').innerHTML = lookPanel();
+  document.getElementById('phones').innerHTML = `
+    <div class="phone-wrap"><small>Главная</small><div class="phone" id="homePhone">${homeScreen()}</div></div>
+    <div class="phone-wrap"><small>Страница книги</small><div class="phone">${bookScreen()}</div></div>
+    <div class="phone-wrap"><small>Моя полка</small><div class="phone">${shelfScreen()}</div></div>
+    <div class="phone-wrap reader" data-rt="${rTheme}" style="--fs:${fs}px"><small>Читалка</small><div class="phone">${readerScreen()}</div></div>`;
+}
+function applyLook(){
+  document.body.dataset.theme = resolved();
+  document.querySelectorAll('[data-look]').forEach(b => b.setAttribute('aria-pressed', b.dataset.look === look));
+}
+
+document.addEventListener('click', e => {
+  const l = e.target.closest('[data-look]');
+  if (l){ look = l.dataset.look; try { localStorage.setItem('look', look); } catch(_) {} applyLook(); return; }
+  if (e.target.closest('[data-open-look]')) return document.getElementById('homePhone').classList.add('sheet-open');
+  if (e.target.closest('[data-close-look]')) return document.getElementById('homePhone').classList.remove('sheet-open');
+  const seg = e.target.closest('[data-seg]');
+  if (seg){ shelfTab = seg.dataset.seg; renderDynamic(); applyLook(); return; }
+  const th = e.target.closest('.th');
+  if (th){ rTheme = th.dataset.rt; const r = document.querySelector('.phone-wrap.reader'); r.dataset.rt = rTheme;
+    r.querySelectorAll('.th').forEach(x => x.setAttribute('aria-pressed', x === th)); return; }
+  const f = e.target.closest('[data-fs]');
+  if (f){ fs = Math.min(26, Math.max(14, fs + Number(f.dataset.fs))); const r = document.querySelector('.phone-wrap.reader');
+    r.style.setProperty('--fs', fs + 'px'); document.getElementById('fsVal').textContent = fs; }
+});
+sysDark.addEventListener('change', applyLook);
+
+try { look = localStorage.getItem('look') || 'auto'; } catch(_) {}
+if (!['auto','light','dark'].includes(look)) look = 'auto';
+renderStatic(); renderDynamic(); applyLook();
+</script>
+</body>
+</html>
