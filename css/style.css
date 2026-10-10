@@ -141,6 +141,9 @@ a { color: inherit; text-decoration: none; }
 .bcard { flex: none; width: 118px; scroll-snap-align: start; }
 .bcard .t { font-weight: 600; font-size: 14px; line-height: 1.25; margin-top: 10px; }
 .bcard .a { color: var(--muted); font-size: 13px; margin-top: 2px; }
+/* длинные названия обрезаем «…», чтобы карточки были ровными */
+.bcard .t, .row .t { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.bcard .a, .row .a { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 
 /* ---- Строка книги (списки) ---- */
 .row { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -197,6 +200,41 @@ body.sheet-open .sheet { transform: none; }
 .pv-auto { background: linear-gradient(90deg, #F6F1E8 50%, #141B17 50%); }
 .pv-light { background: #F6F1E8; color: #2A231C; }
 .pv-dark { background: #141B17; color: #E8DDC7; }
+
+/* ---- Поиск ---- */
+.search-field { cursor: text; }
+.search-field:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.search-field input {
+  flex: 1; min-width: 0; height: 100%;
+  border: 0; outline: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 16px; /* 16px: иначе iPhone приближает экран при вводе */
+}
+.search-field input::placeholder { color: var(--muted); }
+.search-field input::-webkit-search-cancel-button { display: none; }
+.clear { display: flex; color: var(--muted); padding: 6px; margin-right: -6px; }
+.clear[hidden] { display: none; }
+.clear .ic { width: 18px; height: 18px; }
+.sr-chips { margin-top: 12px; }
+.recent { display: flex; flex-wrap: wrap; gap: 8px; }
+.link { color: var(--muted); font-size: 14px; }
+.found { color: var(--muted); font-size: 13px; margin: 18px 0 2px; }
+.empty { padding: 48px 0 24px; }
+.empty-t { font-family: var(--head); font-weight: var(--head-w); font-size: 21px; }
+.empty-s { color: var(--muted); margin-top: 4px; }
+
+/* ---- Плашка «Демо-версия» и пустые подборки ---- */
+.demo-note {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-top: 14px; padding: 14px; border-radius: var(--r-card);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.demo-note .ic { color: var(--accent); width: 20px; height: 20px; margin-top: 1px; }
+.demo-note b { font-weight: 600; font-size: 15px; }
+.demo-note p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 2px; }
+.soon {
+  color: var(--muted); font-size: 14px;
+  padding: 14px; border-radius: var(--r-card); border: 1px dashed var(--line);
+}
 
 /* ---- Временная заглушка экрана (уберём, когда соберём все экраны) ---- */
 .stub { color: var(--muted); margin-top: 8px; }
