@@ -1,0 +1,202 @@
+/* =========================================================
+   Оформление приложения. Все цвета и размеры: design/design-system.md
+   ========================================================= */
+
+/* ---- Токены (переменные). Общие для обеих тем ---- */
+body {
+  --head: "Alegreya", Georgia, serif;
+  --head-w: 700;
+  --head-track: -0.015em;
+  --ui: "Onest", system-ui, sans-serif;
+  --r-card: 14px;
+  --r-btn: 12px;
+  --r-chip: 10px;
+  --r-cover: 5px;
+  --stroke: 1.75;
+  --side: 18px;          /* боковые поля экрана */
+  --tabbar-h: 64px;
+}
+
+/* Светлая тема: «Светлая лавка» */
+body[data-theme="light"] {
+  --bg: #F6F1E8; --surface: #FCF9F3; --text: #2A231C; --muted: #7A6E60; --line: #E6DED1;
+  --accent: #4E5A2B; --on-accent: #F8F4EA; --chip: #EDE6D9; --seg-on: var(--surface);
+  --shadow-cover: 0 1px 2px rgba(60,45,25,.08), 0 10px 22px -10px rgba(60,45,25,.28);
+  color-scheme: light;
+}
+
+/* Тёмная тема: цвета «Ночной библиотеки» */
+body[data-theme="dark"] {
+  --bg: #141B17; --surface: #1D2620; --text: #E8DDC7; --muted: #9C9482; --line: #2C3830;
+  --accent: #C7A35A; --on-accent: #17140E; --chip: #24302A; --seg-on: var(--line);
+  --shadow-cover: 0 2px 4px rgba(0,0,0,.35), 0 16px 32px -14px rgba(0,0,0,.8);
+  color-scheme: dark;
+}
+
+/* ---- Основа ---- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--ui); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .25s, color .25s;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+.ic { width: 22px; height: 22px; flex: none; stroke-width: var(--stroke); }
+
+/* Экран: одна колонка по ширине телефона, на компьютере по центру */
+#app {
+  max-width: 480px; margin: 0 auto;
+  padding: 20px var(--side) calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom));
+  min-height: 100vh;
+}
+.screen-in { animation: screenIn .25s ease-out; }
+@keyframes screenIn { from { opacity: 0; transform: translateY(6px); } }
+
+/* ---- Заголовки ---- */
+.hello { color: var(--muted); font-size: 14px; }
+.title {
+  font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track);
+  font-size: 34px; line-height: 1; margin: 2px 0 16px;
+}
+.home-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sec-h { display: flex; align-items: center; justify-content: space-between; margin: 26px 0 12px; }
+.sec-h h2 {
+  font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track);
+  font-size: 21px; line-height: 1.1;
+}
+.sec-h a { display: flex; align-items: center; gap: 2px; color: var(--muted); font-size: 14px; }
+.sec-h a .ic { width: 16px; height: 16px; }
+
+/* ---- Кнопки ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 48px; padding: 0 22px; border-radius: var(--r-btn);
+  font-weight: 600; font-size: 16px; transition: transform .12s;
+}
+.btn:active { transform: scale(.97); }
+.btn-main { background: var(--accent); color: var(--on-accent); }
+.btn-second { background: var(--chip); color: var(--text); }
+.btn-icon { width: 44px; height: 44px; padding: 0; background: var(--chip); }
+.btn-wide { flex: 1; }
+
+/* ---- Поле поиска ---- */
+.search {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  height: 46px; padding: 0 14px; border-radius: var(--r-btn);
+  background: var(--chip); color: var(--muted); font-size: 15px; text-align: left;
+}
+.search .ic { width: 20px; height: 20px; }
+
+/* ---- Чипы категорий ---- */
+.chips {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 calc(var(--side) * -1); padding: 0 var(--side) 2px;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; padding: 7px 14px; border-radius: var(--r-chip);
+  background: var(--chip); font-size: 14px; font-weight: 500; white-space: nowrap;
+}
+.chip.on { background: var(--text); color: var(--bg); }
+
+/* ---- Обложка ---- */
+.cover {
+  --cw: 118px;
+  width: var(--cw); aspect-ratio: 2 / 3; flex: none;
+  position: relative; overflow: hidden;
+  border-radius: var(--r-cover); box-shadow: var(--shadow-cover);
+  background: var(--c, var(--chip));
+}
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Обложка-образец, нарисованная кодом (пока нет настоящей картинки) */
+.cover.drawn {
+  color: #EFE3C6;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: calc(var(--cw)*.16) calc(var(--cw)*.12) calc(var(--cw)*.12) calc(var(--cw)*.16);
+}
+.cover.drawn::before {
+  content: ""; position: absolute; inset: 6% 6% 6% 10%;
+  border: 1px solid rgba(239,227,198,.32); pointer-events: none;
+}
+.cover.drawn::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 7%;
+  background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0));
+}
+.cv-ar { font-family: "Amiri", serif; font-size: calc(var(--cw)*.125); line-height: 1.3; direction: rtl; text-align: right; position: relative; }
+.cv-t { font-family: var(--head); font-weight: var(--head-w); font-size: calc(var(--cw)*.12); line-height: 1.05; letter-spacing: var(--head-track); position: relative; }
+.cv-a { display: block; font-family: var(--ui); font-size: calc(var(--cw)*.07); opacity: .75; margin-top: calc(var(--cw)*.05); font-weight: 500; }
+
+/* ---- Лента обложек (Новинки, Популярное) ---- */
+.shelf-row {
+  display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 calc(var(--side) * -1); padding: 4px var(--side) 10px;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--side); /* чтобы первая книга не прилипала к краю */
+}
+.shelf-row::-webkit-scrollbar { display: none; }
+.bcard { flex: none; width: 118px; scroll-snap-align: start; }
+.bcard .t { font-weight: 600; font-size: 14px; line-height: 1.25; margin-top: 10px; }
+.bcard .a { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* ---- Строка книги (списки) ---- */
+.row { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row .cover { --cw: 52px; }
+.row .tx { flex: 1; min-width: 0; }
+.row .t { font-weight: 600; font-size: 15px; line-height: 1.25; }
+.row .a { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* ---- Карточка «Продолжить» ---- */
+.cont { display: flex; gap: 14px; align-items: center; background: var(--surface); border-radius: var(--r-card); padding: 12px; }
+body[data-theme="dark"] .cont { border: 1px solid var(--line); }
+.cont .cover { --cw: 56px; }
+.cont .tx { flex: 1; min-width: 0; }
+.cont .t { font-weight: 600; font-size: 15px; line-height: 1.25; }
+.cont .a { color: var(--muted); font-size: 13px; }
+.bar { height: 4px; border-radius: 4px; background: var(--line); margin-top: 10px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+.cont .p { font-size: 12px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+/* ---- Нижнее меню ---- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: flex; justify-content: center;
+  background: var(--bg); border-top: 1px solid var(--line);
+  padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+}
+.tabbar-in { display: flex; justify-content: space-around; width: 100%; max-width: 480px; }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; color: var(--muted); min-width: 72px; }
+.tab.on { color: var(--accent); }
+body[data-theme="light"] .tab.on { color: var(--text); }
+
+/* ---- Панель «Оформление» ---- */
+.scrim {
+  position: fixed; inset: 0; z-index: 20; background: rgba(10,8,5,.4);
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
+  max-width: 480px; margin: 0 auto;
+  background: var(--surface); border-radius: 22px 22px 0 0;
+  padding: 10px var(--side) calc(28px + env(safe-area-inset-bottom));
+  transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+}
+.sheet::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto 14px; }
+body.sheet-open .scrim { opacity: 1; pointer-events: auto; }
+body.sheet-open .sheet { transform: none; }
+.look-h { font-weight: 600; font-size: 15px; }
+.looks { display: flex; gap: 8px; margin-top: 10px; }
+.look { flex: 1; min-width: 0; border-radius: var(--r-btn); padding: 8px; background: var(--bg); font-size: 12px; font-weight: 500; text-align: left; }
+.look[aria-pressed="true"] { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.look .pv { height: 44px; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+.look .pv .ic { width: 20px; height: 20px; }
+.pv-auto { background: linear-gradient(90deg, #F6F1E8 50%, #141B17 50%); }
+.pv-light { background: #F6F1E8; color: #2A231C; }
+.pv-dark { background: #141B17; color: #E8DDC7; }
+
+/* ---- Временная заглушка экрана (уберём, когда соберём все экраны) ---- */
+.stub { color: var(--muted); margin-top: 8px; }

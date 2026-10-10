@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Исламские книги</title>
+
+  <!-- Шрифты: Alegreya (заголовки), Onest (интерфейс), Amiri (арабский), Literata (чтение) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Amiri:wght@400;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="light">
+
+  <!-- Сюда app.js вставляет текущий экран -->
+  <main id="app"></main>
+
+  <!-- Нижнее меню: три вкладки -->
+  <nav class="tabbar" id="tabbar"></nav>
+
+  <!-- Выезжающая панель «Оформление» -->
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet"></div>
+
+  <!-- Сначала данные, потом логика -->
+  <script src="data/books.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
