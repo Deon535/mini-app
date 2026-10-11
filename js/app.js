@@ -20,7 +20,8 @@ const ICONS = {
   bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
   heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
   clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
-  check: '<path d="M20 6 9 17l-5-5"/>'
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  type: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>'
 };
 const icon = name =>
   `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -172,7 +173,7 @@ function homeScreen() {
   const reading = Object.keys(progress).map(bookById).filter(Boolean);
   const continueBlock = reading.length ? `
     <div class="sec-h"><h2>Продолжить</h2></div>
-    ${reading.map(b => `<a class="cont" href="#/read/${b.id}">${cover(b)}<div class="tx">
+    ${reading.map(b => `<a class="cont" href="#/sample">${cover(b)}<div class="tx">
       <div class="t">${b.title}</div><div class="a">${byline(b)}</div>
       <div class="bar"><i style="width:${progress[b.id]}%"></i></div>
       <div class="p">Прочитано ${progress[b.id]}%</div></div></a>`).join('')}` : '';
@@ -401,8 +402,113 @@ function mountShelf() {
   });
 }
 
-// Временная заглушка для экранов, которые соберём на следующих шагах
-const stub = title => `<h1 class="title">${title}</h1><p class="stub">Этот экран соберём на следующем шаге.</p>`;
+/* ---------- Читалка ---------- */
+
+// «Читать» у любой книги: полной книги пока нет, предлагаем посмотреть пробную главу
+function readIntroScreen(id) {
+  const b = bookById(id);
+  if (!b) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
+  const S = window.SAMPLE;
+  const example = b.id === S.bookId
+    ? 'на примере первого хадиса этой книги'
+    : `на примере первого хадиса из книги «${S.bookTitle}» имама ан-Навави`;
+  return `
+    ${topbar()}
+    <div class="ri-book">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${byline(b)}</div></div></div>
+    <h1 class="ri-h">Полная книга появится здесь в будущем, ин ша Аллах</h1>
+    <p class="ri-p">Мы готовим удобное чтение прямо в приложении: книжный шрифт, спокойные темы и место, где вы остановились. А пока можно посмотреть, как это будет выглядеть, ${example}.</p>
+    <a class="btn btn-main ri-btn" href="#/sample">${icon('bookOpen')}Посмотреть, как будет выглядеть чтение</a>`;
+}
+
+// Темы читалки (свои, не зависят от темы приложения) и размер шрифта
+const READER_THEMES = [
+  { key: 'paper', name: 'Бумага' },
+  { key: 'matn',  name: 'Матн' },
+  { key: 'white', name: 'Белая' }
+];
+const FS_MIN = 14, FS_MAX = 26;
+let reader = { theme: 'paper', fs: 18, ...store.get('reader', {}) };
+
+function applyReader() {
+  document.body.dataset.rt = reader.theme;
+  document.body.style.setProperty('--fs', reader.fs + 'px');
+  document.querySelectorAll('[data-rtheme]').forEach(b => b.setAttribute('aria-pressed', b.dataset.rtheme === reader.theme));
+  const v = document.getElementById('fs-val');
+  if (v) v.textContent = reader.fs;
+}
+
+function sampleScreen() {
+  const S = window.SAMPLE;
+  return `
+    <div class="topbar rd-top">
+      <button class="btn btn-icon" data-action="back" aria-label="Назад">${icon('back')}</button>
+      <span class="rd-book">${S.bookTitle}</span>
+      <button class="btn btn-icon" data-action="rd-panel" aria-label="Шрифт и тема">${icon('type')}</button>
+    </div>
+    <article class="rd">
+      <h1 class="rd-h">${S.heading}</h1>
+      <p class="rd-sub">${S.sub}</p>
+      <p class="rd-ar" lang="ar" dir="rtl">${S.ar}</p>
+      ${S.ru.map(p => `<p class="rd-p">${p}</p>`).join('')}
+      <p class="rd-src">${S.source}</p>
+      <h2 class="rd-h2">${S.notesTitle}</h2>
+      ${S.notes.map(p => `<p class="rd-p">${p}</p>`).join('')}
+      <p class="rd-note">${S.demoNote}</p>
+    </article>
+    <div class="rd-prog"><span>${S.place}</span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
+    <div class="rd-panel" id="rd-panel">
+      <div class="themes">${READER_THEMES.map(t =>
+        `<button class="th th-${t.key}" data-rtheme="${t.key}"><i>Аа</i>${t.name}</button>`).join('')}</div>
+      <div class="sizes">
+        <button data-fs="-1" aria-label="Шрифт меньше" class="fs-s">А</button>
+        <span id="fs-val"></span>
+        <button data-fs="1" aria-label="Шрифт больше" class="fs-l">А</button>
+      </div>
+    </div>`;
+}
+
+// Прогресс: сколько процентов главы человек пролистал. Запоминаем, чтобы вернуть на то же место
+function mountSample() {
+  const id = window.SAMPLE.bookId;
+  const bar = document.getElementById('rd-bar');
+  const pct = document.getElementById('rd-pct');
+  const scrollable = () => document.documentElement.scrollHeight - innerHeight;
+
+  function show(p) { bar.style.width = p + '%'; pct.textContent = p + '%'; }
+  const current = () => scrollable() > 0 ? Math.min(100, Math.round(scrollY / scrollable() * 100)) : 0;
+
+  let timer;
+  function onScroll() {
+    const max = scrollable();
+    if (max <= 0) return;
+    const p = current();
+    show(p);
+    clearTimeout(timer); // сохраняем, когда человек перестал листать
+    timer = setTimeout(() => {
+      store.set('progress', { ...store.get('progress', {}), [id]: Math.max(p, 1) });
+      store.set('readPos', scrollY / max);
+    }, 300);
+  }
+
+  let alive = true;
+  applyReader();
+  // Возвращаем на место, где человек остановился (после загрузки шрифтов, иначе высота текста другая)
+  document.fonts.ready.then(() => {
+    if (!alive) return; // человек уже ушёл с экрана
+    const pos = store.get('readPos', 0);
+    if (pos > 0) scrollTo(0, pos * scrollable());
+    show(current());
+    addEventListener('scroll', onScroll, { passive: true });
+  });
+
+  // уборка при уходе с экрана
+  return () => {
+    alive = false;
+    removeEventListener('scroll', onScroll);
+    delete document.body.dataset.rt;
+    document.body.classList.remove('rd-panel-open');
+  };
+}
 
 /* ---------- Маршруты ----------
    Адрес после # говорит, какой экран открыть:
@@ -419,7 +525,8 @@ const ROUTES = [
   { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: bookScreen },
   { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen },
   { re: /^#\/shelf(?:\/(fav|want|done))?$/, tab: 'shelf', view: shelfScreen, mount: mountShelf },
-  { re: /^#\/read\/(\d+)$/,        tab: null,     view: () => stub('Читалка') }
+  { re: /^#\/read\/(\d+)$/,        tab: 'home',   view: readIntroScreen },
+  { re: /^#\/sample$/,             tab: null,     view: sampleScreen, mount: mountSample }
 ];
 
 function renderTabbar(active) {
@@ -431,7 +538,10 @@ function renderTabbar(active) {
     ${tab('#/shelf', 'library', 'Моя полка', 'shelf')}</div>`;
 }
 
+let cleanup = null; // что убрать за прошлым экраном (например, слежение за прокруткой в читалке)
+
 function router() {
+  if (cleanup) { cleanup(); cleanup = null; }
   const hash = location.hash || '#/';
   const route = ROUTES.find(r => r.re.test(hash)) || ROUTES[0];
   const params = hash.match(route.re).slice(1).map(p => p && decodeURIComponent(p));
@@ -442,7 +552,7 @@ function router() {
   renderTabbar(route.tab);
   closeSheet();
   window.scrollTo(0, 0);
-  if (route.mount) route.mount(...params); // «после показа»: оживляем поля ввода и т.п.
+  if (route.mount) cleanup = route.mount(...params) || null; // «после показа»: оживляем поля ввода и т.п.
 }
 
 /* ---------- Нажатия ---------- */
@@ -451,6 +561,18 @@ document.addEventListener('click', e => {
   if (t.closest('[data-action="open-look"]')) return openLookSheet();
   if (t.closest('#scrim')) return closeSheet();
   if (t.closest('[data-action="back"]')) return goBack();
+
+  // Читалка: панель «Aa» (тема и размер шрифта)
+  if (t.closest('[data-action="rd-panel"]')) return document.body.classList.toggle('rd-panel-open');
+  const rt = t.closest('[data-rtheme]');
+  if (rt) { reader.theme = rt.dataset.rtheme; store.set('reader', reader); return applyReader(); }
+  const fs = t.closest('[data-fs]');
+  if (fs) {
+    reader.fs = Math.min(FS_MAX, Math.max(FS_MIN, reader.fs + Number(fs.dataset.fs)));
+    store.set('reader', reader);
+    return applyReader();
+  }
+  if (t.closest('.rd')) document.body.classList.remove('rd-panel-open'); // нажал на текст: панель прячем
 
   const share = t.closest('[data-action="share"]');
   if (share) return shareBook(Number(share.dataset.id));
