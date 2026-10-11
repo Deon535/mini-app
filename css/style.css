@@ -111,7 +111,8 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--r-cover); box-shadow: var(--shadow-cover);
   background: var(--c, var(--chip));
 }
-.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .3s; }
+.cover img.on { opacity: 1; }
 /* Обложка-образец, нарисованная кодом (пока нет настоящей картинки) */
 .cover.drawn {
   color: #EFE3C6;
@@ -333,12 +334,23 @@ body[data-rt] #app { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 .rd-book { position: absolute; left: 52px; right: 52px; text-align: center; font-size: 13px; color: var(--rm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .rd { max-width: 34em; margin: 0 auto; padding: 0 4px; font-family: "Literata", Georgia, serif; }
-.rd-h { font-weight: 600; font-size: calc(var(--fs) * 1.35); line-height: 1.15; color: var(--rr); margin-top: 10px; }
-.rd-sub { font-size: calc(var(--fs) * .85); color: var(--rm); margin: 2px 0 22px; }
-.rd-ar { font-family: "Amiri", serif; font-size: calc(var(--fs) * 1.33); line-height: 2; direction: rtl; text-align: right; margin-bottom: 20px; }
+.rd-label { font-family: var(--ui); font-size: 13px; color: var(--rm); margin: 6px 0 14px; }
+/* Арабская часть: заголовок, текст хадиса, кто привёл */
+.rd-ar-h { font-family: "Amiri", serif; font-weight: 700; font-size: calc(var(--fs) * 1.5); line-height: 1.6; color: var(--rr); text-align: right; margin-bottom: 10px; }
+.rd-ar { font-family: "Amiri", serif; font-size: calc(var(--fs) * 1.33); line-height: 2; text-align: right; margin-bottom: 8px; }
+.rd-ar-hadith { font-weight: 700; }
+/* Русская часть */
+.rd-h { font-weight: 600; font-size: calc(var(--fs) * 1.3); line-height: 1.2; color: var(--rr); margin: 32px 0 14px; text-wrap: balance; }
 .rd-p { font-size: var(--fs); line-height: 1.65; margin-bottom: 14px; hyphens: auto; }
-.rd-src { font-size: calc(var(--fs) * .85); color: var(--rm); margin-top: -4px; }
-.rd-h2 { font-weight: 600; font-size: calc(var(--fs) * 1.1); color: var(--rr); margin: 28px 0 10px; }
+.rd-p b { font-weight: 600; }
+.rd-p i { font-style: normal; font-weight: 400; color: var(--rm); } /* слова в скобках от переводчика */
+.hon { font-family: "Amiri", serif; font-weight: 400; font-size: .9em; white-space: nowrap; }
+/* Кто привёл хадис: светлее основного текста, в теме «Матн» красной «рубрикой», как в старых книгах */
+.rd-src { color: var(--rm); }
+.rd-ar.rd-src { font-size: calc(var(--fs) * 1.15); margin-top: 14px; }
+.rd-p.rd-src { font-size: calc(var(--fs) * .9); }
+body[data-rt="matn"] .rd-src { color: var(--rr); }
+.rd-foot { font-size: calc(var(--fs) * .75); color: var(--rm); margin-top: 18px; }
 .rd-note {
   font-family: var(--ui); font-size: 13px; line-height: 1.5; color: var(--rm);
   border-top: 1px solid var(--rline); padding-top: 14px; margin-top: 24px;

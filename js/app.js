@@ -83,7 +83,8 @@ const bookById = id => BOOKS.find(b => b.id === Number(id));
 
 // Обложка: настоящая картинка, если есть, иначе обложка-образец
 function cover(b) {
-  if (b.cover) return `<div class="cover"><img src="${b.cover}" alt="" loading="lazy"></div>`;
+  // пока картинка грузится, видна плашка нужного размера; загрузилась: плавно проявляется
+  if (b.cover) return `<div class="cover"><img src="${b.cover}" alt="" loading="lazy" onload="this.classList.add('on')"></div>`;
   return `<div class="cover drawn" style="--c:${b.color}">
     <div class="cv-ar">${b.titleAr || ''}</div>
     <div class="cv-t">${b.title}<span class="cv-a">${b.author}</span></div>
@@ -530,13 +531,17 @@ function sampleScreen() {
       <button class="btn btn-icon" data-action="rd-panel" aria-label="Шрифт и тема">${icon('type')}</button>
     </div>
     <article class="rd">
-      <h1 class="rd-h">${S.heading}</h1>
-      <p class="rd-sub">${S.sub}</p>
-      <p class="rd-ar" lang="ar" dir="rtl">${S.ar}</p>
-      ${S.ru.map(p => `<p class="rd-p">${p}</p>`).join('')}
-      <p class="rd-src">${S.source}</p>
-      <h2 class="rd-h2">${S.notesTitle}</h2>
-      ${S.notes.map(p => `<p class="rd-p">${p}</p>`).join('')}
+      <p class="rd-label">${S.label}</p>
+      <div lang="ar" dir="rtl">
+        <h1 class="rd-ar-h">${S.arTitle}</h1>
+        <p class="rd-ar">${S.arIntro}</p>
+        <p class="rd-ar rd-ar-hadith">${S.arHadith}</p>
+        <p class="rd-ar rd-src">${S.arSource}</p>
+      </div>
+      <h2 class="rd-h">${S.ruTitle}</h2>
+      <p class="rd-p">${S.ruText}</p>
+      <p class="rd-p rd-src">${S.ruSource}</p>
+      <p class="rd-foot">${S.source}</p>
       <p class="rd-note">${S.demoNote}</p>
     </article>
     <div class="rd-prog"><span>${S.place}</span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
