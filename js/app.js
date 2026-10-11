@@ -542,8 +542,14 @@ let cleanup = null; // что убрать за прошлым экраном (�
 
 function router() {
   if (cleanup) { cleanup(); cleanup = null; }
-  const hash = location.hash || '#/';
-  const route = ROUTES.find(r => r.re.test(hash)) || ROUTES[0];
+  let hash = location.hash || '#/';
+  let route = ROUTES.find(r => r.re.test(hash));
+  // Незнакомый адрес (например, Telegram при запуске дописывает #tgWebAppData=...): открываем главную
+  if (!route) {
+    hash = '#/';
+    route = ROUTES[0];
+    history.replaceState(history.state, '', location.pathname + location.search + hash);
+  }
   const params = hash.match(route.re).slice(1).map(p => p && decodeURIComponent(p));
 
   const app = document.getElementById('app');
