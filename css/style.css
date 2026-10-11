@@ -191,7 +191,7 @@ body[data-theme="light"] .tab.on { color: var(--text); }
 .sheet::before { content: ""; display: block; width: 36px; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto 14px; }
 body.sheet-open .scrim { opacity: 1; pointer-events: auto; }
 body.sheet-open .sheet { transform: none; }
-.look-h { font-weight: 600; font-size: 15px; }
+.sheet-h { font-weight: 600; font-size: 15px; }
 .looks { display: flex; gap: 8px; margin-top: 10px; }
 .look { flex: 1; min-width: 0; border-radius: var(--r-btn); padding: 8px; background: var(--bg); font-size: 12px; font-weight: 500; text-align: left; }
 .look[aria-pressed="true"] { box-shadow: inset 0 0 0 1.5px var(--accent); }
@@ -235,6 +235,59 @@ body.sheet-open .sheet { transform: none; }
   color: var(--muted); font-size: 14px;
   padding: 14px; border-radius: var(--r-card); border: 1px dashed var(--line);
 }
+
+/* ---- Верхняя полоска («Назад», «Поделиться») ---- */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin: -6px -4px 10px; }
+.topbar .btn-icon { background: transparent; }
+.empty-btn { margin-top: 20px; }
+
+/* ---- Страница книги ---- */
+.bk-cover { width: 160px; margin: 0 auto 24px; }
+.bk-cover .cover { --cw: 160px; }
+.bk-meta { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+.bk-cat { font-size: 13px; color: var(--muted); }
+.bk-ar { font-family: "Amiri", serif; font-size: 20px; line-height: 1.4; color: var(--muted); direction: rtl; text-align: right; }
+.bk-title {
+  font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track);
+  font-size: 28px; line-height: 1.1; margin: 6px 0 8px; text-wrap: balance;
+}
+.bk-author {
+  color: var(--accent); font-weight: 500;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.bk-facts { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.bk-actions { display: flex; gap: 10px; margin: 20px 0 22px; }
+.bk-actions .btn-second .ic { width: 20px; height: 20px; }
+.bk-desc { font-size: 15px; line-height: 1.6; max-width: 65ch; }
+.bk-desc-none { color: var(--muted); }
+
+/* ---- Панель «На полку» ---- */
+.shelf-opts { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.shelf-opt {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  height: 52px; padding: 0 14px; border-radius: var(--r-btn);
+  background: var(--bg); font-weight: 500; text-align: left;
+}
+.shelf-opt span { flex: 1; }
+.shelf-opt .ic { width: 20px; height: 20px; color: var(--muted); }
+.shelf-opt .ic:last-child { opacity: 0; color: var(--accent); }
+.shelf-opt[aria-pressed="true"] { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.shelf-opt[aria-pressed="true"] .ic:first-child { color: var(--accent); }
+.shelf-opt[aria-pressed="true"] .ic:last-child { opacity: 1; }
+
+/* ---- Страница автора ---- */
+.au-label { color: var(--muted); font-size: 14px; }
+.au-name { font-size: 30px; line-height: 1.1; margin-bottom: 6px; text-wrap: balance; }
+.au-count { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+
+/* ---- Короткое сообщение внизу ---- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + 24px + env(safe-area-inset-bottom)); z-index: 30;
+  transform: translate(-50%, 8px); opacity: 0; pointer-events: none;
+  background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: var(--r-btn);
+  font-size: 14px; font-weight: 500; transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
 
 /* ---- Временная заглушка экрана (уберём, когда соберём все экраны) ---- */
 .stub { color: var(--muted); margin-top: 8px; }

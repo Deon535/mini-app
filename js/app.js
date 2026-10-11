@@ -13,7 +13,14 @@ const ICONS = {
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
-  sunMoon: '<path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>'
+  sunMoon: '<path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+  back: '<path d="m15 18-6-6 6-6"/>',
+  share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
+  bookOpen: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>'
 };
 const icon = name =>
   `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -46,7 +53,9 @@ function cover(b) {
 // Подпись под названием: автор, а если он не указан, то категория
 const byline = b => b.author || b.category;
 const bookCard = b => `<a class="bcard" href="#/book/${b.id}">${cover(b)}<div class="t">${b.title}</div><div class="a">${byline(b)}</div></a>`;
-const bookRow = b => `<a class="row" href="#/book/${b.id}">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${byline(b)}</div></div></a>`;
+// Строка книги; sub: подпись под названием (по умолчанию автор)
+const rowWith = (b, sub) => `<a class="row" href="#/book/${b.id}">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${sub}</div></div></a>`;
+const bookRow = b => rowWith(b, byline(b));
 
 // Заглушка для пустой подборки
 const SOON = 'Здесь, ин ша Аллах, появятся книги.';
@@ -66,17 +75,88 @@ function applyTheme() {
 }
 deviceDark.addEventListener('change', applyTheme);
 
-function renderSheet() {
-  document.getElementById('sheet').innerHTML = `
-    <div class="look-h">Оформление</div>
+// Выезжающая панель снизу. Одна на всё приложение: в неё кладём то «Оформление», то «На полку»
+function openSheet(html) {
+  document.getElementById('sheet').innerHTML = html;
+  document.body.classList.add('sheet-open');
+}
+const closeSheet = () => document.body.classList.remove('sheet-open');
+
+function openLookSheet() {
+  openSheet(`
+    <div class="sheet-h">Оформление</div>
     <div class="looks">
       <button class="look" data-look="auto"><div class="pv pv-auto"></div>Как в Telegram</button>
       <button class="look" data-look="light"><div class="pv pv-light">${icon('sun')}</div>Светлая</button>
       <button class="look" data-look="dark"><div class="pv pv-dark">${icon('moon')}</div>Тёмная</button>
-    </div>`;
+    </div>`);
+  applyTheme(); // отметить выбранный вариант
 }
-const openSheet = () => document.body.classList.add('sheet-open');
-const closeSheet = () => document.body.classList.remove('sheet-open');
+
+/* ---------- Моя полка ----------
+   Три списка номеров книг. «Хочу прочитать» и «Прочитано» не бывают вместе. */
+const SHELVES = [
+  { key: 'fav',  name: 'Избранное',      icon: 'heart' },
+  { key: 'want', name: 'Хочу прочитать', icon: 'clock' },
+  { key: 'done', name: 'Прочитано',      icon: 'check' }
+];
+const getShelf = () => ({ fav: [], want: [], done: [], ...store.get('shelf', {}) });
+const onShelf = (key, id) => getShelf()[key].includes(id);
+const onAnyShelf = id => SHELVES.some(s => onShelf(s.key, id));
+
+function toggleShelf(key, id) {
+  const shelf = getShelf();
+  if (shelf[key].includes(id)) {
+    shelf[key] = shelf[key].filter(x => x !== id);
+  } else {
+    shelf[key].unshift(id); // новые сверху
+    const other = { want: 'done', done: 'want' }[key];
+    if (other) shelf[other] = shelf[other].filter(x => x !== id);
+  }
+  store.set('shelf', shelf);
+}
+
+const shelfBtnHTML = id => onAnyShelf(id) ? `${icon('check')}На полке` : `${icon('bookmark')}На полку`;
+
+function openShelfSheet(id) {
+  openSheet(`
+    <div class="sheet-h">Добавить на полку</div>
+    <div class="shelf-opts">${SHELVES.map(s => `
+      <button class="shelf-opt" data-shelf="${s.key}" data-id="${id}" aria-pressed="${onShelf(s.key, id)}">
+        ${icon(s.icon)}<span>${s.name}</span>${icon('check')}
+      </button>`).join('')}
+    </div>`);
+}
+
+/* ---------- Короткое сообщение внизу («Ссылка скопирована») ---------- */
+let toastTimer;
+function toast(text) {
+  let el = document.getElementById('toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; document.body.append(el); }
+  el.textContent = text;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 2200);
+}
+
+// «Поделиться»: на телефоне откроется системное меню, на компьютере ссылка скопируется.
+// На Этапе 3 заменим на ссылку Telegram (startapp), чтобы друг открыл книгу прямо в приложении.
+async function shareBook(id) {
+  const b = bookById(id);
+  const url = location.href.split('#')[0] + `#/book/${id}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: b.title, text: b.title, url }); } catch (e) {}
+    return;
+  }
+  try { await navigator.clipboard.writeText(url); toast('Ссылка скопирована'); }
+  catch (e) { toast('Не получилось скопировать ссылку'); }
+}
+
+// «Назад»: если человек пришёл в приложение сразу на эту страницу (по ссылке), ведём на главную
+function goBack() {
+  if (history.state && history.state.first) location.hash = '#/';
+  else history.back();
+}
 
 /* ---------- Экраны ---------- */
 
@@ -224,6 +304,64 @@ function mountSearch(category) {
   if (!cat) input.focus();
 }
 
+// Верхняя полоска с кнопкой «Назад» (и, если нужно, кнопкой справа)
+const topbar = (right = '') =>
+  `<div class="topbar"><button class="btn btn-icon" data-action="back" aria-label="Назад">${icon('back')}</button>${right}</div>`;
+
+// Страница «не нашлось» (например, открыли старую ссылку на книгу, которой нет)
+const notFound = (title, text) => `${topbar()}
+  <div class="empty"><p class="empty-t">${title}</p><p class="empty-s">${text}</p>
+  <a class="btn btn-second empty-btn" href="#/">На главную</a></div>`;
+
+const authorLink = name => `#/author/${encodeURIComponent(name)}`;
+
+// Страница книги
+function bookScreen(id) {
+  const b = bookById(id);
+  if (!b) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
+
+  const similar = BOOKS.filter(x => x.category === b.category && x.id !== b.id);
+  return `
+    ${topbar(`<button class="btn btn-icon" data-action="share" data-id="${b.id}" aria-label="Поделиться">${icon('share')}</button>`)}
+    <div class="bk-cover">${cover(b)}</div>
+    <div class="bk-meta">
+      <a class="bk-cat" href="#/search/cat/${encodeURIComponent(b.category)}">${b.category}</a>
+      ${b.titleAr ? `<span class="bk-ar" lang="ar">${b.titleAr}</span>` : ''}
+    </div>
+    <h1 class="bk-title">${b.title}</h1>
+    ${b.author ? `<a class="bk-author" href="${authorLink(b.author)}">${b.author}</a>` : ''}
+    ${b.facts ? `<p class="bk-facts">${b.facts}</p>` : ''}
+    <div class="bk-actions">
+      <a class="btn btn-main btn-wide" href="#/read/${b.id}">${icon('bookOpen')}Читать</a>
+      <button class="btn btn-second" data-action="shelf" data-id="${b.id}">${shelfBtnHTML(b.id)}</button>
+    </div>
+    ${b.description ? `<p class="bk-desc">${b.description}</p>` : `<p class="bk-desc bk-desc-none">Описание появится позже.</p>`}
+    ${similar.length ? `
+      <div class="sec-h"><h2>Похожие</h2></div>
+      <div class="shelf-row">${similar.map(bookCard).join('')}</div>` : ''}
+  `;
+}
+
+// «1 книга / 2 книги / 5 книг»
+function booksCount(n) {
+  const d = n % 10, dd = n % 100;
+  const word = d === 1 && dd !== 11 ? 'книга' : d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? 'книги' : 'книг';
+  return `${n} ${word}`;
+}
+
+// Страница автора
+function authorScreen(name) {
+  const books = BOOKS.filter(b => b.author === name);
+  if (!books.length) return notFound('Автор не найден', 'Возможно, ссылка устарела. Попробуйте найти книгу через поиск.');
+  return `
+    ${topbar()}
+    <p class="au-label">Автор</p>
+    <h1 class="title au-name">${name}</h1>
+    <p class="au-count">${booksCount(books.length)} в библиотеке</p>
+    <div class="au-list">${books.map(b => rowWith(b, b.category)).join('')}</div>
+  `;
+}
+
 // Временная заглушка для экранов, которые соберём на следующих шагах
 const stub = title => `<h1 class="title">${title}</h1><p class="stub">Этот экран соберём на следующем шаге.</p>`;
 
@@ -239,8 +377,8 @@ const stub = title => `<h1 class="title">${title}</h1><p class="stub">Этот �
 const ROUTES = [
   { re: /^#?\/?$/,                 tab: 'home',   view: homeScreen },
   { re: /^#\/search(?:\/cat\/(.+))?$/, tab: 'search', view: searchScreen, mount: mountSearch },
-  { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: () => stub('Книга') },
-  { re: /^#\/author\/(.+)$/,       tab: 'home',   view: () => stub('Автор') },
+  { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: bookScreen },
+  { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen },
   { re: /^#\/shelf$/,              tab: 'shelf',  view: () => stub('Моя полка') },
   { re: /^#\/read\/(\d+)$/,        tab: null,     view: () => stub('Читалка') }
 ];
@@ -270,14 +408,34 @@ function router() {
 
 /* ---------- Нажатия ---------- */
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-action="open-look"]')) return openSheet();
-  if (e.target.closest('#scrim')) return closeSheet();
-  const l = e.target.closest('[data-look]');
+  const t = e.target;
+  if (t.closest('[data-action="open-look"]')) return openLookSheet();
+  if (t.closest('#scrim')) return closeSheet();
+  if (t.closest('[data-action="back"]')) return goBack();
+
+  const share = t.closest('[data-action="share"]');
+  if (share) return shareBook(Number(share.dataset.id));
+
+  const shelfBtn = t.closest('[data-action="shelf"]');
+  if (shelfBtn) return openShelfSheet(Number(shelfBtn.dataset.id));
+
+  // Выбрали список в панели «На полку»: обновляем панель и кнопку на странице
+  const opt = t.closest('[data-shelf]');
+  if (opt) {
+    const id = Number(opt.dataset.id);
+    toggleShelf(opt.dataset.shelf, id);
+    openShelfSheet(id);
+    const btn = document.querySelector(`[data-action="shelf"][data-id="${id}"]`);
+    if (btn) btn.innerHTML = shelfBtnHTML(id);
+    return;
+  }
+
+  const l = t.closest('[data-look]');
   if (l) { look = l.dataset.look; store.set('look', look); applyTheme(); }
 });
 
 /* ---------- Запуск ---------- */
-renderSheet();
+history.replaceState({ first: true }, ''); // метка «отсюда человек вошёл» (для кнопки «Назад»)
 applyTheme();
 window.addEventListener('hashchange', router);
 router();
