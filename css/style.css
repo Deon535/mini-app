@@ -275,6 +275,17 @@ body.sheet-open .sheet { transform: none; }
 .shelf-opt[aria-pressed="true"] .ic:first-child { color: var(--accent); }
 .shelf-opt[aria-pressed="true"] .ic:last-child { opacity: 1; }
 
+/* ---- Переключатель-сегменты (вкладки полки) ---- */
+.seg { display: flex; gap: 2px; padding: 3px; border-radius: var(--r-btn); background: var(--chip); }
+.seg button {
+  flex: 1; min-width: 0; height: 36px; padding: 0 6px;
+  border-radius: calc(var(--r-btn) - 3px);
+  font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap;
+  transition: background .2s, color .2s;
+}
+.seg button[aria-selected="true"] { background: var(--seg-on); color: var(--text); }
+.empty-btn .ic { width: 18px; height: 18px; }
+
 /* ---- Страница автора ---- */
 .au-label { color: var(--muted); font-size: 14px; }
 .au-name { font-size: 30px; line-height: 1.1; margin-bottom: 6px; text-wrap: balance; }

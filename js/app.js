@@ -362,6 +362,45 @@ function authorScreen(name) {
   `;
 }
 
+// Моя полка: вкладки-сегменты и список книг выбранной вкладки
+const SHELF_EMPTY = {
+  fav:  ['Здесь будут любимые книги', 'Откройте книгу, нажмите «На полку» и выберите «Избранное».'],
+  want: ['Здесь будут книги на потом', 'Откройте книгу, нажмите «На полку» и выберите «Хочу прочитать».'],
+  done: ['Здесь будут прочитанные книги', 'Откройте книгу, нажмите «На полку» и выберите «Прочитано».']
+};
+
+function shelfList(key) {
+  const books = getShelf()[key].map(bookById).filter(Boolean);
+  if (!books.length) {
+    const [t, s] = SHELF_EMPTY[key];
+    return `<div class="empty"><p class="empty-t">${t}</p><p class="empty-s">${s}</p>
+      <a class="btn btn-second empty-btn" href="#/search">${icon('search')}Найти книгу</a></div>`;
+  }
+  return `<p class="found">${booksCount(books.length)}</p>${books.map(bookRow).join('')}`;
+}
+
+function shelfScreen(tab) {
+  const key = tab || store.get('shelfTab', 'fav');
+  return `
+    <h1 class="title">Моя полка</h1>
+    <div class="seg" role="tablist">${SHELVES.map(s =>
+      `<button role="tab" data-seg="${s.key}" aria-selected="${s.key === key}">${s.name}</button>`).join('')}
+    </div>
+    <div id="shelf-list">${shelfList(key)}</div>`;
+}
+
+function mountShelf() {
+  document.querySelector('.seg').addEventListener('click', e => {
+    const b = e.target.closest('[data-seg]');
+    if (!b) return;
+    const key = b.dataset.seg;
+    store.set('shelfTab', key); // в следующий раз откроем ту же вкладку
+    document.querySelectorAll('.seg [data-seg]').forEach(x => x.setAttribute('aria-selected', x === b));
+    document.getElementById('shelf-list').innerHTML = shelfList(key);
+    history.replaceState(history.state, '', `#/shelf/${key}`);
+  });
+}
+
 // Временная заглушка для экранов, которые соберём на следующих шагах
 const stub = title => `<h1 class="title">${title}</h1><p class="stub">Этот экран соберём на следующем шаге.</p>`;
 
@@ -379,7 +418,7 @@ const ROUTES = [
   { re: /^#\/search(?:\/cat\/(.+))?$/, tab: 'search', view: searchScreen, mount: mountSearch },
   { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: bookScreen },
   { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen },
-  { re: /^#\/shelf$/,              tab: 'shelf',  view: () => stub('Моя полка') },
+  { re: /^#\/shelf(?:\/(fav|want|done))?$/, tab: 'shelf', view: shelfScreen, mount: mountShelf },
   { re: /^#\/read\/(\d+)$/,        tab: null,     view: () => stub('Читалка') }
 ];
 
