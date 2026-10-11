@@ -232,6 +232,12 @@ body.sheet-open .sheet { transform: none; }
 .demo-note .ic { color: var(--accent); width: 20px; height: 20px; margin-top: 1px; }
 .demo-note b { font-weight: 600; font-size: 15px; }
 .demo-note p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 2px; }
+.home-add { margin-top: 28px; }
+.home-add .btn { height: 40px; padding: 0 16px; font-size: 14px; margin-top: 12px; }
+
+/* В Telegram кнопка «Назад» есть в его шапке, нашу прячем (место оставляем, чтобы ничего не съехало) */
+body.tg [data-action="back"] { visibility: hidden; }
+
 .soon {
   color: var(--muted); font-size: 14px;
   padding: 14px; border-radius: var(--r-card); border: 1px dashed var(--line);

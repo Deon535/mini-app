@@ -21,7 +21,8 @@ const ICONS = {
   heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
   clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
-  type: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>'
+  type: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+  smartphone: '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>'
 };
 const icon = name =>
   `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -38,6 +39,43 @@ const store = {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
   }
 };
+
+/* ---------- Telegram ----------
+   Когда приложение открыто внутри Telegram, пользуемся его возможностями.
+   В обычном браузере tg есть, но initData пустой: тогда всё работает как сайт. */
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTG = !!(tg && tg.initData);
+const tgCan = version => inTG && tg.isVersionAtLeast(version); // поддерживает ли Telegram у человека эту функцию
+const BOT = 'islam_books_demo_bot';
+
+if (inTG) {
+  document.body.classList.add('tg');
+  tg.ready();
+  tg.expand();
+}
+
+// Лёгкая вибрация при нажатии (только в Telegram на телефоне)
+function haptic(kind = 'light') {
+  if (!tgCan('6.1')) return;
+  if (kind === 'success') tg.HapticFeedback.notificationOccurred('success');
+  else tg.HapticFeedback.impactOccurred(kind);
+}
+
+// Красим шапку и низ Telegram в цвет нашего фона, чтобы окно выглядело цельным
+function paintTelegramBars() {
+  if (!tgCan('6.9')) return;
+  const css = getComputedStyle(document.body);
+  const color = (document.body.dataset.rt ? css.getPropertyValue('--rb') : css.getPropertyValue('--bg')).trim();
+  if (!color) return;
+  tg.setHeaderColor(color);
+  tg.setBackgroundColor(color);
+  if (tgCan('7.10')) tg.setBottomBarColor(color);
+}
+
+// Облако Telegram: полка видна на всех устройствах человека
+function cloudSave(key, value) {
+  if (tgCan('6.9')) tg.CloudStorage.setItem(key, JSON.stringify(value));
+}
 
 /* ---------- Книги ---------- */
 const BOOKS = window.BOOKS;
@@ -70,11 +108,14 @@ let look = store.get('look', 'auto');
 const deviceDark = matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
-  const dark = look === 'dark' || (look === 'auto' && deviceDark.matches);
+  const autoDark = inTG ? tg.colorScheme === 'dark' : deviceDark.matches;
+  const dark = look === 'dark' || (look === 'auto' && autoDark);
   document.body.dataset.theme = dark ? 'dark' : 'light';
   document.querySelectorAll('[data-look]').forEach(b => b.setAttribute('aria-pressed', b.dataset.look === look));
+  paintTelegramBars();
 }
 deviceDark.addEventListener('change', applyTheme);
+if (inTG) tg.onEvent('themeChanged', applyTheme); // человек поменял тему в Telegram
 
 // Выезжающая панель снизу. Одна на всё приложение: в неё кладём то «Оформление», то «На полку»
 function openSheet(html) {
@@ -105,9 +146,11 @@ const getShelf = () => ({ fav: [], want: [], done: [], ...store.get('shelf', {})
 const onShelf = (key, id) => getShelf()[key].includes(id);
 const onAnyShelf = id => SHELVES.some(s => onShelf(s.key, id));
 
+// Возвращает true, если книгу добавили (false, если убрали)
 function toggleShelf(key, id) {
   const shelf = getShelf();
-  if (shelf[key].includes(id)) {
+  const added = !shelf[key].includes(id);
+  if (!added) {
     shelf[key] = shelf[key].filter(x => x !== id);
   } else {
     shelf[key].unshift(id); // новые сверху
@@ -115,6 +158,22 @@ function toggleShelf(key, id) {
     if (other) shelf[other] = shelf[other].filter(x => x !== id);
   }
   store.set('shelf', shelf);
+  cloudSave('shelf', shelf);
+  return added;
+}
+
+// При запуске в Telegram берём полку из облака (вдруг человек добавлял книги на другом устройстве)
+function loadShelfFromCloud() {
+  if (!tgCan('6.9')) return;
+  tg.CloudStorage.getItem('shelf', (err, value) => {
+    if (err) return;
+    const local = store.get('shelf', null);
+    if (!value) { if (local) cloudSave('shelf', local); return; } // в облаке пусто: отправляем туда то, что есть
+    if (value === JSON.stringify(local)) return;
+    try { store.set('shelf', JSON.parse(value)); } catch (e) { return; }
+    // если сейчас открыта полка или книга, перерисуем, чтобы показать свежие отметки
+    if (/^#\/(shelf|book)/.test(location.hash)) router();
+  });
 }
 
 const shelfBtnHTML = id => onAnyShelf(id) ? `${icon('check')}На полке` : `${icon('bookmark')}На полку`;
@@ -140,11 +199,15 @@ function toast(text) {
   toastTimer = setTimeout(() => el.classList.remove('on'), 2200);
 }
 
-// «Поделиться»: на телефоне откроется системное меню, на компьютере ссылка скопируется.
-// На Этапе 3 заменим на ссылку Telegram (startapp), чтобы друг открыл книгу прямо в приложении.
+// «Поделиться»: ссылка на бота с меткой книги (startapp=book_5). Друг нажмёт и сразу попадёт на эту книгу.
+// В Telegram открываем выбор чата, в браузере системное меню или копирование.
 async function shareBook(id) {
   const b = bookById(id);
-  const url = location.href.split('#')[0] + `#/book/${id}`;
+  const url = `https://t.me/${BOT}?startapp=book_${id}`;
+  if (inTG) {
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(b.title)}`);
+    return;
+  }
   if (navigator.share) {
     try { await navigator.share({ title: b.title, text: b.title, url }); } catch (e) {}
     return;
@@ -200,8 +263,28 @@ function homeScreen() {
     ${popular.length ? `<div class="shelf-row">${popular.map(bookCard).join('')}</div>` : soon()}
     <div class="sec-h"><h2>Все книги</h2><a href="#/search">Смотреть${icon('next')}</a></div>
     <div class="shelf-row">${BOOKS.map(bookCard).join('')}</div>
+    <div id="home-screen"></div>
   `;
 }
+
+// «На экран Домой»: показываем предложение, только если телефон это умеет и значка ещё нет
+function mountHome() {
+  if (!tgCan('8.0')) return;
+  tg.checkHomeScreenStatus(status => {
+    const box = document.getElementById('home-screen');
+    if (!box || (status !== 'missed' && status !== 'unknown')) return;
+    box.innerHTML = `<div class="demo-note home-add">
+      ${icon('smartphone')}
+      <div><b>Значок на экране телефона</b>
+      <p>Библиотека будет открываться в одно касание, как обычное приложение.</p>
+      <button class="btn btn-second" data-action="home-screen">Добавить</button></div>
+    </div>`;
+  });
+}
+if (inTG) tg.onEvent('homeScreenAdded', () => {
+  const box = document.getElementById('home-screen');
+  if (box) box.innerHTML = '';
+});
 
 // Поиск
 // Приводим текст к простому виду, чтобы «Ё», «е», дефисы и регистр не мешали искать
@@ -435,6 +518,7 @@ function applyReader() {
   document.querySelectorAll('[data-rtheme]').forEach(b => b.setAttribute('aria-pressed', b.dataset.rtheme === reader.theme));
   const v = document.getElementById('fs-val');
   if (v) v.textContent = reader.fs;
+  paintTelegramBars();
 }
 
 function sampleScreen() {
@@ -507,6 +591,7 @@ function mountSample() {
     removeEventListener('scroll', onScroll);
     delete document.body.dataset.rt;
     document.body.classList.remove('rd-panel-open');
+    paintTelegramBars(); // шапку Telegram снова в цвет приложения
   };
 }
 
@@ -520,14 +605,15 @@ function mountSample() {
    #/shelf       моя полка
    #/read/1      читалка */
 const ROUTES = [
-  { re: /^#?\/?$/,                 tab: 'home',   view: homeScreen },
+  { re: /^#?\/?$/,                 tab: 'home',   view: homeScreen, mount: mountHome },
   { re: /^#\/search(?:\/cat\/(.+))?$/, tab: 'search', view: searchScreen, mount: mountSearch },
-  { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: bookScreen },
-  { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen },
+  { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: bookScreen,   back: true },
+  { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen, back: true },
   { re: /^#\/shelf(?:\/(fav|want|done))?$/, tab: 'shelf', view: shelfScreen, mount: mountShelf },
-  { re: /^#\/read\/(\d+)$/,        tab: 'home',   view: readIntroScreen },
-  { re: /^#\/sample$/,             tab: null,     view: sampleScreen, mount: mountSample }
+  { re: /^#\/read\/(\d+)$/,        tab: 'home',   view: readIntroScreen, back: true },
+  { re: /^#\/sample$/,             tab: null,     view: sampleScreen, mount: mountSample, back: true }
 ];
+// back: на этом экране показываем кнопку «Назад» (в Telegram это кнопка в его шапке)
 
 function renderTabbar(active) {
   const tab = (href, name, label, key) =>
@@ -557,14 +643,20 @@ function router() {
   document.getElementById('tabbar').hidden = route.tab === null; // в читалке меню прячем
   renderTabbar(route.tab);
   closeSheet();
+  if (tgCan('6.1')) route.back ? tg.BackButton.show() : tg.BackButton.hide();
   window.scrollTo(0, 0);
   if (route.mount) cleanup = route.mount(...params) || null; // «после показа»: оживляем поля ввода и т.п.
 }
 
 /* ---------- Нажатия ---------- */
+// На что нажимают «с щелчком» (лёгкая вибрация в Telegram)
+const TAPPABLE = '.btn, .chip, .tab, .seg button, .look, .th, .sizes button, .bcard, .row, .cont, .search, .bk-author';
+
 document.addEventListener('click', e => {
   const t = e.target;
+  if (t.closest(TAPPABLE)) haptic();
   if (t.closest('[data-action="open-look"]')) return openLookSheet();
+  if (t.closest('[data-action="home-screen"]')) return tg.addToHomeScreen();
   if (t.closest('#scrim')) return closeSheet();
   if (t.closest('[data-action="back"]')) return goBack();
 
@@ -590,7 +682,7 @@ document.addEventListener('click', e => {
   const opt = t.closest('[data-shelf]');
   if (opt) {
     const id = Number(opt.dataset.id);
-    toggleShelf(opt.dataset.shelf, id);
+    haptic(toggleShelf(opt.dataset.shelf, id) ? 'success' : 'light');
     openShelfSheet(id);
     const btn = document.querySelector(`[data-action="shelf"][data-id="${id}"]`);
     if (btn) btn.innerHTML = shelfBtnHTML(id);
@@ -603,6 +695,14 @@ document.addEventListener('click', e => {
 
 /* ---------- Запуск ---------- */
 history.replaceState({ first: true }, ''); // метка «отсюда человек вошёл» (для кнопки «Назад»)
+
+// Открыли по ссылке «Поделиться» (startapp=book_5): сразу показываем эту книгу
+const startParam = inTG && tg.initDataUnsafe.start_param;
+const startBook = /^book_(\d+)$/.exec(startParam || '');
+if (startBook) history.replaceState({ first: true }, '', `#/book/${startBook[1]}`);
+
+if (tgCan('6.1')) tg.BackButton.onClick(goBack);
+loadShelfFromCloud();
 applyTheme();
 window.addEventListener('hashchange', router);
 router();
