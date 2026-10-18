@@ -459,6 +459,7 @@ body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35;
 .rd-front-h1 { font-weight: 600; font-size: calc(var(--fs) * 1.55); color: var(--rr); margin: 8px 0 14px; }
 .rd-front-h2 { font-weight: 600; font-size: calc(var(--fs) * 1.1); }
 .rd-front-h3, .rd-front-c { font-size: calc(var(--fs) * .95); color: var(--rm); }
+.rd-hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--rt) 30%, var(--rb)); margin: 24px 0; }
 .rd-sep { text-align: center; color: var(--rm); letter-spacing: .3em; margin: 18px 0; }
 .rd-li { display: flex; gap: .6em; }
 .rd-li .rd-n { flex: none; min-width: 1.6em; color: var(--rm); }

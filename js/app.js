@@ -684,10 +684,16 @@ function textScreen(id) {
 // Книга с переводом: каждое русское предложение помнит свой арабский оригинал (номер в списке ar)
 function trRender(T) {
   const ar = [];
-  const sents = list => list.map(([ru, a]) => `<span class="tr-s" data-i="${ar.push(a) - 1}">${ru}</span>`).join(' ');
+  // [русский текст, арабский]: если арабского нет (null), предложение просто текст без нажатия
+  const sents = list => list.map(([ru, a]) => a ? `<span class="tr-s" data-i="${ar.push(a) - 1}">${ru}</span>` : ru).join(' ');
   const html = `<p class="tr-hint">Нажмите на предложение, чтобы увидеть его по-арабски</p>` +
-    T.blocks.map(([kind, list]) => kind === 'h' ? `<h1 class="rd-h tr-h">${sents(list)}</h1>`
-      : `<p class="rd-p${kind === 'b' ? ' tr-b' : ''}">${sents(list)}</p>`).join('');
+    T.blocks.map(([kind, list]) => {
+      if (kind === 'h') return `<h1 class="rd-h tr-h">${sents(list)}</h1>`;
+      if (kind === 'h2') return `<h2 class="rd-h">${sents(list)}</h2>`;
+      if (kind === 'a') return `<p class="rd-ar" lang="ar" dir="rtl">${list}</p>`; // арабский абзац без перевода
+      if (kind === 'n') return `<div class="rd-notes">${list.map(([n, t]) => `<p><sup class="fn">${n}</sup> ${t}</p>`).join('')}</div>`;
+      return `<p class="rd-p${kind === 'b' ? ' tr-b' : ''}">${sents(list)}</p>`;
+    }).join('');
   return { html, ar };
 }
 
@@ -699,6 +705,7 @@ function plainRender(T) {
     if (front && (k === 'p' || k === 'li' || k === 'n')) front = false;
     if (front && (k === 'h1' || k === 'h2' || k === 'h3' || k === 'c')) return `<p class="rd-front rd-front-${i === 0 ? 'h1' : k}">${a}</p>`;
     switch (k) {
+      case 'hr': return '<hr class="rd-hr">';
       case 'sep': return '<p class="rd-sep" aria-hidden="true">* * *</p>';
       case 'h1': return `<h1 class="rd-h rd-h1">${a}</h1>`;
       case 'h2': return `<h2 class="rd-h">${a}</h2>`;

@@ -261,7 +261,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/22.js', version: 'draft', publisher: ''
   },
   {
     id: 23,
@@ -547,7 +547,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/48.js', version: 'draft', publisher: ''
   },
   {
     id: 49,
@@ -624,7 +624,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/55.js', version: 'draft', publisher: ''
   },
   {
     id: 56,
@@ -646,7 +646,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/57.js', version: 'draft', publisher: ''
   },
   {
     id: 58,
@@ -668,7 +668,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/59.js', version: 'draft', publisher: ''
   },
   {
     id: 60,
@@ -679,7 +679,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/60.js', version: 'draft', publisher: ''
   },
   {
     id: 61,
@@ -899,7 +899,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/80.js', version: 'draft', publisher: ''
   },
   {
     id: 81,
@@ -910,7 +910,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/81.js', version: 'draft', publisher: ''
   },
   {
     id: 82,
@@ -954,7 +954,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/85.js', version: 'draft', publisher: ''
   },
   {
     id: 86,
@@ -965,7 +965,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/86.js', version: 'draft', publisher: ''
   },
   {
     id: 87,
@@ -1009,7 +1009,7 @@ window.BOOKS = [
     description: '',
     facts: 'Русский текст с арабским оригиналом',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/90.js', version: 'draft', publisher: ''
   },
   {
     id: 91,
