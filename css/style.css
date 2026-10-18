@@ -127,8 +127,8 @@ a { color: inherit; text-decoration: none; }
   content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 7%;
   background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0));
 }
-.cv-ar { font-family: "Amiri", serif; font-size: calc(var(--cw)*.125); line-height: 1.3; direction: rtl; text-align: right; position: relative; }
-.cv-t { font-family: var(--head); font-weight: var(--head-w); font-size: calc(var(--cw)*.12); line-height: 1.05; letter-spacing: var(--head-track); position: relative; }
+.cv-ar { font-family: "Amiri", serif; font-size: calc(var(--cw)*var(--af, .125)); line-height: 1.3; direction: rtl; text-align: right; position: relative; }
+.cv-t { font-family: var(--head); font-weight: var(--head-w); font-size: calc(var(--cw)*var(--tf, .12)); line-height: 1.05; letter-spacing: var(--head-track); position: relative; }
 .cv-a { display: block; font-family: var(--ui); font-size: calc(var(--cw)*.07); opacity: .75; margin-top: calc(var(--cw)*.05); font-weight: 500; }
 
 /* ---- Лента обложек (Новинки, Популярное) ---- */
@@ -450,6 +450,39 @@ body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35;
 .bm-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 9em; border-top: 1px solid #2C2E35; }
 .bm-notes li { display: flex; }
 .bm-notes li span { flex: none; width: 1.75em; }
+
+/* ---- Книги с переводом: цвет «Бумага», нажал на предложение → жёлтая подсветка и арабский текст ---- */
+.tr-hint { font-family: var(--ui); font-size: 13px; color: var(--rm); margin: 6px 0 18px; }
+.tr-h { margin-top: 0; }
+.tr-b { text-align: center; font-weight: 600; margin-top: 22px; }
+.tr-s {
+  cursor: pointer; border-radius: 3px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; /* подсветка аккуратно и на переносе строки */
+  transition: background-color .6s ease;
+}
+.tr-s.on { background-color: #F2D98A; transition: background-color .15s ease; }
+.tr-pop {
+  position: absolute; z-index: 12; padding: 12px 16px;
+  background: #FFFBF2; color: var(--rt); border-radius: var(--r-card);
+  box-shadow: 0 1px 2px rgba(60,45,25,.10), 0 10px 28px -6px rgba(60,45,25,.30);
+  visibility: hidden; opacity: 0; transform: translateY(4px);
+  transition: opacity .15s, transform .15s, visibility 0s .15s;
+}
+.tr-pop.up { transform: translateY(-4px); }
+.tr-pop.on { visibility: visible; opacity: 1; transform: none; transition: opacity .15s, transform .15s; }
+/* хвостик к предложению */
+.tr-pop::before {
+  content: ""; position: absolute; left: calc(var(--ax) - 7px); top: -6px;
+  width: 14px; height: 14px; background: inherit; transform: rotate(45deg); border-radius: 2px;
+}
+.tr-pop.up::before { top: auto; bottom: -6px; }
+/* длинное предложение: плашка внизу экрана над полоской прогресса, без хвостика */
+.tr-pop.dock { position: fixed; top: auto; bottom: calc(56px + env(safe-area-inset-bottom)); max-height: 45vh; overflow-y: auto; }
+.tr-pop.dock::before { display: none; }
+.tr-pop p {
+  position: relative; font-family: "Amiri", serif; font-size: calc(var(--fs) * 1.25); line-height: 1.9;
+  text-align: right;
+}
 
 /* Плашка «Чистовик / Черновик» на странице книги */
 .bk-note { margin: 0 0 20px; }

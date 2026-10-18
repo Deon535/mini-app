@@ -85,7 +85,10 @@ const bookById = id => BOOKS.find(b => b.id === Number(id));
 function cover(b) {
   // пока картинка грузится, видна плашка нужного размера; загрузилась: плавно проявляется
   if (b.cover) return `<div class="cover"><img src="${b.cover}" alt="" loading="lazy" onload="this.classList.add('on')"></div>`;
-  return `<div class="cover drawn" style="--c:${b.color}">
+  // длинные названия на обложке-образце делаем мельче, чтобы влезали
+  const tf = b.title.length > 75 ? .082 : b.title.length > 55 ? .098 : .12;
+  const af = (b.titleAr || '').length > 30 ? .09 : .125;
+  return `<div class="cover drawn" style="--c:${b.color};--tf:${tf};--af:${af}">
     <div class="cv-ar">${b.titleAr || ''}</div>
     <div class="cv-t">${b.title}<span class="cv-a">${b.author}</span></div>
   </div>`;
@@ -667,7 +670,7 @@ function textScreen(id) {
       <span class="rd-book">${b.title}</span>
       <button class="btn btn-icon" data-action="rd-panel" aria-label="Размер шрифта">${icon('type')}</button>
     </div>
-    <article class="bm" id="bm" lang="ru"></article>
+    <article id="bk" lang="ru"></article>
     <div class="rd-prog"><span id="rd-place"></span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
     <div class="rd-panel" id="rd-panel">
       <div class="sizes">
@@ -678,12 +681,73 @@ function textScreen(id) {
     </div>`;
 }
 
-// Показываем страницы, следим за прокруткой: процент, «Стр. N из M», запоминаем место
+// Книга с переводом: каждое русское предложение помнит свой арабский оригинал (номер в списке ar)
+function trRender(T) {
+  const ar = [];
+  const sents = list => list.map(([ru, a]) => `<span class="tr-s" data-i="${ar.push(a) - 1}">${ru}</span>`).join(' ');
+  const html = `<p class="tr-hint">Нажмите на предложение, чтобы увидеть его по-арабски</p>` +
+    T.blocks.map(([kind, list]) => kind === 'h' ? `<h1 class="rd-h tr-h">${sents(list)}</h1>`
+      : `<p class="rd-p${kind === 'b' ? ' tr-b' : ''}">${sents(list)}</p>`).join('');
+  return { html, ar };
+}
+
+// Нажатие на предложение: оно подсвечивается жёлтым, рядом всплывает плашка с арабским.
+// Нажатие в любое другое место: плашка уходит, а подсветка гаснет через 2,5 секунды
+function mountTranslation(box, ar) {
+  const pop = document.createElement('div');
+  pop.className = 'tr-pop';
+  pop.innerHTML = '<p lang="ar" dir="rtl"></p>';
+  document.body.appendChild(pop);
+  let open = null;
+
+  function hide() {
+    if (!open) return;
+    const s = open;
+    open = null;
+    pop.classList.remove('on');
+    s.fade = setTimeout(() => s.classList.remove('on'), 2500);
+  }
+  function show(s, x) {
+    clearTimeout(s.fade);
+    s.classList.add('on');
+    open = s;
+    pop.firstChild.textContent = ar[s.dataset.i];
+    const area = box.getBoundingClientRect();
+    pop.style.left = area.left + scrollX + 'px';
+    pop.style.width = area.width + 'px';
+    // Под предложением; если снизу не хватает места (там полоска прогресса), то над ним;
+    // если предложение длинное и места нет нигде, плашка встаёт внизу экрана над полоской
+    pop.classList.remove('up', 'dock');
+    const rects = s.getClientRects(), h = pop.offsetHeight;
+    const below = rects[rects.length - 1].bottom + 10, above = rects[0].top - 10 - h;
+    const fitsBelow = below + h < innerHeight - 64, fitsAbove = above > 64;
+    if (fitsBelow || fitsAbove) {
+      pop.style.top = (fitsBelow ? below : above) + scrollY + 'px';
+      pop.style.setProperty('--ax', Math.min(Math.max(x - area.left, 24), area.width - 24) + 'px'); // хвостик к месту нажатия
+      pop.classList.toggle('up', !fitsBelow);
+    } else {
+      pop.style.top = '';
+      pop.classList.add('dock');
+    }
+    pop.classList.add('on');
+    haptic();
+  }
+  const onTap = e => {
+    const s = e.target.closest('.tr-s');
+    const was = open;
+    hide();
+    if (s && s !== was) show(s, e.clientX);
+  };
+  document.addEventListener('click', onTap);
+  return () => { document.removeEventListener('click', onTap); pop.remove(); };
+}
+
+// Показываем книгу, следим за прокруткой: процент, «Стр. N из M», запоминаем место
 function mountText(id) {
   const b = bookById(id);
   if (!b || !b.text) return;
-  let alive = true, timer;
-  const box = document.getElementById('bm');
+  let alive = true, timer, stopTr = null;
+  const box = document.getElementById('bk');
   const bar = document.getElementById('rd-bar');
   const pct = document.getElementById('rd-pct');
   const place = document.getElementById('rd-place');
@@ -694,6 +758,7 @@ function mountText(id) {
   function show() {
     const p = current();
     bar.style.width = p + '%'; pct.textContent = p + '%';
+    if (!pages.length) return; // у книг без страниц (с переводом) только процент
     const n = pages.filter(s => s.getBoundingClientRect().top < innerHeight / 2).length || 1;
     place.textContent = `Стр. ${n} из ${pages.length}`;
   }
@@ -707,13 +772,23 @@ function mountText(id) {
     }, 300);
   }
 
-  readerStyle = 'bm';
+  readerStyle = 'paper'; // пока книга грузится, фон «Бумага»
   applyReader();
   loadText(b).then(T => {
     if (!alive) return; // человек уже ушёл с экрана
-    box.innerHTML = T.pages.map((p, i) => bmPage(T, p, i + 1)).join('');
-    box.querySelectorAll('.bm-p').forEach(hyphenate);
-    pages = [...box.querySelectorAll('.bm-page')];
+    if (T.style === 'bm') { // оригинальное оформление Bayt al-Magrifa: страницы с шапкой
+      readerStyle = 'bm';
+      applyReader();
+      box.className = 'bm';
+      box.innerHTML = T.pages.map((p, i) => bmPage(T, p, i + 1)).join('');
+      box.querySelectorAll('.bm-p').forEach(hyphenate);
+      pages = [...box.querySelectorAll('.bm-page')];
+    } else { // книга с переводом: цвет «Бумага», по нажатию арабский текст предложения
+      box.className = 'rd tr';
+      const { html, ar } = trRender(T);
+      box.innerHTML = html;
+      stopTr = mountTranslation(box, ar);
+    }
     // Возвращаем на место, где человек остановился (после загрузки шрифтов, иначе высота текста другая)
     document.fonts.ready.then(() => {
       if (!alive) return;
@@ -728,6 +803,7 @@ function mountText(id) {
   return () => {
     alive = false;
     removeEventListener('scroll', onScroll);
+    if (stopTr) stopTr();
     readerStyle = null;
     delete document.body.dataset.rt;
     document.body.classList.remove('rd-panel-open');
