@@ -80,12 +80,12 @@ window.BOOKS = [
     id: 6,
     title: 'Разъяснение хадиса Абу ад-Дарды о приобретении знаний',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: '′Абдурраззак аль-Бадр',
     category: 'Хадисы',
     description: '',
-    facts: '',
-    cover: '', color: '#5A4A2A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '125 страниц',
+    cover: 'covers/06.jpg', color: '#5A4A2A', added: '', popular: false, starter: false,
+    text: 'data/texts/6.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 7,
@@ -212,12 +212,12 @@ window.BOOKS = [
     id: 18,
     title: 'Разъяснение раздела о посте из книги «′Умдат аль-Ахкам»',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: '′Абд ур-Раззак ибн ′Абд уль-Мухсин аль-Бадр',
     category: 'Фикх',
     description: '',
-    facts: '',
+    facts: '150 страниц',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/18.js', version: 'clean', publisher: ''
   },
   {
     id: 19,
@@ -270,9 +270,9 @@ window.BOOKS = [
     author: 'Сулейман ар-Рухайли',
     category: 'Фикх',
     description: '',
-    facts: '',
-    cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '305 страниц',
+    cover: 'covers/23.jpg', color: '#2F4A5A', added: '', popular: false, starter: false,
+    text: 'data/texts/23.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 24,
@@ -388,23 +388,23 @@ window.BOOKS = [
     id: 34,
     title: 'Атеизм: средства, опасность и способы противостояния ему',
     titleAr: '',
-    author: 'Салих ибн Абдульазиз ас-Синди',
+    author: 'Д-р Салих ибн ‘Абдульазиз ибн ‘Усман Синди',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '73 страницы',
+    cover: 'covers/34.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/34.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 35,
     title: 'Ашариты не имеют отношения к приверженцам Сунны и единой общины',
     titleAr: '',
-    author: 'Фалях ибн Исма′иль Мандакар',
+    author: 'Шейх Фалях ибн Исма′иль Мандакар',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '43 страницы',
+    cover: 'covers/35.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/35.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 36,
@@ -454,12 +454,12 @@ window.BOOKS = [
     id: 40,
     title: 'Два свидетельства: их смысл и то, что требует каждое из них',
     titleAr: '',
-    author: 'Абдуллах ибн Абдуррахман аль-Джибрин',
+    author: 'Шейх ‘Абду-Ллах ибн ‘Абду р-Рахман ибн Джибрин',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '104 страницы',
+    cover: 'covers/40.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/40.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 41,

@@ -483,6 +483,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-p.pg-cont { text-indent: 0; margin-top: 0; }
 .pg-p.pg-flat { text-indent: 0; }
 .pg b { font-weight: 700; }
+.pg .pg-m { color: #7A6E60; } /* текст, который читает ученик (в PDF цветной): наш приглушённый цвет вместо цвета PDF */
 .pg sup { font-size: var(--pg-sup, .58em); line-height: 0; vertical-align: .55em; font-style: normal; font-weight: 400; }
 .pg .hon { font-family: "Amiri", serif; font-weight: 400; font-size: .9em; white-space: nowrap; }
 .pg-topnum { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 24) 20px 0; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
