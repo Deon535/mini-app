@@ -691,6 +691,29 @@ function trRender(T) {
   return { html, ar };
 }
 
+// Обычная книга из Word без перевода: цвет «Бумага», заголовки, абзацы, арабские вставки, сноски под абзацем
+function plainRender(T) {
+  const ar = h => `lang="ar" dir="rtl">${h}`;
+  let front = true; // титульная часть: всё до первого абзаца идёт по центру, как титульный лист
+  return T.blocks.map(([k, a, b], i) => {
+    if (front && (k === 'p' || k === 'li' || k === 'n')) front = false;
+    if (front && (k === 'h1' || k === 'h2' || k === 'h3' || k === 'c')) return `<p class="rd-front rd-front-${i === 0 ? 'h1' : k}">${a}</p>`;
+    switch (k) {
+      case 'sep': return '<p class="rd-sep" aria-hidden="true">* * *</p>';
+      case 'h1': return `<h1 class="rd-h rd-h1">${a}</h1>`;
+      case 'h2': return `<h2 class="rd-h">${a}</h2>`;
+      case 'h3': return `<h3 class="rd-h3">${a}</h3>`;
+      case 'c': return `<p class="rd-p rd-c">${a}</p>`;
+      case 'arc': return `<p class="rd-ar rd-ar-c" ${ar(a)}</p>`;
+      case 'ar': return `<p class="rd-ar" ${ar(a)}</p>`;
+      case 'arh': return `<p class="rd-ar-h rd-ar-c" ${ar(a)}</p>`;
+      case 'li': return `<p class="rd-p rd-li"><span class="rd-n">${a}</span><span>${b}</span></p>`;
+      case 'n': return `<div class="rd-notes">${a.map(([n, t]) => `<p><sup class="fn">${n}</sup> ${t}</p>`).join('')}</div>`;
+      default: return `<p class="rd-p">${a}</p>`;
+    }
+  }).join('');
+}
+
 // Нажатие на предложение: оно подсвечивается жёлтым, рядом всплывает плашка с арабским.
 // Нажатие в любое другое место: плашка уходит, а подсветка гаснет через 2,5 секунды
 function mountTranslation(box, ar) {
@@ -783,6 +806,9 @@ function mountText(id) {
       box.innerHTML = T.pages.map((p, i) => bmPage(T, p, i + 1)).join('');
       box.querySelectorAll('.bm-p').forEach(hyphenate);
       pages = [...box.querySelectorAll('.bm-page')];
+    } else if (T.style === 'plain') { // обычная книга без перевода: цвет «Бумага»
+      box.className = 'rd';
+      box.innerHTML = plainRender(T);
     } else { // книга с переводом: цвет «Бумага», по нажатию арабский текст предложения
       box.className = 'rd tr';
       const { html, ar } = trRender(T);

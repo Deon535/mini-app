@@ -451,6 +451,23 @@ body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35;
 .bm-notes li { display: flex; }
 .bm-notes li span { flex: none; width: 1.75em; }
 
+/* ---- Обычные книги из Word (стиль 'plain'): цвет «Бумага», дополняют классы читалки .rd-* ---- */
+.rd-h1 { font-size: calc(var(--fs) * 1.55); text-align: center; margin-top: 8px; }
+.rd-h3 { font-weight: 600; font-size: var(--fs); line-height: 1.35; margin: 22px 0 8px; }
+.rd-c, .rd-ar-c { text-align: center; }
+.rd-front { text-align: center; line-height: 1.3; margin: 0 0 10px; text-wrap: balance; }
+.rd-front-h1 { font-weight: 600; font-size: calc(var(--fs) * 1.55); color: var(--rr); margin: 8px 0 14px; }
+.rd-front-h2 { font-weight: 600; font-size: calc(var(--fs) * 1.1); }
+.rd-front-h3, .rd-front-c { font-size: calc(var(--fs) * .95); color: var(--rm); }
+.rd-sep { text-align: center; color: var(--rm); letter-spacing: .3em; margin: 18px 0; }
+.rd-li { display: flex; gap: .6em; }
+.rd-li .rd-n { flex: none; min-width: 1.6em; color: var(--rm); }
+.rd .ar-i { font-family: "Amiri", serif; font-size: 1.2em; line-height: 1.9; unicode-bidi: isolate; }
+.rd .fn { font-family: var(--ui); font-size: .7em; line-height: 0; color: var(--rm); margin-left: 1px; }
+.rd a { color: inherit; text-decoration: underline; text-decoration-color: var(--rline); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.rd-notes { font-size: calc(var(--fs) * .78); line-height: 1.5; color: var(--rm); margin: -4px 0 18px; padding-top: 8px; border-top: 1px solid var(--rline); }
+.rd-notes p { margin: 0 0 4px; overflow-wrap: anywhere; }
+
 /* ---- Книги с переводом: цвет «Бумага», нажал на предложение → жёлтая подсветка и арабский текст ---- */
 .tr-hint { font-family: var(--ui); font-size: 13px; color: var(--rm); margin: 6px 0 18px; }
 .tr-h { margin-top: 0; }
