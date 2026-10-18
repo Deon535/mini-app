@@ -650,15 +650,74 @@ function hyphenate(root) {
 
 // Шапка страницы как в книгах Bayt al-Magrifa: фонарь, название, номер и стрелка
 const bmPage = (T, p, n) => `
-  <section class="bm-page" data-page="${n}" data-wave="${(n - 1) % 3}">
-    <header class="bm-band"><img class="bm-lamp" src="img/bm-lantern.png" alt="">
+  <section class="bm-page" data-page="${n}" data-wave="${(n - 1) % 3}"${T.waves ? ` style="--bm-wave:${T.waves[n - 1]}"` : ''}>
+    <header class="bm-band"><span class="bm-lamp" aria-hidden="true"></span>
       <span class="bm-run">${T.running}</span>
       <span class="bm-num">${n}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
     </header>
     <div class="bm-body">
-      ${p.blocks.map(([t, html]) => t === 'h' ? `<h2 class="bm-h">${html}</h2>` : `<p class="bm-p${t === 'c' ? ' bm-cont' : ''}">${html}</p>`).join('')}
+      ${p.blocks.map(([t, html]) => t === 'h' || t === 'g' ? `<h2 class="bm-h${t === 'g' ? ' bm-reg' : ''}">${html}</h2>` : `<p class="bm-p${t === 'c' ? ' bm-cont' : t === 'q' ? ' bm-flat' : ''}">${html}</p>`).join('')}
       ${p.notes.length ? `<ol class="bm-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span>${html}</li>`).join('')}</ol>` : ''}
     </div>
+  </section>`;
+
+// Цвета и пропорции буклета берём из самого PDF (T.theme); у книги №1 темы нет, там значения по умолчанию из CSS
+const BM_VARS = { top: '--bm-top', band: '--bm-band', low: '--bm-low', text: '--bm-text', run: '--bm-run', num: '--bm-num', arrow: '--bm-arrow', lamp: '--bm-lamp',
+  k: '--bm-k', lh: '--bm-lh', ind: '--bm-ind', gap: '--bm-gap', nfs: '--bm-nfs', nlh: '--bm-nlh', sup: '--bm-sup' };
+function bmTheme(box, th) {
+  if (!th) return;
+  for (const [k, v] of Object.entries(BM_VARS)) if (th[k] !== undefined) box.style.setProperty(v, th[k]);
+  // фон читалки, полоска прогресса и шапка Telegram тоже в цвет страницы
+  const b = document.body.style;
+  b.setProperty('--rb', th.top); b.setProperty('--rt', th.text); b.setProperty('--rm', th.run); b.setProperty('--rr', th.text);
+  paintTelegramBars();
+}
+
+// Книги «одна страница PDF = одна страница на экране» (оформление 'pg'): шапка с узором, номер внизу, сноски под текстом
+const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup' };
+function pgTheme(box, th) {
+  for (const [k, v] of Object.entries(PG_VARS)) if (th[k] !== undefined) box.style.setProperty(v, th[k]);
+  const b = document.body.style;
+  b.setProperty('--rb', th.bg); b.setProperty('--rt', th.text); b.setProperty('--rm', th.head); b.setProperty('--rr', th.text);
+  paintTelegramBars();
+}
+// z — размер шрифта блока в долях основного, mt — отступ сверху в долях основного размера (--u = основной размер в пикселях)
+const pgStyle = ex => {
+  const s = [];
+  if (ex.z) s.push(`font-size:${ex.z}em`);
+  if (ex.ff) s.push(`font-family:'${ex.ff}',serif`);
+  if (ex.mt !== undefined) s.push(`margin-top:calc(${ex.mt} * var(--u))`);
+  if (ex.pl) s.push(`padding-left:calc(${ex.pl} * var(--u))`);
+  if (ex.lh) s.push(`line-height:${ex.lh}`);
+  return s.length ? ` style="${s.join(';')}"` : '';
+};
+const pgBlock = ([k, h, ex = {}]) => {
+  const st = pgStyle(ex);
+  switch (k) {
+    case 'h': return `<h2 class="pg-h"${st}>${h}</h2>`;
+    case 'g': return `<h2 class="pg-h pg-reg"${st}>${h}</h2>`;
+    case 'd': return `<h2 class="pg-d"${st}>${h}</h2>`; // крупный заголовок особого шрифта (например, №75)
+    case 'img': return `<div class="pg-img"${st}><img src="${ex.src}" alt="" style="width:calc(100cqw * ${ex.w} / var(--pg-pw, 411) * 1.25)"></div>`;
+    case 'sep': return `<div class="pg-sep"${st}><img src="img/pg-orn-stars.png" alt=""></div>`;
+    case 'toc': return `<p class="pg-toc"${st}><span>${h}</span><i></i><span>${ex.pg || ''}</span></p>`;
+    case 'f': { // титульная строка: размер и отступ в pt страницы PDF (--pt), чтобы титул выглядел как в книге при любой ширине экрана
+      const s = [`font-size:calc(var(--pt) * ${ex.z || 12})`];
+      if (ex.ff) s.push(`font-family:'${ex.ff}',serif`);
+      if (ex.mt !== undefined) s.push(`margin-top:calc(var(--pt) * ${ex.mt})`);
+      return `<p class="pg-f pg-a-${ex.a || 'l'}" style="${s.join(';')}">${h}</p>`;
+    }
+    default: return `<p class="pg-p${k === 'c' ? ' pg-cont' : k === 'q' ? ' pg-flat' : ''}"${st}>${h}</p>`;
+  }
+};
+const pgPage = (p, i, th) => `
+  <section class="pg-page${p.front ? ' pg-front' : ''}" data-page="${i + 1}">
+    ${th.num === 'top' && !p.front && p.n !== undefined ? `<div class="pg-topnum pg-${p.side || 'r'}">${p.n}</div>` : ''}
+    ${p.front || !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${p.head || ''}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
+    <div class="pg-body">
+      ${p.blocks.map(pgBlock).join('')}
+      ${p.notes.length ? `<ol class="pg-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span>${html}</li>`).join('')}</ol>` : ''}
+    </div>
+    ${p.front || th.num === 'top' ? '' : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}
   </section>`;
 
 function textScreen(id) {
@@ -810,9 +869,18 @@ function mountText(id) {
       readerStyle = 'bm';
       applyReader();
       box.className = 'bm';
+      bmTheme(box, T.theme);
       box.innerHTML = T.pages.map((p, i) => bmPage(T, p, i + 1)).join('');
       box.querySelectorAll('.bm-p').forEach(hyphenate);
       pages = [...box.querySelectorAll('.bm-page')];
+    } else if (T.style === 'pg') { // одна страница PDF = одна страница на экране
+      readerStyle = 'pg';
+      applyReader();
+      box.className = 'pg';
+      pgTheme(box, T.theme);
+      box.innerHTML = T.pages.map((p, i) => pgPage(p, i, T.theme)).join('');
+      box.querySelectorAll('.pg-p').forEach(hyphenate);
+      pages = [...box.querySelectorAll('.pg-page')];
     } else if (T.style === 'plain') { // обычная книга без перевода: цвет «Бумага»
       box.className = 'rd';
       box.innerHTML = plainRender(T);
@@ -838,6 +906,7 @@ function mountText(id) {
     removeEventListener('scroll', onScroll);
     if (stopTr) stopTr();
     readerStyle = null;
+    ['--rb', '--rt', '--rm', '--rr'].forEach(v => document.body.style.removeProperty(v));
     delete document.body.dataset.rt;
     document.body.classList.remove('rd-panel-open');
     paintTelegramBars(); // шапку Telegram снова в цвет приложения

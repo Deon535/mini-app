@@ -25,7 +25,7 @@ window.BOOKS = [
     id: 1,
     title: 'Излишество в отношении могил праведников превращает их в идолов, которым поклоняются',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Акыда',
     description: '',
     facts: 'Буклет / 5 страниц',
@@ -377,12 +377,12 @@ window.BOOKS = [
     id: 33,
     title: 'Амулеты и талисманы',
     titleAr: '',
-    author: '',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/33.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/33.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 34,
@@ -487,12 +487,12 @@ window.BOOKS = [
     id: 43,
     title: 'Единобожие. Смысл двух свидетельств и положение следования за Пророком',
     titleAr: '',
-    author: 'Мухаммад ибн Салих аль-′Усеймин',
+    author: 'Шейх Мухаммад ибн Салих ибн Усеймин',
     category: 'Акыда',
     description: '',
-    facts: '',
+    facts: '28 страниц',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/43.js', version: 'clean', publisher: ''
   },
   {
     id: 44,
@@ -696,23 +696,23 @@ window.BOOKS = [
     id: 62,
     title: 'Правильное вероучение и то, что ему противоречит, и то, что делает Ислам недействительным',
     titleAr: '',
-    author: 'Абдульазиз ибн Баз',
+    author: '′Абдуль′азиз ибн ′Абдуллах ибн Баз',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '34 страницы',
+    cover: 'covers/62.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/62.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 63,
     title: 'Призыв к единобожию',
     titleAr: '',
-    author: 'Салих ибн Абдульазиз ас-Синди',
+    author: 'Доктор Салих ибн ‘Абдуль-‘Азиз ибн ‘Усман Ас-Синди',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '33 страницы',
+    cover: 'covers/63.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/63.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 64,
@@ -751,12 +751,12 @@ window.BOOKS = [
     id: 67,
     title: 'Разъяснение «Четырёх правил» (Ибн Баз)',
     titleAr: '',
-    author: 'Абдульазиз ибн Баз',
+    author: '‘Абдульазиз ибн ‘Абдуллах ибн Баз',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '35 страниц',
+    cover: 'covers/67.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/67.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 68,
@@ -839,12 +839,12 @@ window.BOOKS = [
     id: 75,
     title: 'Религиозные новшества',
     titleAr: '',
-    author: '',
+    author: 'Саид ибн Вахф аль-Кахтани',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '28 страниц',
+    cover: 'covers/75.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/75.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 76,
@@ -861,12 +861,12 @@ window.BOOKS = [
     id: 77,
     title: 'Статус единобожия',
     titleAr: '',
-    author: '',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/77.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/77.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 78,
@@ -941,9 +941,9 @@ window.BOOKS = [
     author: '',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: 'Bayt al-Magrifa'
+    facts: '33 страницы',
+    cover: 'covers/84.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/84.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 85,
@@ -1070,12 +1070,12 @@ window.BOOKS = [
     id: 96,
     title: 'А что после Рамадана?',
     titleAr: '',
-    author: '',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/96.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/96.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 97,
@@ -1114,12 +1114,12 @@ window.BOOKS = [
     id: 100,
     title: 'Достоинства четырёх фраз',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: 'Шейх Абдурразак аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
+    facts: '23 страницы',
     cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/100.js', version: 'clean', publisher: ''
   },
   {
     id: 101,
@@ -1136,12 +1136,12 @@ window.BOOKS = [
     id: 102,
     title: 'Искушение одеждой',
     titleAr: '',
-    author: '',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/102.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/102.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 103,
@@ -1158,12 +1158,12 @@ window.BOOKS = [
     id: 104,
     title: 'Милость безопасности',
     titleAr: '',
-    author: '',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/104.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/104.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 105,
@@ -1180,12 +1180,12 @@ window.BOOKS = [
     id: 106,
     title: 'Опоры в воспитании детей',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: '‘Абдурраззак ибн ‘Абдульмухсин аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '24 страницы',
+    cover: 'covers/106.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/106.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 107,
@@ -1202,12 +1202,12 @@ window.BOOKS = [
     id: 108,
     title: 'Поминание Аллаха во время еды и питья',
     titleAr: '',
-    author: '',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/108.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/108.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 109,
@@ -1257,12 +1257,12 @@ window.BOOKS = [
     id: 113,
     title: 'Стойкость верующих во время испытаний',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: 'Шейх ‘Абд ур-Раззак аль-Бадр',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/113.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/113.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 114,
@@ -1323,12 +1323,12 @@ window.BOOKS = [
     id: 119,
     title: 'Имам Шамиль',
     titleAr: '',
-    author: '',
+    author: 'Абу Абдуллах, Иса ибн Мухаммад ибн Ибрахим аш-Шами',
     category: 'Другое',
     description: '',
-    facts: '',
-    cover: '', color: '#3F4A3C', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '18 страниц',
+    cover: 'covers/119.jpg', color: '#3F4A3C', added: '', popular: false, starter: false,
+    text: 'data/texts/119.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 120,

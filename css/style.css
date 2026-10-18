@@ -404,13 +404,13 @@ body.rd-panel-open .rd-panel { transform: none; }
 body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35; }
 .bm {
   margin: 0 calc(-1 * var(--side)); /* страница во всю ширину экрана, как лист */
-  font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif; font-size: var(--fs); line-height: 1.22; color: #2C2E35;
+  font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif; font-size: calc(var(--fs) * var(--bm-k, 1)); line-height: var(--bm-lh, 1.22); color: var(--bm-text, #2C2E35);
 }
-.bm-page { position: relative; padding: 1.4em 0 1.8em; background: #EBF2F1; overflow: hidden; container-type: inline-size; }
+.bm-page { position: relative; padding: 1.4em 0 1.8em; background: var(--bm-top, #EBF2F1); overflow: hidden; container-type: inline-size; }
 /* Нижняя часть страницы чуть темнее, граница плавной волной (как в PDF) */
 .bm-page::before {
   content: ""; position: absolute; inset: 0;
-  background: #DDE9E7; clip-path: var(--bm-wave);
+  background: var(--bm-low, #DDE9E7); clip-path: var(--bm-wave);
 }
 /* Волна идёт через весь разворот буклета, поэтому у 1-й, 2-й и 3-й страницы разворота она разная.
    Точки сняты с PDF через каждые 10 pt, в процентах от ширины и высоты страницы */
@@ -424,32 +424,93 @@ body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35;
 .bm-band {
   font-size: calc(100cqw / 280.63 * 1.2);
   display: flex; align-items: center; justify-content: center; height: 19.5em;
-  background: #D8E6E4; border-block: 1px solid #E1ECEA;
+  background: var(--bm-band, #D8E6E4); border-block: 1px solid color-mix(in srgb, var(--bm-band, #D8E6E4) 50%, var(--bm-top, #EBF2F1));
 }
-.bm-lamp { position: absolute; left: 20em; top: -5.5em; width: 32em; height: 28.5em; }
+.bm-lamp { /* фонарь: одноцветный рисунок-маска, цвет у каждой книги свой */
+  position: absolute; left: 20em; top: -5.5em; width: 32em; height: 28.5em;
+  background: var(--bm-lamp, #ACB7B5); -webkit-mask: url(../img/bm-lantern.png) center / contain no-repeat; mask: url(../img/bm-lantern.png) center / contain no-repeat;
+}
 .bm-run {
   font-family: "Montserrat", sans-serif; font-weight: 500; font-size: 6em; letter-spacing: .04em;
-  text-transform: uppercase; color: #5F6569; white-space: nowrap;
+  text-transform: uppercase; color: var(--bm-run, #5F6569); white-space: nowrap;
 }
 .bm-num {
   position: absolute; right: 2.76em; top: 50%; transform: translateY(-50%); /* em здесь = размер номера (10 pt) */
   display: flex; align-items: center; gap: .9em;
-  font-family: "Anton", Impact, sans-serif; font-size: 10em; line-height: 1; color: #2C2E35;
+  font-family: "Anton", Impact, sans-serif; font-size: 10em; line-height: 1; color: var(--bm-num, #2C2E35);
 }
-.bm-num svg { width: .8em; height: 1.05em; fill: none; stroke: #B5C0C0; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+.bm-num svg { width: .8em; height: 1.05em; fill: none; stroke: var(--bm-arrow, #B5C0C0); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
 /* Текст */
 .bm-body { padding: .9em 20px 0; }
 .bm-h { font-size: 1em; font-weight: 700; text-align: center; line-height: 1.22; margin-bottom: .36em; }
-.bm-p { text-indent: 1.46em; text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin-top: .36em; }
+.bm-p { text-indent: var(--bm-ind, 1.46em); text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin-top: var(--bm-gap, .36em); }
 .bm-p.bm-cont { text-indent: 0; margin-top: 0; }
+.bm-p.bm-flat { text-indent: 0; } /* новый абзац без отступа */
+.bm-h.bm-reg { font-weight: 400; } /* центрированная строка обычным шрифтом (например, «С именем Аллаха» в книге №96) */
 .bm-body > :first-child { margin-top: 0; }
 .bm b { font-weight: 700; }
-.bm sup { font-size: .58em; line-height: 0; vertical-align: .55em; font-style: normal; font-weight: 400; }
+.bm sup { font-size: var(--bm-sup, .58em); line-height: 0; vertical-align: .55em; font-style: normal; font-weight: 400; }
 /* Сноски внизу страницы: короткая черта, мелкий шрифт, номер с висячим отступом */
-.bm-notes { list-style: none; font-size: .833em; line-height: 1.5; margin-top: 1.1em; padding-top: .7em; position: relative; }
-.bm-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 9em; border-top: 1px solid #2C2E35; }
+.bm-notes { list-style: none; font-size: var(--bm-nfs, .833em); line-height: var(--bm-nlh, 1.5); margin-top: 1.1em; padding-top: .7em; position: relative; }
+.bm-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 9em; border-top: 1px solid var(--bm-text, #2C2E35); }
 .bm-notes li { display: flex; }
 .bm-notes li span { flex: none; width: 1.75em; }
+
+/* ---- Книги «одна страница PDF = одна страница на экране» (оформление 'pg', серия А и др.) ----
+   Размеры блоков в em от размера текста (--fs): «Аа» увеличивает страницу целиком. Шапка и номер зависят от ширины страницы
+   (как колонтитул в книге): 100cqw / --pg-pw = 1 pt PDF, увеличенный в 1,25 раза, чтобы мелкое читалось на телефоне.
+   --u = размер основного текста в пикселях: отступы между блоками (mt) считаются в нём, чтобы не зависеть от размера шрифта блока. */
+body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
+.pg {
+  margin: 0 calc(-1 * var(--side));
+  --u: calc(var(--fs) * var(--pg-k, 1));
+  font-family: var(--pg-font, "Source Serif 4"), "Source Serif Pro", Georgia, serif; font-size: var(--u); line-height: var(--pg-lh, 1.25); color: var(--pg-text, #000);
+}
+.pg-page { position: relative; background: var(--pg-bg, #fff); container-type: inline-size; padding-bottom: .4em; }
+.pg-page + .pg-page { border-top: 1px solid color-mix(in srgb, var(--pg-text, #000) 12%, var(--pg-bg, #fff)); }
+.pg-front { min-height: calc(100cqw * 1.41); }
+.pg-head { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 28) 20px 0; text-align: center; }
+.pg-head span { display: block; font-size: calc(var(--pt) * 9); line-height: 1.2; color: var(--pg-head, #4C4C4C); }
+.pg-head img { display: block; width: 100%; height: auto; margin-top: calc(var(--pt) * 4); }
+.pg-body { padding: calc(var(--u) * .7) 20px 0; }
+.pg-front .pg-body { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding-top: 0; }
+.pg-front .pg-f { line-height: 1.2; }
+.pg-body > :first-child { margin-top: 0; }
+.pg-h { font-size: 1.17em; font-weight: 700; text-align: center; line-height: 1.25; margin-top: calc(var(--u) * 1.5); }
+.pg-reg { font-weight: 400; }
+.pg-d { font-weight: 300; text-align: left; hyphens: manual; }
+.pg-p { text-indent: var(--pg-ind, 1.2em); text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin-top: var(--pg-gap, .47em); }
+.pg-p.pg-cont { text-indent: 0; margin-top: 0; }
+.pg-p.pg-flat { text-indent: 0; }
+.pg b { font-weight: 700; }
+.pg sup { font-size: var(--pg-sup, .58em); line-height: 0; vertical-align: .55em; font-style: normal; font-weight: 400; }
+.pg .hon { font-family: "Amiri", serif; font-weight: 400; font-size: .9em; white-space: nowrap; }
+.pg-topnum { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 24) 20px 0; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
+.pg-topnum.pg-r { text-align: right; }
+.pg-img { text-align: center; margin-top: calc(var(--u) * 1.2); }
+.pg-img img { max-width: 100%; height: auto; }
+.pg .dc { float: left; font-size: 3.1em; line-height: .78; padding: .06em .08em 0 0; }
+.pg-sep { text-align: center; margin-top: calc(var(--u) * 1.6); }
+.pg-sep img { width: 18%; height: auto; }
+.pg-toc { display: flex; align-items: baseline; gap: .35em; margin-top: calc(var(--u) * .7); }
+.pg-toc i { flex: 1; min-width: 1em; border-bottom: 1px dotted currentColor; transform: translateY(-.25em); }
+.pg-f { margin-top: 0; }
+.pg-a-c { text-align: center; } .pg-a-r { text-align: right; } .pg-a-l { text-align: left; }
+.pg-notes { list-style: none; font-size: var(--pg-nfs, .83em); line-height: var(--pg-nlh, 1.48); margin-top: calc(var(--u) * 1.3); padding-top: .6em; position: relative; }
+.pg-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 36%; border-top: 1px solid var(--pg-text, #000); }
+.pg-notes li { display: flex; }
+.pg-notes li span { flex: none; width: 1.8em; }
+.pg-foot { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); display: flex; align-items: center; gap: calc(var(--pt) * 12); padding: calc(var(--pt) * 10) 20px calc(var(--pt) * 12); }
+.pg-foot span { flex: none; min-width: 2.2em; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
+.pg-foot i { flex: 1; height: 3px; border-block: 1px solid color-mix(in srgb, var(--pg-text, #000) 18%, var(--pg-bg, #fff)); }
+.pg-head.pg-hl span { display: table; margin: 0 auto; padding-bottom: calc(var(--pt) * 3); border-bottom: 1px solid var(--pg-head, #4C4C4C); }
+/* номер в цвете и короткая черта под ним справа (например, №119) */
+.pg-foot.pg-bar { display: block; text-align: right; }
+.pg-foot.pg-bar span { color: var(--pg-num, var(--pg-text, #000)); }
+.pg-foot.pg-bar::after { content: ""; display: block; margin: .25em 0 0 auto; width: 2.4em; height: 3px; background: var(--pg-num, var(--pg-text, #000)); }
+.pg-foot.pg-c { justify-content: center; }
+.pg-foot.pg-r { flex-direction: row-reverse; }
+.pg-foot.pg-r span { text-align: right; }
 
 /* ---- Обычные книги из Word (стиль 'plain'): цвет «Бумага», дополняют классы читалки .rd-* ---- */
 .rd-h1 { font-size: calc(var(--fs) * 1.55); text-align: center; margin-top: 8px; }
