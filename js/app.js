@@ -92,6 +92,8 @@ function cover(b) {
 }
 // Подпись под названием: автор, а если он не указан, то категория
 const byline = b => b.author || b.category;
+// Куда ведёт «Читать»: настоящий текст книги, если он есть, иначе экран «Полная книга появится здесь»
+const readHref = b => b.text ? `#/text/${b.id}` : `#/read/${b.id}`;
 const bookCard = b => `<a class="bcard" href="#/book/${b.id}">${cover(b)}<div class="t">${b.title}</div><div class="a">${byline(b)}</div></a>`;
 // Строка книги; sub: подпись под названием (по умолчанию автор)
 const rowWith = (b, sub) => `<a class="row" href="#/book/${b.id}">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${sub}</div></div></a>`;
@@ -237,7 +239,7 @@ function homeScreen() {
   const reading = Object.keys(progress).map(bookById).filter(Boolean);
   const continueBlock = reading.length ? `
     <div class="sec-h"><h2>Продолжить</h2></div>
-    ${reading.map(b => `<a class="cont" href="#/sample">${cover(b)}<div class="tx">
+    ${reading.map(b => `<a class="cont" href="${readHref(b)}">${cover(b)}<div class="tx">
       <div class="t">${b.title}</div><div class="a">${byline(b)}</div>
       <div class="bar"><i style="width:${progress[b.id]}%"></i></div>
       <div class="p">Прочитано ${progress[b.id]}%</div></div></a>`).join('')}` : '';
@@ -417,14 +419,25 @@ function bookScreen(id) {
     ${b.author ? `<a class="bk-author" href="${authorLink(b.author)}">${b.author}</a>` : ''}
     ${b.facts ? `<p class="bk-facts">${b.facts}</p>` : ''}
     <div class="bk-actions">
-      <a class="btn btn-main btn-wide" href="#/read/${b.id}">${icon('bookOpen')}Читать</a>
+      <a class="btn btn-main btn-wide" href="${readHref(b)}">${icon('bookOpen')}Читать</a>
       <button class="btn btn-second" data-action="shelf" data-id="${b.id}">${shelfBtnHTML(b.id)}</button>
     </div>
+    ${versionNote(b)}
     ${b.description ? `<p class="bk-desc">${b.description}</p>` : `<p class="bk-desc bk-desc-none">Описание появится позже.</p>`}
     ${similar.length ? `
       <div class="sec-h"><h2>Похожие</h2></div>
       <div class="shelf-row">${similar.map(bookCard).join('')}</div>` : ''}
   `;
+}
+
+// Плашка «Чистовик / Черновик» (как «Демо-версия» на главной): PDF вычитан, Word может быть с опечатками
+function versionNote(b) {
+  const from = b.publisher ? ` от <span class="nowrap">${b.publisher}</span>` : '';
+  if (b.version === 'clean') return `<div class="demo-note bk-note">${icon('check')}
+    <div><b>Чистовик</b><p>Окончательная версия книги${from}.</p></div></div>`;
+  if (b.version === 'draft') return `<div class="demo-note bk-note">${icon('info')}
+    <div><b>Черновик</b><p>Рабочая версия книги${from}, возможны опечатки.</p></div></div>`;
+  return '';
 }
 
 // «1 книга / 2 книги / 5 книг»
@@ -512,9 +525,11 @@ const READER_THEMES = [
 ];
 const FS_MIN = 14, FS_MAX = 26;
 let reader = { theme: 'paper', fs: 18, ...store.get('reader', {}) };
+// У книг в оригинальном оформлении (например 'bm', Bayt al-Magrifa) свои цвета вместо темы читалки
+let readerStyle = null;
 
 function applyReader() {
-  document.body.dataset.rt = reader.theme;
+  document.body.dataset.rt = readerStyle || reader.theme;
   document.body.style.setProperty('--fs', reader.fs + 'px');
   document.querySelectorAll('[data-rtheme]').forEach(b => b.setAttribute('aria-pressed', b.dataset.rtheme === reader.theme));
   const v = document.getElementById('fs-val');
@@ -600,6 +615,126 @@ function mountSample() {
   };
 }
 
+/* ---------- Читалка настоящих книг ----------
+   Текст книги лежит в отдельном файле (b.text) и грузится, только когда книгу открыли.
+   Оформление повторяет оригинал: страницы, шапка с названием и номером, сноски внизу страницы. */
+function loadText(b) {
+  if (window.TEXTS && window.TEXTS[b.id]) return Promise.resolve(window.TEXTS[b.id]);
+  return new Promise((ok, fail) => {
+    const s = document.createElement('script');
+    s.src = b.text;
+    s.onload = () => ok(window.TEXTS[b.id]);
+    s.onerror = fail;
+    document.head.appendChild(s);
+  });
+}
+
+// Переносы слов по правилам русского языка (алгоритм Хмелёва): браузеры на телефонах переносят не всегда,
+// а текст по ширине без переносов идёт «дырками». В слово ставим невидимые места для переноса (­)
+const HYPHEN_RULES = (() => {
+  const a = '[а-яё]', g = '[аеёиоуыэюя]', s = '[бвгджзклмнпрстфхцчшщ]', x = '[йъь]';
+  return [`(${x})(${a}${a})`, `(${g})(${g}${a})`, `(${g}${s})(${s}${g})`, `(${s}${g})(${s}${g})`,
+    `(${g}${s})(${s}${s}${g})`, `(${g}${s}${s})(${s}${s}${g})`].map(r => new RegExp(r, 'gi'));
+})();
+function hyphenate(root) {
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n; (n = walk.nextNode());) {
+    let t = n.nodeValue;
+    for (let k = 0; k < 2; k++) HYPHEN_RULES.forEach(r => { t = t.replace(r, '$1­$2'); }); // дважды: соседние слоги
+    n.nodeValue = t;
+  }
+}
+
+// Шапка страницы как в книгах Bayt al-Magrifa: фонарь, название, номер и стрелка
+const bmPage = (T, p, n) => `
+  <section class="bm-page" data-page="${n}" data-wave="${(n - 1) % 3}">
+    <header class="bm-band"><img class="bm-lamp" src="img/bm-lantern.png" alt="">
+      <span class="bm-run">${T.running}</span>
+      <span class="bm-num">${n}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
+    </header>
+    <div class="bm-body">
+      ${p.blocks.map(([t, html]) => t === 'h' ? `<h2 class="bm-h">${html}</h2>` : `<p class="bm-p${t === 'c' ? ' bm-cont' : ''}">${html}</p>`).join('')}
+      ${p.notes.length ? `<ol class="bm-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span>${html}</li>`).join('')}</ol>` : ''}
+    </div>
+  </section>`;
+
+function textScreen(id) {
+  const b = bookById(id);
+  if (!b || !b.text) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
+  return `
+    <div class="topbar rd-top">
+      <button class="btn btn-icon" data-action="back" aria-label="Назад">${icon('back')}</button>
+      <span class="rd-book">${b.title}</span>
+      <button class="btn btn-icon" data-action="rd-panel" aria-label="Размер шрифта">${icon('type')}</button>
+    </div>
+    <article class="bm" id="bm" lang="ru"></article>
+    <div class="rd-prog"><span id="rd-place"></span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
+    <div class="rd-panel" id="rd-panel">
+      <div class="sizes">
+        <button data-fs="-1" aria-label="Шрифт меньше" class="fs-s">А</button>
+        <span id="fs-val"></span>
+        <button data-fs="1" aria-label="Шрифт больше" class="fs-l">А</button>
+      </div>
+    </div>`;
+}
+
+// Показываем страницы, следим за прокруткой: процент, «Стр. N из M», запоминаем место
+function mountText(id) {
+  const b = bookById(id);
+  if (!b || !b.text) return;
+  let alive = true, timer;
+  const box = document.getElementById('bm');
+  const bar = document.getElementById('rd-bar');
+  const pct = document.getElementById('rd-pct');
+  const place = document.getElementById('rd-place');
+  const scrollable = () => document.documentElement.scrollHeight - innerHeight;
+  const current = () => scrollable() > 0 ? Math.min(100, Math.round(scrollY / scrollable() * 100)) : 0;
+  let pages = [];
+
+  function show() {
+    const p = current();
+    bar.style.width = p + '%'; pct.textContent = p + '%';
+    const n = pages.filter(s => s.getBoundingClientRect().top < innerHeight / 2).length || 1;
+    place.textContent = `Стр. ${n} из ${pages.length}`;
+  }
+  function onScroll() {
+    if (scrollable() <= 0) return;
+    show();
+    clearTimeout(timer); // сохраняем, когда человек перестал листать
+    timer = setTimeout(() => {
+      store.set('progress', { ...store.get('progress', {}), [id]: Math.max(current(), 1) });
+      store.set('textPos', { ...store.get('textPos', {}), [id]: scrollY / scrollable() });
+    }, 300);
+  }
+
+  readerStyle = 'bm';
+  applyReader();
+  loadText(b).then(T => {
+    if (!alive) return; // человек уже ушёл с экрана
+    box.innerHTML = T.pages.map((p, i) => bmPage(T, p, i + 1)).join('');
+    box.querySelectorAll('.bm-p').forEach(hyphenate);
+    pages = [...box.querySelectorAll('.bm-page')];
+    // Возвращаем на место, где человек остановился (после загрузки шрифтов, иначе высота текста другая)
+    document.fonts.ready.then(() => {
+      if (!alive) return;
+      const pos = store.get('textPos', {})[id] || 0;
+      if (pos > 0) scrollTo(0, pos * scrollable());
+      show();
+      addEventListener('scroll', onScroll, { passive: true });
+    });
+  }).catch(() => { if (alive) box.innerHTML = '<p class="soon">Не получилось загрузить книгу. Проверьте интернет и откройте её снова.</p>'; });
+
+  // уборка при уходе с экрана
+  return () => {
+    alive = false;
+    removeEventListener('scroll', onScroll);
+    readerStyle = null;
+    delete document.body.dataset.rt;
+    document.body.classList.remove('rd-panel-open');
+    paintTelegramBars(); // шапку Telegram снова в цвет приложения
+  };
+}
+
 /* ---------- Маршруты ----------
    Адрес после # говорит, какой экран открыть:
    mount (если есть) запускается после показа экрана.
@@ -608,7 +743,8 @@ function mountSample() {
    #/book/1      страница книги №1
    #/author/...  страница автора
    #/shelf       моя полка
-   #/read/1      читалка */
+   #/read/1      «Полная книга появится здесь» (у книг без текста)
+   #/text/1      читалка с настоящим текстом книги */
 const ROUTES = [
   { re: /^#?\/?$/,                 tab: 'home',   view: homeScreen, mount: mountHome },
   { re: /^#\/search(?:\/cat\/(.+))?$/, tab: 'search', view: searchScreen, mount: mountSearch },
@@ -616,7 +752,8 @@ const ROUTES = [
   { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen, back: true },
   { re: /^#\/shelf(?:\/(fav|want|done))?$/, tab: 'shelf', view: shelfScreen, mount: mountShelf },
   { re: /^#\/read\/(\d+)$/,        tab: 'home',   view: readIntroScreen, back: true },
-  { re: /^#\/sample$/,             tab: null,     view: sampleScreen, mount: mountSample, back: true }
+  { re: /^#\/sample$/,             tab: null,     view: sampleScreen, mount: mountSample, back: true },
+  { re: /^#\/text\/(\d+)$/,        tab: null,     view: textScreen,   mount: mountText,   back: true }
 ];
 // back: на этом экране показываем кнопку «Назад» (в Telegram это кнопка в его шапке)
 
@@ -675,7 +812,7 @@ document.addEventListener('click', e => {
     store.set('reader', reader);
     return applyReader();
   }
-  if (t.closest('.rd')) document.body.classList.remove('rd-panel-open'); // нажал на текст: панель прячем
+  if (t.closest('.rd, .bm')) document.body.classList.remove('rd-panel-open'); // нажал на текст: панель прячем
 
   const share = t.closest('[data-action="share"]');
   if (share) return shareBook(Number(share.dataset.id));

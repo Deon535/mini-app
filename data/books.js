@@ -13,9 +13,23 @@
   added       дата выхода в канале 'ГГГГ-ММ-ДД' (для «Новинок»; '' если не знаем)
   popular     true, если книга в «Популярном»
   starter     true, если книга в «С чего начать»
+  text        где лежит текст книги для читалки ('' если текста пока нет)
+  version     'clean' чистовик (PDF) / 'draft' черновик, возможны опечатки (Word) / '' не указано
+  publisher   кто подготовил книгу (например 'Bayt al-Magrifa'; '' если не знаем)
 */
 
 window.CATEGORIES = ['Хадисы', 'Фикх', 'Акыда', 'Тафсир', 'Сира', 'Нравственность', 'Детям'];
 
 window.BOOKS = [
+  {
+    id: 1,
+    title: 'Излишество в отношении могил праведников превращает их в идолов, которым поклоняются',
+    titleAr: '',
+    author: 'Абд ур-Раззак аль-Бадр',
+    category: 'Акыда',
+    description: '',
+    facts: 'Буклет / 5 страниц',
+    cover: 'covers/01.jpg', added: '', popular: false, starter: false,
+    text: 'data/texts/1.js', version: 'clean', publisher: 'Bayt al-Magrifa'
+  }
 ];
