@@ -501,6 +501,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 36%; border-top: 1px solid var(--pg-text, #000); }
 .pg-notes li { display: flex; }
 .pg-notes li span { flex: none; width: 1.8em; }
+.pg-notes li > div, .bm-notes li > div { min-width: 0; overflow-wrap: anywhere; } /* текст сноски одним блоком; длинная ссылка переносится, а не вылезает вбок */
 .pg-foot { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); display: flex; align-items: center; gap: calc(var(--pt) * 12); padding: calc(var(--pt) * 10) 20px calc(var(--pt) * 12); }
 .pg-foot span { flex: none; min-width: 2.2em; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
 .pg-foot i { flex: 1; height: 3px; border-block: 1px solid color-mix(in srgb, var(--pg-text, #000) 18%, var(--pg-bg, #fff)); }

@@ -657,7 +657,7 @@ const bmPage = (T, p, n) => `
     </header>
     <div class="bm-body">
       ${p.blocks.map(([t, html]) => t === 'h' || t === 'g' ? `<h2 class="bm-h${t === 'g' ? ' bm-reg' : ''}">${html}</h2>` : `<p class="bm-p${t === 'c' ? ' bm-cont' : t === 'q' ? ' bm-flat' : ''}">${html}</p>`).join('')}
-      ${p.notes.length ? `<ol class="bm-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span>${html}</li>`).join('')}</ol>` : ''}
+      ${p.notes.length ? `<ol class="bm-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${html}</div></li>`).join('')}</ol>` : ''}
     </div>
   </section>`;
 
@@ -688,6 +688,7 @@ const pgStyle = ex => {
   if (ex.ff) s.push(`font-family:'${ex.ff}',serif`);
   if (ex.mt !== undefined) s.push(`margin-top:calc(${ex.mt} * var(--u))`);
   if (ex.pl) s.push(`padding-left:calc(${ex.pl} * var(--u))`);
+  if (ex.ti !== undefined) s.push(`text-indent:calc(${ex.ti} * var(--u))`); // висячий отступ пункта списка («I. …»): первая строка левее остальных
   if (ex.lh) s.push(`line-height:${ex.lh}`);
   return s.length ? ` style="${s.join(';')}"` : '';
 };
@@ -715,7 +716,7 @@ const pgPage = (p, i, th) => `
     ${p.front || !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${p.head || ''}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
     <div class="pg-body">
       ${p.blocks.map(pgBlock).join('')}
-      ${p.notes.length ? `<ol class="pg-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span>${html}</li>`).join('')}</ol>` : ''}
+      ${p.notes.length ? `<ol class="pg-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${html}</div></li>`).join('')}</ol>` : ''}
     </div>
     ${p.front || th.num === 'top' ? '' : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}
   </section>`;

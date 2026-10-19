@@ -135,12 +135,12 @@ window.BOOKS = [
     id: 11,
     title: 'Обряды похорон',
     titleAr: '',
-    author: 'Мухаммад Насыруддин аль-Альбани',
+    author: 'Мухаммад Насыруддин аль-Албани',
     category: 'Фикх',
     description: '',
-    facts: '',
-    cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '180 страниц',
+    cover: 'covers/11.jpg', color: '#2F4A5A', added: '', popular: false, starter: false,
+    text: 'data/texts/11.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 12,
@@ -201,12 +201,12 @@ window.BOOKS = [
     id: 17,
     title: 'Разъяснение книги «Условия молитвы» (аль-′Аббад)',
     titleAr: '',
-    author: 'Абдульмухсин аль-′Аббад аль-Бадр',
+    author: 'Шейх ’Абдуль-Мухсин аль-’Аббад',
     category: 'Фикх',
     description: '',
-    facts: '',
+    facts: '101 страница',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/17.js', version: 'clean', publisher: ''
   },
   {
     id: 18,
@@ -300,12 +300,12 @@ window.BOOKS = [
     id: 26,
     title: 'Хиджаб: вопросы и ответы об истинной сути хиджаба и скрывании лица',
     titleAr: '',
-    author: '',
+    author: '‘Умар ибн ‘Абду р-Рахман аль-‘Умар',
     category: 'Фикх',
     description: '',
-    facts: '',
-    cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '58 страниц',
+    cover: 'covers/26.jpg', color: '#2F4A5A', added: '', popular: false, starter: false,
+    text: 'data/texts/26.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 27,
@@ -397,7 +397,7 @@ window.BOOKS = [
   },
   {
     id: 35,
-    title: 'Ашариты не имеют отношения к приверженцам Сунны и единой общины',
+    title: 'Аш′ариты не имеют отношения к приверженцам сунны и единой общины',
     titleAr: '',
     author: 'Шейх Фалях ибн Исма′иль Мандакар',
     category: 'Акыда',
@@ -421,12 +421,12 @@ window.BOOKS = [
     id: 37,
     title: 'Вероубеждение единобожия',
     titleAr: '',
-    author: 'Салих аль-Фаузан',
+    author: 'Салих ибн Фаузан аль-Фаузан',
     category: 'Акыда',
     description: '',
-    facts: '',
+    facts: '304 страницы',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: 'Bayt al-Magrifa'
+    text: 'data/texts/37.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 38,
@@ -718,12 +718,12 @@ window.BOOKS = [
     id: 64,
     title: 'Различия между убеждениями предшественников и убеждениями мурджиитов в вопросах веры (аль-Фурук)',
     titleAr: '',
-    author: 'Салих ибн Мухаммад ас-Сувейх',
+    author: 'Салих ибн Мухаммад ас-Сувеййих',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '314 страниц',
+    cover: 'covers/64.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/64.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 65,
@@ -740,12 +740,12 @@ window.BOOKS = [
     id: 66,
     title: 'Разъяснение «Четырёх правил» (аль-Фаузан)',
     titleAr: '',
-    author: 'Салих аль-Фаузан',
+    author: 'Шейх Салих ибн Фаузан ибн ’Абдуллах аль-Фаузан',
     category: 'Акыда',
     description: '',
-    facts: '',
+    facts: '64 страницы',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/66.js', version: 'clean', publisher: ''
   },
   {
     id: 67,
@@ -762,12 +762,12 @@ window.BOOKS = [
     id: 68,
     title: 'Разъяснение книги «Деяния, делающие Ислам недействительным»',
     titleAr: '',
-    author: 'Салих аль-Фаузан',
+    author: 'Шейх Салих ибн Фаузан аль-Фаузан',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '284 страницы',
+    cover: 'covers/68.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/68.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 69,
@@ -784,12 +784,12 @@ window.BOOKS = [
     id: 70,
     title: 'Разъяснение трёх основ (Ибн Баз)',
     titleAr: '',
-    author: 'Абдульазиз ибн Баз',
+    author: 'Шейх Абдуль-Азиз ибн Абдиллях ибн Баз',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '111 страниц',
+    cover: 'covers/70.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/70.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 71,
@@ -875,9 +875,9 @@ window.BOOKS = [
     author: 'Мухаммад ибн Джамиль Зину',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '85 страниц',
+    cover: 'covers/78.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/78.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 79,
@@ -916,12 +916,12 @@ window.BOOKS = [
     id: 82,
     title: 'Убеждения имама аль-Барбахари (Шарх ас-сунна)',
     titleAr: '',
-    author: 'Аль-Хасан ибн ′Али аль-Барбахари',
+    author: 'Абу Мухаммад аль-Хасан ибн ′Али ибн Халяф аль-Барбахари',
     category: 'Акыда',
     description: '',
-    facts: '',
+    facts: '59 страниц',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/82.js', version: 'clean', publisher: ''
   },
   {
     id: 83,
@@ -1059,12 +1059,12 @@ window.BOOKS = [
     id: 95,
     title: 'Уроки, извлекаемые из Корана',
     titleAr: 'دروس من القرآن',
-    author: 'Салих аль-Фаузан',
+    author: 'Шейх Салих ибн Фаузан ибн ’Абдуллах аль-Фаузан',
     category: 'Тафсир',
     description: '',
-    facts: '',
+    facts: '272 страницы',
     cover: '', color: '#2E5A4F', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/95.js', version: 'clean', publisher: ''
   },
   {
     id: 96,
@@ -1103,12 +1103,12 @@ window.BOOKS = [
     id: 99,
     title: 'Двадцать советов моей сестре до её выхода замуж',
     titleAr: '',
-    author: 'Бадр ибн Али ибн Тами аль-Утайби',
+    author: 'Шейх Бадр Али ибн Тами аль-Утайби',
     category: 'Нравственность',
     description: '',
-    facts: '',
+    facts: '114 страниц',
     cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/99.js', version: 'clean', publisher: ''
   },
   {
     id: 100,
@@ -1147,12 +1147,12 @@ window.BOOKS = [
     id: 103,
     title: 'Как начинать приобретать знания',
     titleAr: '',
-    author: 'Абдуссалям ибн Мухаммад аш-Шувайер',
+    author: 'Шейх доктор ‘Абду с-Салям ибн Мухаммад аш-Шувайир',
     category: 'Нравственность',
     description: '',
-    facts: '',
+    facts: '60 страниц',
     cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/103.js', version: 'clean', publisher: ''
   },
   {
     id: 104,
@@ -1169,12 +1169,12 @@ window.BOOKS = [
     id: 105,
     title: 'Озарение от Щедрого, Дарующего: о нравах носителей Корана',
     titleAr: '',
-    author: '′Али ад-Дабба′ ибн аль-Азхари',
+    author: 'Шейх ‘Али ад-Дабба’ ибн аль-Азхари',
     category: 'Нравственность',
     description: '',
-    facts: '',
-    cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '34 страницы',
+    cover: 'covers/105.jpg', color: '#6B3A2E', added: '', popular: false, starter: false,
+    text: 'data/texts/105.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 106,
