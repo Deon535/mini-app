@@ -710,12 +710,39 @@ const pgBlock = ([k, h, ex = {}]) => {
     default: return `<p class="pg-p${k === 'c' ? ' pg-cont' : k === 'q' ? ' pg-flat' : ''}"${st}>${h}</p>`;
   }
 };
+// Рамка цитаты (группа В: №17, 66, 95): подряд идущие блоки с одним ex.fr — внутри общей рамки p.frames[fr − 1].
+// Вид рамки th.frs[вид] — картинка-образец из самого PDF (уголки и полоски сторон; середина — заливка), растягивается под любую высоту (border-image);
+// узор по бокам (№66) — отдельные картинки, растянутые по высоте рамки. Размеры — в pt страницы PDF (--pt), отступы по вертикали — в долях основного размера (--u)
+const pgFrame = (f, th, html) => {
+  const d = th.frs && th.frs[f.s];
+  if (!d) return html;
+  const [cw, ch] = [].concat(d.c || 0), [sw, sh] = [].concat(d.sl || 0), W = `calc(var(--pt) * ${cw})`, H = `calc(var(--pt) * ${ch !== undefined ? ch : cw})`; // уголок: ширина и высота (pt и пиксели образца)
+  const st = [`margin:calc(var(--u) * ${f.mt}) calc(var(--pt) * ${f.mr}) 0 calc(var(--pt) * ${f.ml})`,
+    `padding:0 calc(var(--pt) * ${f.pr}) calc(var(--u) * ${f.pb}) calc(var(--pt) * ${f.pl})`,
+    ...(d.src ? [`border-image-source:url(${d.src})`, `border-image-slice:${sh !== undefined ? sh : sw} ${sw} ${sh !== undefined ? sh : sw} ${sw} fill`,
+      `border-image-width:${f.ot ? '0' : H} ${W} ${f.ob ? '0' : H} ${W}`] : [])];
+  const o = d.o && f.orn ? ['l', 'r'].map(k => `<i class="pg-fo" style="${k === 'l' ? 'left' : 'right'}:calc(var(--pt) * ${d.o[k + 'x']});width:calc(var(--pt) * ${d.o.w});top:${f.orn[0]}%;height:${f.orn[1]}%;background-image:url(${d.o[k]})"></i>`).join('') : '';
+  const ic = d.i && f.ic ? `<i class="pg-fo" style="left:calc(var(--pt) * ${f.ic[0]});top:calc(var(--pt) * ${f.ic[1]});width:calc(var(--pt) * ${d.i.w});height:calc(var(--pt) * ${d.i.h});background-image:url(${d.i.src})"></i>` : ''; // значок-книжка (№37)
+  return `<div class="pg-fr${d.r ? ' pg-fr-r' : ''}" style="${st.join(';')}">${o}${ic}${html}</div>`;
+};
+// блоки страницы: подряд идущие с одним ex.fr собираются в рамку
+const pgBlocks = (p, th) => {
+  let html = '', run = '', cur = 0;
+  const flush = () => { if (run) html += pgFrame(p.frames[cur - 1], th, run); run = ''; cur = 0; };
+  for (const b of p.blocks) {
+    const fr = (b[2] && b[2].fr) || 0;
+    if (fr !== cur) flush();
+    if (fr) { cur = fr; run += pgBlock(b); } else html += pgBlock(b);
+  }
+  flush();
+  return html;
+};
 const pgPage = (p, i, th) => `
   <section class="pg-page${p.front ? ' pg-front' : ''}" data-page="${i + 1}">
     ${th.num === 'top' && !p.front && p.n !== undefined ? `<div class="pg-topnum pg-${p.side || 'r'}">${p.n}</div>` : ''}
     ${p.front || !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${p.head || ''}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
     <div class="pg-body">
-      ${p.blocks.map(pgBlock).join('')}
+      ${pgBlocks(p, th)}
       ${p.notes.length ? `<ol class="pg-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${html}</div></li>`).join('')}</ol>` : ''}
     </div>
     ${p.front || th.num === 'top' ? '' : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}

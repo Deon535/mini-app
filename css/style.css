@@ -490,6 +490,10 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-topnum.pg-r { text-align: right; }
 .pg-img { text-align: center; margin-top: calc(var(--u) * 1.2); }
 .pg-img img { max-width: 100%; height: auto; }
+/* рамка цитаты (группа В): вид и размеры задаёт js/app.js pgFrame; середина и края — картинка из PDF, узор по бокам (№66) — отдельные картинки */
+.pg-fr { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); position: relative; display: flow-root; border: 0 solid transparent; border-image-repeat: stretch; clip-path: inset(0 -3em); }
+.pg-fo { position: absolute; background-repeat: no-repeat; background-size: 100% 100%; pointer-events: none; }
+.pg-fr-r .pg-img { text-align: right; } /* арабская картинка у правого края (№37, как в PDF) */
 .pg .dc { float: left; font-size: 3.1em; line-height: .78; padding: .06em .08em 0 0; }
 .pg-sep { text-align: center; margin-top: calc(var(--u) * 1.6); }
 .pg-sep img { width: 18%; height: auto; }
