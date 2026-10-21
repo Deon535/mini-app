@@ -721,6 +721,55 @@ const pgPage = (p, i, th) => `
     ${p.front || th.num === 'top' ? '' : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}
   </section>`;
 
+// Детские книги (оформление 'kid', №116, №117): половина разворота PDF = страница.
+// Фон — картинка страницы PDF без текста, текст поверх — настоящий, на тех же местах и с тем же наклоном (SVG в пунктах PDF).
+// Строка: [текст, x, y (начало базовой линии), размер, наклон °, цвет, шрифт (номер в T.fonts), длина строки в PDF,
+//          выравнивание m|l|r|j, абзац, эффект s (тень) | g (свечение)]
+const KID_AR = /[؀-ۿ]/;
+const escHTML = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function kidRow(T, [t, x, y, z, a, c, f, len, al = 'm', b = 0, fx = '']) {
+  const rtl = KID_AR.test(t), [ff, fw] = T.fonts[f];
+  // точка привязки: середина строки, левый или правый край (для арабского «начало» строки справа)
+  const X = al === 'm' ? x + len / 2 : al === 'r' ? x + len : x;
+  const anchor = al === 'm' ? 'middle' : (al === 'r') !== rtl ? 'end' : 'start';
+  return `<text x="${X}" y="${y}" text-anchor="${anchor}"${rtl ? ' direction="rtl" lang="ar"' : ''}${a ? ` transform="rotate(${a} ${x} ${y})"` : ''}` +
+    ` fill="${c}" style="font-family:${ff};font-weight:${fw};font-size:${z}px"${fx ? ` class="kid-${fx}"` : ''}` +
+    ` data-len="${len}" data-z="${z}" data-al="${al}" data-b="${b}">${escHTML(t)}</text>`;
+}
+const kidPage = (T, p, i) => `
+  <section class="kid-page" data-page="${i + 1}" style="aspect-ratio:${T.w}/${T.h}">
+    <img src="${p.bg}" alt="" loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async">
+    <svg viewBox="0 0 ${T.w} ${T.h}" aria-label="Страница ${i + 1}">${p.rows.map(r => kidRow(T, r)).join('')}</svg>
+  </section>`;
+// Наш шрифт шире или уже шрифта книги: размер чуть подгоняем, чтобы строка заняла ту же длину, что в PDF (0,8–1,25).
+// Строки одного абзаца получают один размер; строки «по ширине» растягиваются пробелами до края, как в книге
+function kidFit(svg) {
+  const rows = [...svg.querySelectorAll('text')].filter(el => +el.dataset.len >= 20);
+  const kOf = el => Math.max(.8, Math.min(1.25, el.dataset.len / el.getComputedTextLength()));
+  const blocks = {};
+  for (const el of rows) {
+    el.k = kOf(el);
+    if (+el.dataset.b) (blocks[el.dataset.b] = blocks[el.dataset.b] || []).push(el);
+  }
+  for (const list of Object.values(blocks)) {
+    const ref = list.filter(el => el.dataset.al !== 'j'), ks = (ref.length ? ref : list).map(el => el.k).sort((a, b) => a - b);
+    let k = ks[Math.floor((ks.length - 1) / 2)]; // при чётном числе строк — меньшая из средних, чтобы не вылезать
+    // строки «по ширине» не должны сжимать пробелы больше чем на 0,05 буквы — иначе слова слипаются
+    for (const el of list.filter(el => el.dataset.al === 'j')) {
+      const gaps = (el.textContent.match(/ /g) || []).length, w1 = el.getComputedTextLength() / (parseFloat(el.style.fontSize) / el.dataset.z || 1);
+      k = Math.min(k, Math.max(.8, el.dataset.len / (w1 - .05 * el.dataset.z * gaps)));
+    }
+    list.forEach(el => { el.k = k; });
+  }
+  for (const el of rows) {
+    el.style.fontSize = el.dataset.z * el.k + 'px';
+    if (el.dataset.al === 'j') {
+      const gaps = (el.textContent.match(/ /g) || []).length;
+      if (gaps) el.style.wordSpacing = (el.dataset.len - el.getComputedTextLength()) / gaps + 'px';
+    }
+  }
+}
+
 function textScreen(id) {
   const b = bookById(id);
   if (!b || !b.text) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
@@ -882,6 +931,22 @@ function mountText(id) {
       box.innerHTML = T.pages.map((p, i) => pgPage(p, i, T.theme)).join('');
       box.querySelectorAll('.pg-p').forEach(hyphenate);
       pages = [...box.querySelectorAll('.pg-page')];
+    } else if (T.style === 'kid') { // детская книга: картинка страницы + настоящий текст поверх
+      readerStyle = 'kid';
+      applyReader();
+      box.className = 'kid';
+      document.body.style.setProperty('--rb', T.bg);
+      paintTelegramBars();
+      const aa = document.querySelector('[data-action="rd-panel"]');
+      if (aa) aa.style.visibility = 'hidden'; // размер задан страницей книги, «Аа» здесь не действует
+      box.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+        <filter id="kid-sh" x="-5%" y="-30%" width="110%" height="160%"><feDropShadow dx=".6" dy=".9" stdDeviation=".9" flood-color="#000" flood-opacity=".37"/></filter>
+        <filter id="kid-gl" x="-5%" y="-40%" width="110%" height="180%"><feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#fff" flood-opacity=".8"/></filter>
+        </defs></svg>` + T.pages.map((p, i) => kidPage(T, p, i)).join('');
+      pages = [...box.querySelectorAll('.kid-page')];
+      // сначала шрифты книги (русские и арабские буквы), потом подгонка длины строк
+      Promise.all(T.fonts.map(([ff, fw]) => document.fonts.load(`${fw} 16px ${ff}`, 'Аа بس 1').catch(() => {})))
+        .then(() => { if (alive) box.querySelectorAll('.kid-page svg').forEach(kidFit); });
     } else if (T.style === 'plain') { // обычная книга без перевода: цвет «Бумага»
       box.className = 'rd';
       box.innerHTML = plainRender(T);
@@ -908,6 +973,8 @@ function mountText(id) {
     if (stopTr) stopTr();
     readerStyle = null;
     ['--rb', '--rt', '--rm', '--rr'].forEach(v => document.body.style.removeProperty(v));
+    const aa = document.querySelector('[data-action="rd-panel"]');
+    if (aa) aa.style.visibility = '';
     delete document.body.dataset.rt;
     document.body.classList.remove('rd-panel-open');
     paintTelegramBars(); // шапку Telegram снова в цвет приложения

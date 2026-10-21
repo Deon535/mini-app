@@ -1290,23 +1290,23 @@ window.BOOKS = [
     id: 116,
     title: 'Вопросы и ответы для детей',
     titleAr: 'أسئلة وأجوبة للصغار',
-    author: '',
+    author: 'Салим ибн Саад Ат-Тавиль',
     category: 'Детям',
     description: '',
-    facts: 'Русский текст с арабским оригиналом',
-    cover: '', color: '#6A3347', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '68 страниц, русский и арабский',
+    cover: 'covers/116.jpg', color: '#6A3347', added: '', popular: false, starter: false,
+    text: 'data/texts/116.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 117,
     title: 'Драгоценный подарок для детей',
-    titleAr: '',
-    author: 'Сулейман аль-Джамзури',
+    titleAr: 'تحفة الأطفال',
+    author: 'Сулейман аль-Джамзурий',
     category: 'Детям',
     description: '',
-    facts: 'Стихи с арабским оригиналом',
-    cover: '', color: '#6A3347', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '20 страниц, стихи на арабском с переводом',
+    cover: 'covers/117.jpg', color: '#6A3347', added: '', popular: false, starter: false,
+    text: 'data/texts/117.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 118,

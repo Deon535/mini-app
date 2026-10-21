@@ -568,3 +568,15 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 /* Плашка «Чистовик / Черновик» на странице книги */
 .bk-note { margin: 0 0 20px; }
 .nowrap { white-space: nowrap; }
+
+/* ---- Детские книги (оформление 'kid', №116, №117): половина разворота PDF = страница ----
+   Снизу картинка страницы без текста, сверху SVG с настоящим текстом в пунктах PDF (viewBox), поэтому всё масштабируется вместе.
+   «Аа» эти страницы не меняет. Фон читалки (--rb) — цвет страниц книги (T.bg). */
+body[data-rt="kid"] { --rb: #fff; --rt: #2D251C; --rm: #6B6B6B; --rr: #2D251C; }
+.kid { margin: 0 calc(-1 * var(--side)); }
+.kid-page { position: relative; overflow: hidden; background: #fff; }
+.kid-page + .kid-page { margin-top: 8px; }
+.kid-page img, .kid-page svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.kid-page text { white-space: pre; }
+.kid-page .kid-s { filter: url(#kid-sh); } /* тень под буквами, как в PDF */
+.kid-page .kid-g { filter: url(#kid-gl); } /* белое свечение под буквами, как в PDF */
