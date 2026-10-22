@@ -473,7 +473,12 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-head span { display: block; font-size: calc(var(--pt) * 9); line-height: 1.2; color: var(--pg-head, #4C4C4C); }
 .pg-head img { display: block; width: 100%; height: auto; margin-top: calc(var(--pt) * 4); }
 .pg-body { padding: calc(var(--u) * .7) 20px 0; }
-.pg-front .pg-body { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding-top: 0; }
+.pg-body { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); --b0: calc(var(--u) * .7); position: relative; } /* 1 pt страницы PDF в пикселях (для картинок «art» на любой странице) */
+.pg-front .pg-body { padding-top: 0; --b0: 0px; display: flow-root; } /* отступ первого блока остаётся внутри тела (не «выдавливает» тело вниз) */
+.pg-art img { display: block; margin-left: auto; margin-right: auto; position: relative; max-width: 100%; height: auto; } /* рисунок из PDF по середине, сдвиг ox — через left */
+.pg-art-o { position: absolute; top: 0; left: 0; right: 0; height: 0; pointer-events: none; } /* «наложение»: рисунок лежит поверх, места не занимает */
+.pg-body > .pg-art-o + * { margin-top: 0; } /* наложение стоит первым, но «первым» по-прежнему считается следующий за ним блок */
+.pg-art-o img { position: absolute; transform: translateX(-50%); margin: 0; max-width: 100cqw; }
 .pg-front .pg-f { line-height: 1.2; }
 .pg-body > :first-child { margin-top: 0; }
 .pg-h { font-size: 1.17em; font-weight: 700; text-align: center; line-height: 1.25; margin-top: calc(var(--u) * 1.5); }
@@ -482,9 +487,11 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-p { text-indent: var(--pg-ind, 1.2em); text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin-top: var(--pg-gap, .47em); }
 .pg-p.pg-cont { text-indent: 0; margin-top: 0; }
 .pg-p.pg-flat { text-indent: 0; }
+.pg-h, .pg-p { overflow-wrap: break-word; } /* слово, которое иначе не влезает в экран (длинный заголовок при крупном шрифте, адрес в сноске), переносится по буквам, а не вылезает вбок */
 .pg b { font-weight: 700; }
 .pg .pg-m { color: #7A6E60; } /* текст, который читает ученик (в PDF цветной): наш приглушённый цвет вместо цвета PDF */
 .pg sup { font-size: var(--pg-sup, .58em); line-height: 0; vertical-align: .55em; font-style: normal; font-weight: 400; }
+.pg u { text-decoration: underline; text-decoration-thickness: .055em; text-underline-offset: .17em; text-decoration-skip-ink: none; } /* подчёркнутые слова, как в PDF: тонкая линия (0,6 pt при тексте 11 pt) */
 .pg .hon { font-family: "Amiri", serif; font-weight: 400; font-size: .9em; white-space: nowrap; }
 .pg-topnum { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 24) 20px 0; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
 .pg-topnum.pg-r { text-align: right; }
@@ -494,10 +501,45 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-fr { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); position: relative; display: flow-root; border: 0 solid transparent; border-image-repeat: stretch; clip-path: inset(0 -3em); }
 .pg-fo { position: absolute; background-repeat: no-repeat; background-size: 100% 100%; pointer-events: none; }
 .pg-fr-r .pg-img { text-align: right; } /* арабская картинка у правого края (№37, как в PDF) */
+/* плашка у заголовка (№17, №66): края — векторные SVG из PDF, середина — CSS; размеры в pt PDF × --k (js/app.js pgPlaque).
+   mix-blend-mode: белое из PDF становится цветом страницы (как у рамок цитат) */
+.pg-pl { display: flex; justify-content: center; margin-left: -16px; margin-right: -16px; mix-blend-mode: multiply; line-height: 1.15; text-align: center; hyphens: none; -webkit-hyphens: none; }
+.pg-pl > .c { flex: none; display: flex; flex-direction: column; }
+.pg-pl > .c img { display: block; width: 100%; flex: none; }
+.pg-pl > .c img.s { flex: 1 1 auto; } /* полоска края тянется, когда текст ушёл на 2 строки */
+.pg-pl > .m { flex: none; min-width: 0; box-sizing: border-box; display: flex; align-items: center; justify-content: center; margin: 0; font-size: 1em; font-weight: 400; }
+/* тёмная плашка: узоры по середине высоты; если места мало, край обрезается снаружи (сначала хвост-линия), узор у полосы остаётся */
+.pg-pl-c { align-items: center; }
+.pg-pl-c > .c { flex-direction: row; flex-shrink: 1000; overflow: hidden; }
+.pg-pl-c > .c.l { justify-content: flex-end; }
+.pg-pl-c > .c img { width: auto; }
+/* плашка-заголовок с завитками (js/app.js pgRPlaque): концы и полоска — вырезки из PDF; белое из PDF = цвет страницы (multiply); ширина — по тексту, не шире экрана */
+.pg-rp { display: flex; align-items: stretch; width: fit-content; max-width: 100cqw; margin: calc(var(--u) * 1.2) auto calc(var(--u) * .6); mix-blend-mode: multiply; }
+.pg-rp > img { flex: none; height: auto; align-self: stretch; object-fit: fill; }
+.pg-rp > .m { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 0 calc(var(--pt) * 5); background-size: 100% 100%; background-repeat: no-repeat; font-family: "Source Sans 3", sans-serif; font-weight: 400; line-height: 1.05; text-align: center; color: #000; }
+.pg-rp > .m > span { white-space: nowrap; }
+.pg-rp > .m b { font-weight: 700; }
+.pg-body > .pg-rp:first-child { margin-top: 0; }
+/* заголовок в рамке-«пилюле» (js/app.js, ex.pill): линия 0,5 pt цвета PDF, ширина — вся колонка; радиус 12 pt (на одну строку в PDF — полностью круглые концы) */
+.pg-pill { --s: calc((100cqw - 40px) / 331.65); margin-top: calc(var(--u) * .8); border: max(1px, calc(var(--s) * .5)) solid #2c2e35; border-radius: calc(var(--s) * 12); padding: .2em 5%; }
+.pg-pill1 { border-radius: 999px; }
+.pg-pill .pg-h { margin: 0; font-size: 1em; }
+/* девиз в рамке («20 советов», js/app.js pgMotto): верх и низ — картинки, середина растягивается под текст */
+.pg-mf { margin-top: calc(var(--u) * .8); }
+.pg-mf > img { display: block; width: 100%; height: auto; }
+.pg-mf > .b { background-repeat: no-repeat; background-size: 100% 100%; padding: .12em 5%; margin: -1px 0; }
+.pg-mf .pg-h { margin: 0; font-size: 1em; }
+/* значок слева от абзаца: нулевой по размеру «якорь» в начале первой строки, сам рисунок прижат к его базовой линии (js/app.js pgIcon) */
+.pg-ic { display: inline-block; width: 0; height: 0; position: relative; }
+.pg-ic img { position: absolute; max-width: none; }
+.pg-img-ic { position: relative; text-align: right; } /* арабская картинка со значком слева (в PDF она у правого края) */
+.pg-img-ic .pg-icb { position: absolute; max-width: none; }
+.pg-plh { display: inline-block; vertical-align: -.246em; height: 1.196em; width: auto; margin: 0 .046em 0 .29em; } /* знак «حفظه الله» из PDF */
 .pg .dc { float: left; font-size: 3.1em; line-height: .78; padding: .06em .08em 0 0; }
 .pg-sep { text-align: center; margin-top: calc(var(--u) * 1.6); }
 .pg-sep img { width: 18%; height: auto; }
 .pg-toc { display: flex; align-items: baseline; gap: .35em; margin-top: calc(var(--u) * .7); }
+.pg-toc > span:first-child { min-width: 0; overflow-wrap: anywhere; } /* длинное название главы сжимается, номер страницы не уезжает за край */
 .pg-toc i { flex: 1; min-width: 1em; border-bottom: 1px dotted currentColor; transform: translateY(-.25em); }
 .pg-f { margin-top: 0; }
 .pg-a-c { text-align: center; } .pg-a-r { text-align: right; } .pg-a-l { text-align: left; }

@@ -687,18 +687,83 @@ const pgStyle = ex => {
   if (ex.z) s.push(`font-size:${ex.z}em`);
   if (ex.ff) s.push(`font-family:'${ex.ff}',serif`);
   if (ex.mt !== undefined) s.push(`margin-top:calc(${ex.mt} * var(--u))`);
-  if (ex.pl) s.push(`padding-left:calc(${ex.pl} * var(--u))`);
-  if (ex.ti !== undefined) s.push(`text-indent:calc(${ex.ti} * var(--u))`); // висячий отступ пункта списка («I. …»): первая строка левее остальных
+  const pl = ex.pl ? `min(calc(${ex.pl} * var(--u)), calc(100% - 6 * var(--u)))` : ''; // отступ слева не больше «колонка минус 6 размеров шрифта»: на узком экране с крупным шрифтом иначе съедает всю ширину
+  if (ex.pl) s.push(`padding-left:${pl}`);
+  if (ex.ti !== undefined) s.push(`text-indent:${ex.pl ? `calc(${+(ex.pl + ex.ti).toFixed(3)} * var(--u) - ${pl})` : `calc(${ex.ti} * var(--u))`}`); // висячий отступ пункта списка («I. …»): первая строка левее остальных, но на том же месте, что в PDF
   if (ex.lh) s.push(`line-height:${ex.lh}`);
+  if (ex.bar) s.push(`border-left:calc(var(--pt) * 2) solid var(--pg-bar, #2c2e35)`, `padding-left:calc(var(--pt) * ${ex.bar})`, "text-indent:0", "text-align:left"); // тёмная черта слева от подзаголовка («О посте»); bar — отступ текста от черты в pt PDF
   return s.length ? ` style="${s.join(';')}"` : '';
 };
-const pgBlock = ([k, h, ex = {}]) => {
+// Плашка у заголовка (№17, №66): рисунок из самого PDF векторный (SVG из контуров фигур, img/pl-N/), текст внутри настоящий.
+// Вид — th.pls[ex.pq]: края L/R = [ширина, части [файл, высота, тянется?], сколько оставить при нехватке места (только у тёмной)], m — середина (CSS), sg — знак в строке.
+// Размеры в pt страницы PDF × --k (= 1em / размер текста плашки в PDF): плашка растёт вместе с текстом («Аа»), пропорции как в книге.
+// ex.pq — вид плашки, ex.fz — размер текста плашки в PDF (pt), ex.w — ширина середины (pt), ex.h — высота (pt), если не как у вида
+const pgPlaque = (k, h, ex, pls) => {
+  const P = pls[ex.pq], m = P.m, K = v => `calc(var(--k) * ${v})`, keep = s => s[2] || s[0];
+  const cap = ([w, parts, mw], side) => `<span class="c ${side}" style="${mw ? `flex-basis:${K(w)};min-width:${K(mw)}` : `width:${K(w)}`}">${parts.map(([f, ph, s]) =>
+    `<img src="${pls.dir}${f}.svg" alt=""${s ? ' class="s"' : ''} style="height:${K(ph)}${s ? `;min-height:${K(ph)}` : ''}${mw ? `;width:${K(w)}` : ''}">`).join('')}</span>`;
+  const ms = [`min-height:${K(ex.h || m.h)}`, `padding:0 ${K(m.pr || 0)} 0 ${K(m.pl || 0)}`, `max-width:calc(100% - ${K(keep(P.L) + keep(P.R))})`];
+  if (ex.w) ms.push(`width:${K(ex.w)}`);
+  if (k === 'h') ms.push('font-weight:700'); // заголовок «h» жирный сам (в «g» и «f» жирное задано в тексте тегом <b>)
+  if (m.bg) ms.push(`background:${m.bg}`);
+  if (m.c) ms.push(`color:${m.c}`);
+  if (m.bt) ms.push(`border-block:${K(m.bt)} solid ${m.bc}`);
+  if (P.sg) h = h.replace(P.sg[0], P.sg[1].replace('@', `<img class="pg-plh" src="${pls.dir}${P.sg[2]}.svg" alt="">`)); // знак из PDF (рисунок, не буквы)
+  const f = k === 'f'; // титульная строка: размеры в pt страницы, а не в долях текста
+  const s = [f ? `font-size:calc(var(--pt) * ${ex.z})` : `font-size:${ex.z}em`, f ? '--k:var(--pt)' : `--k:calc(1em / ${ex.fz})`];
+  if (ex.ff) s.push(`font-family:'${ex.ff}',sans-serif`);
+  const mt = ex.mt !== undefined ? ex.mt : k === 'q' ? 0 : 1.5;
+  s.push(`margin-top:${f ? `calc(var(--pt) * ${mt})` : `calc(${mt} * var(--u))`}`);
+  return `<div class="pg-pl${P.a === 'c' ? ' pg-pl-c' : ''}" style="${s.join(';')}">${cap(P.L, 'l')}<h2 class="m" style="${ms.join(';')}"><span>${h}</span></h2>${cap(P.R, 'r')}</div>`;
+};
+// Значок слева от абзаца (рука ☞, ➢, ■, круг «Мухаммад»): рисунок из PDF (img/ic-N/*.svg). th.ics[ex.ic] = {src, w, h, dx, dy} в pt PDF:
+// dx — левый край значка от начала первой строки абзаца, dy — низ значка над базовой линией этой строки. В em от размера текста абзаца в PDF — значок растёт вместе с текстом
+const pgIcon = (ex, th) => {
+  const d = th.ics && th.ics[ex.ic]; if (!d) return '';
+  const e = v => `${+(v / ((th.body || 11) * (ex.z || 1))).toFixed(3)}em`;
+  return `<span class="pg-ic"><img src="${d.src}" alt="" style="left:${e(d.dx)};bottom:${e(d.dy)};width:${e(d.w)};height:${e(d.h)}"></span>`;
+};
+// Девиз в рамке («20 советов»): рамка — три куска SVG из самого PDF (верх с завитком, тянущаяся середина, низ), th.mf.dir — папка; текст внутри настоящий.
+// Ширина рамки = ширина колонки, куски масштабируются вместе (как в PDF), середина растягивается под любое число строк
+const pgMotto = (k, h, ex, th) => {
+  const d = th.mf.dir, {mt, ...rest} = ex, st = mt !== undefined ? ` style="margin-top:calc(${mt} * var(--u))"` : '';
+  return `<div class="pg-mf"${st}><img src="${d}t.svg" alt=""><div class="b" style="background-image:url(${d}m.svg)">${pgBlock([k, h, { ...rest, mf: 0 }], th)}</div><img src="${d}b.svg" alt=""></div>`;
+};
+// Плашка-заголовок с завитками на концах («Разъяснение условий молитвы»: «ПРЕДИСЛОВИЕ», «УСЛОВИЯ (ШУРУТЫ) МОЛИТВЫ»…). В PDF она растровая: концы — вырезки из PDF (th.rp.dir: tN-l.webp, tN-r.webp),
+// середина — узкая полоска, растянутая по ширине (tN-m.webp), текст настоящий. th.rp.t[N] = {h — высота, c — ширина конца} в pt PDF; ex.rp = N (вид), ex.fz — размер текста (pt)
+const pgRPlaque = (k, h, ex, th) => {
+  const R = th.rp, T = R.t[ex.rp], P = v => `calc(var(--pt) * ${v})`, d = R.dir, {mt} = ex;
+  const m = mt === undefined ? '' : `margin-top:${k === 'f' ? P(mt) : `calc(${mt} * var(--u))`};`;
+  return `<div class="pg-rp" style="${m}min-height:${P(T.h)}"><img src="${d}t${ex.rp}-l.webp" alt="" style="width:${P(T.c)}"><div class="m" style="background-image:url(${d}t${ex.rp}-m.webp);font-size:${P(ex.fz)}"><span>${h}</span></div><img src="${d}t${ex.rp}-r.webp" alt="" style="width:${P(T.c)}"></div>`;
+};
+const pgBlock = ([k, h, ex = {}], th) => {
+  if (ex.rp && th && th.rp) return pgRPlaque(k, h, ex, th);
+  if (ex.mf && th && th.mf) return pgMotto(k, h, ex, th);
+  if (ex.pill) { // заголовок в рамке-«пилюле» («Как начать требовать знания»): тонкая линия, скруглённые края (pill: 1 — на одну строку в PDF, 2 — на две)
+    const {mt, ...rest} = ex;
+    return `<div class="pg-pill pg-pill${ex.pill}"${mt !== undefined ? ` style="margin-top:calc(${mt} * var(--u))"` : ''}>${pgBlock([k, h, { ...rest, pill: 0 }], th)}</div>`;
+  }
+  if (ex.pq && th && th.pls) return pgPlaque(k, h, ex, th.pls);
+  if (ex.ic && th) h = pgIcon(ex, th) + h;
   const st = pgStyle(ex);
   switch (k) {
     case 'h': return `<h2 class="pg-h"${st}>${h}</h2>`;
     case 'g': return `<h2 class="pg-h pg-reg"${st}>${h}</h2>`;
     case 'd': return `<h2 class="pg-d"${st}>${h}</h2>`; // крупный заголовок особого шрифта (например, №75)
-    case 'img': return `<div class="pg-img"${st}><img src="${ex.src}" alt="" style="width:calc(100cqw * ${ex.w} / var(--pg-pw, 411) * 1.25)"></div>`;
+    case 'img': { // арабская картинка; ex.ic — значок слева от неё (по середине высоты картинки, у левого поля)
+      const d = ex.ic && th && th.ics && th.ics[ex.ic], e = v => `${+(v / (th.body || 11)).toFixed(3)}em`;
+      const ic = d ? `<img class="pg-icb" src="${d.src}" alt="" style="left:${e(d.lx || 0)};width:${e(d.w)};height:${e(d.h)};top:calc(50% - ${e(d.h / 2)})">` : '';
+      return `<div class="pg-img${d ? ' pg-img-ic' : ''}"${st}>${ic}<img src="${ex.src}" alt="" style="width:calc(100cqw * ${ex.w} / var(--pg-pw, 411) * 1.25)"></div>`;
+    }
+    case 'art': { // нарисованное из PDF (каллиграфия, узор): векторная картинка img/art-N/*.svg. Размеры — в pt страницы PDF (--pt):
+      // w/h — размер, mtp — отступ сверху, mbp — снизу, ox — сдвиг от середины страницы вправо (pt)
+      if (ex.tp !== undefined) { // «наложение»: рисунок не занимает места в тексте, лежит на указанной высоте (tu — в долях текста, tp — в pt страницы) от этого места страницы; по бокам заголовка (цветочные углы)
+        return `<div class="pg-art pg-art-o"><img src="${ex.src}" alt="" style="width:calc(var(--pt) * ${ex.w});aspect-ratio:${ex.w} / ${ex.h};top:calc(var(--b0) + var(--u) * ${ex.tu || 0} + var(--pt) * ${ex.tp});left:calc(50% + var(--pt) * ${ex.ox || 0})"></div>`;
+      }
+      const s = [`margin-top:calc(var(--pt) * ${ex.mtp || 0})`];
+      if (ex.mbp) s.push(`margin-bottom:calc(var(--pt) * ${ex.mbp})`);
+      return `<div class="pg-art" style="${s.join(';')}"><img src="${ex.src}" alt="" style="width:calc(var(--pt) * ${ex.w});aspect-ratio:${ex.w} / ${ex.h}${ex.ox ? `;left:calc(var(--pt) * ${ex.ox})` : ''}"></div>`;
+    }
     case 'sep': return `<div class="pg-sep"${st}><img src="img/pg-orn-stars.png" alt=""></div>`;
     case 'toc': return `<p class="pg-toc"${st}><span>${h}</span><i></i><span>${ex.pg || ''}</span></p>`;
     case 'f': { // титульная строка: размер и отступ в pt страницы PDF (--pt), чтобы титул выглядел как в книге при любой ширине экрана
@@ -718,7 +783,9 @@ const pgFrame = (f, th, html) => {
   if (!d) return html;
   const [cw, ch] = [].concat(d.c || 0), [sw, sh] = [].concat(d.sl || 0), W = `calc(var(--pt) * ${cw})`, H = `calc(var(--pt) * ${ch !== undefined ? ch : cw})`; // уголок: ширина и высота (pt и пиксели образца)
   const st = [`margin:calc(var(--u) * ${f.mt}) calc(var(--pt) * ${f.mr}) 0 calc(var(--pt) * ${f.ml})`,
-    `padding:0 calc(var(--pt) * ${f.pr}) calc(var(--u) * ${f.pb}) calc(var(--pt) * ${f.pl})`,
+    `padding:calc(var(--pt) * ${f.pt || 0}) calc(var(--pt) * ${f.pr}) calc(var(--u) * ${f.pb}) calc(var(--pt) * ${f.pl})`, // f.pt — отступ сверху (pt PDF), если сверху завиток
+    // d.m — рамка из трёх кусков SVG (верх с завитком, тянущаяся середина, низ): img/…/t.svg, m.svg, b.svg; ширина кусков = ширина рамки
+    ...(d.m ? [`background:url(${d.m}t.svg) top/100% auto no-repeat,url(${d.m}b.svg) bottom/100% auto no-repeat,url(${d.m}m.svg) 0 0/100% 100% no-repeat`] : []),
     ...(d.src ? [`border-image-source:url(${d.src})`, `border-image-slice:${sh !== undefined ? sh : sw} ${sw} ${sh !== undefined ? sh : sw} ${sw} fill`,
       `border-image-width:${f.ot ? '0' : H} ${W} ${f.ob ? '0' : H} ${W}`] : [])];
   const o = d.o && f.orn ? ['l', 'r'].map(k => `<i class="pg-fo" style="${k === 'l' ? 'left' : 'right'}:calc(var(--pt) * ${d.o[k + 'x']});width:calc(var(--pt) * ${d.o.w});top:${f.orn[0]}%;height:${f.orn[1]}%;background-image:url(${d.o[k]})"></i>`).join('') : '';
@@ -732,7 +799,7 @@ const pgBlocks = (p, th) => {
   for (const b of p.blocks) {
     const fr = (b[2] && b[2].fr) || 0;
     if (fr !== cur) flush();
-    if (fr) { cur = fr; run += pgBlock(b); } else html += pgBlock(b);
+    if (fr) { cur = fr; run += pgBlock(b, th); } else html += pgBlock(b, th);
   }
   flush();
   return html;
