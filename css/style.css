@@ -468,6 +468,8 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 }
 .pg-page { position: relative; background: var(--pg-bg, #fff); container-type: inline-size; padding-bottom: .4em; }
 .pg-page + .pg-page { border-top: 1px solid color-mix(in srgb, var(--pg-text, #000) 12%, var(--pg-bg, #fff)); }
+.pg-ph { box-sizing: border-box; padding: 0; container-type: normal; } /* заготовка страницы нарезанной книги: пустая, нужной высоты (mountChunked) */
+.pg-lazy { overflow-anchor: none; } /* прокрутку при подмене страниц выравниваем сами, браузерная подстройка не нужна */
 .pg-front { min-height: calc(100cqw * 1.41); }
 .pg-head { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 28) 20px 0; text-align: center; }
 .pg-head span { display: block; font-size: calc(var(--pt) * 9); line-height: 1.2; color: var(--pg-head, #4C4C4C); }

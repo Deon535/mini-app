@@ -538,6 +538,7 @@ function applyReader() {
   const v = document.getElementById('fs-val');
   if (v) v.textContent = reader.fs;
   paintTelegramBars();
+  window.dispatchEvent(new Event('readerchange')); // нарезанные книги (mountChunked) пересчитывают высоты страниц
 }
 
 function sampleScreen() {
@@ -692,6 +693,7 @@ const pgStyle = ex => {
   if (ex.ti !== undefined) s.push(`text-indent:${ex.pl ? `calc(${+(ex.pl + ex.ti).toFixed(3)} * var(--u) - ${pl})` : `calc(${ex.ti} * var(--u))`}`); // висячий отступ пункта списка («I. …»): первая строка левее остальных, но на том же месте, что в PDF
   if (ex.lh) s.push(`line-height:${ex.lh}`);
   if (ex.bar) s.push(`border-left:calc(var(--pt) * 2) solid var(--pg-bar, #2c2e35)`, `padding-left:calc(var(--pt) * ${ex.bar})`, "text-indent:0", "text-align:left"); // тёмная черта слева от подзаголовка («О посте»); bar — отступ текста от черты в pt PDF
+  if (ex.qb) s.push(`margin-left:calc(var(--pt) * ${ex.qb[0]})`, `margin-right:calc(var(--pt) * ${ex.qb[2]})`, `border-left:max(1px, var(--pt)) solid var(--pg-text, #000)`, `padding-left:calc(var(--pt) * ${ex.qb[1]})`, "text-indent:0"); // цитата с чёрточкой слева (№83): qb = [отступ чёрточки от поля, зазор до текста, правое поле] в pt PDF
   return s.length ? ` style="${s.join(';')}"` : '';
 };
 // Плашка у заголовка (№17, №66): рисунок из самого PDF векторный (SVG из контуров фигур, img/pl-N/), текст внутри настоящий.
@@ -975,11 +977,136 @@ function mountTranslation(box, ar) {
   return () => { document.removeEventListener('click', onTap); pop.remove(); };
 }
 
+// Огромные книги (оформление 'pg', «невидимая нарезка»): для читателя это одна сплошная книга, внутри она разрезана.
+// Текст лежит кусками по ~20 страниц (T.parts → data/texts/N/…); все страницы сразу стоят пустыми «заготовками» нужной высоты,
+// настоящими (pgPage) становятся только страницы рядом с экраном, далёкие снова превращаются в заготовки той же высоты.
+// Пока страница не нарисована, её высота приблизительная (по числу букв T.wt); при подмене страницы выше экрана прокрутку сдвигаем на разницу, текст под глазами не прыгает.
+// Место запоминаем как «номер страницы + доля внутри неё»: textPos[id] = {p, f}. Возвращает функцию уборки.
+function mountChunked(id, T, box, ui) {
+  const N = T.n, th = T.theme, C0 = 200; // C0 — шапка, номер и отступы страницы, в «буквах»
+  const chunkOf = i => T.parts.findIndex(p => i >= p[1] && i <= p[2]);
+  const data = [], loading = [], els = [], hs = new Array(N).fill(0), seen = new Set(); // hs — высота страницы, замеренная при уборке; seen — страницы, нарисованные сейчас
+  let alive = true, ready = false, raf = 0, t = 0, saveTimer = 0, fitK = 0, fitAt = 0, sig = '', anchor = { p: 0, f: 0 }, pct = 0, pinI = 0, pinY = 0; // pinI/pinY — страница у верха экрана и её положение на документе после прошлого кадра
+  const docTop = e => e.getBoundingClientRect().top + scrollY;
+  const unit = () => parseFloat(getComputedStyle(box).fontSize) || 18;
+  const guessK = () => 0.62 * unit() * unit() / Math.max(120, box.clientWidth - 40); // высота страницы на одну букву: межстрочный × размер × средняя буква / ширина строки
+  const est = i => Math.round(fitK * (T.wt[i] + C0));
+  const mk = i => { const s = document.createElement('section'); s.className = 'pg-page pg-ph'; s.dataset.page = i + 1; s.style.height = (hs[i] || est(i)) + 'px'; return s; };
+  const layoutKey = () => box.clientWidth + '|' + reader.fs;
+  const calibrate = () => { // уточняем «высоту на букву» по нарисованным страницам
+    let h = 0, w = 0;
+    for (const i of seen) if (T.wt[i] >= 400) { h += els[i].offsetHeight; w += T.wt[i] + C0; } // титулы и пустые страницы (мало букв, но высота страницы) в образец не берём
+    if (w) fitK = h / w;
+  };
+  const refit = () => { fitAt = fitK; for (let i = 0; i < N; i++) if (!seen.has(i) && !hs[i]) els[i].style.height = est(i) + 'px'; }; // заготовки, которые ещё не замеряли, получают новую оценку
+  const render = i => {
+    const k = chunkOf(i), tp = document.createElement('template');
+    tp.innerHTML = pgPage(data[k][i - T.parts[k][1]], i, th);
+    const e = tp.content.firstElementChild;
+    els[i].replaceWith(e); els[i] = e; seen.add(i);
+    e.querySelectorAll('.pg-p').forEach(hyphenate);
+  };
+  const unrender = (i, h) => { hs[i] = h; const p = mk(i); els[i].replaceWith(p); els[i] = p; seen.delete(i); };
+  const load = k => k < 0 || k >= T.parts.length ? Promise.resolve() : (loading[k] = loading[k] || new Promise((ok, no) => {
+    const s = document.createElement('script');
+    s.src = T.dir + T.parts[k][0];
+    s.onload = () => { data[k] = window.TEXTP[id + '.' + k]; ok(); };
+    s.onerror = () => { loading[k] = null; s.remove(); no(); };
+    document.head.appendChild(s);
+  }));
+  const save = () => {
+    store.set('progress', { ...store.get('progress', {}), [id]: Math.max(pct, 1) });
+    store.set('textPos', { ...store.get('textPos', {}), [id]: { p: anchor.p, f: +anchor.f.toFixed(4) } });
+  };
+  const schedule = () => { if (!raf && alive) raf = requestAnimationFrame(tick); };
+  function tick() {
+    raf = 0;
+    if (!alive) return;
+    if (ready) { const d = docTop(els[pinI]) - pinY; if (Math.abs(d) > 0.5) scrollBy(0, d); } // выше экрана что-то изменило высоту без нас (шрифт дозагрузился, картинка): возвращаем текст на место
+    const y = scrollY, vh = innerHeight;
+    // t — страница у верхнего края экрана, c — страница по центру («Стр. N из M»), a…b — страницы от двух экранов выше до двух экранов ниже видимого
+    while (t > 0 && docTop(els[t]) > y + 1) t--;
+    while (t < N - 1 && docTop(els[t + 1]) <= y + 1) t++;
+    let c = t, a = t, b;
+    while (c < N - 1 && docTop(els[c + 1]) < y + vh / 2) c++;
+    while (a > 0 && docTop(els[a]) > y - 2 * vh) a--;
+    for (b = c; b < N - 1 && docTop(els[b + 1]) < y + 3 * vh;) b++;
+    // сначала всё читаем (раскладка чистая), потом меняем страницы, потом один раз читаем снова: так браузер раскладывает книгу один раз за кадр
+    const a0 = els[t].getBoundingClientRect().top;
+    const gone = [...seen].filter(i => i < a - 3 || i > b + 3).map(i => [i, els[i].offsetHeight]);
+    let did = 0, pend = 0;
+    const want = [];
+    for (let i = a; i <= b; i++) if (!seen.has(i)) { const r = els[i].getBoundingClientRect(); want.push([i, r.bottom > 0 && r.top < vh]); } // второе — страница уже видна на экране
+    want.sort((p, q) => Math.abs(p[0] - t) - Math.abs(q[0] - t));
+    for (const [i, h] of gone) unrender(i, h);
+    for (const [i, vis] of want) {
+      const k = chunkOf(i);
+      if (!data[k]) { load(k).then(() => alive && schedule(), () => {}); pend++; } else if (vis || !did) { render(i); did++; } else pend++; // заранее рисуем по одной странице за кадр, видимую на экране — сразу
+    }
+    let shift = els[t].getBoundingClientRect().top - a0;
+    if (did) { calibrate(); if (Math.abs(fitK / fitAt - 1) > 0.12) { refit(); shift = els[t].getBoundingClientRect().top - a0; } } // оценку остальных заготовок обновляем, только когда она заметно разошлась
+    if (Math.abs(shift) > 0.5) scrollBy(0, shift); // страницы выше экрана изменили высоту — возвращаем текст на то же место
+    const k = chunkOf(t); // соседние куски подгружаем заранее
+    if (t - T.parts[k][1] <= 6) load(k - 1).catch(() => {});
+    if (T.parts[k][2] - t <= 6) load(k + 1).catch(() => {});
+    const y2 = scrollY, h = els[t].offsetHeight || 1, f = Math.min(1, Math.max(0, (y2 - docTop(els[t])) / h));
+    pct = y2 >= document.documentElement.scrollHeight - vh - 2 ? 100 : Math.min(99, Math.round((t + f) / N * 100));
+    anchor = { p: t, f }; pinI = t; pinY = docTop(els[t]);
+    ui.bar.style.width = pct + '%'; ui.pct.textContent = pct + '%'; ui.place.textContent = `Стр. ${c + 1} из ${N}`;
+    if (ready) { clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); } // сохраняем, когда человек перестал листать
+    if (pend) schedule();
+  }
+  const relayout = () => { // «Аа» или поворот телефона: высоты страниц стали другими
+    if (!alive || !ready || layoutKey() === sig) return;
+    sig = layoutKey();
+    for (let i = 0; i < N; i++) if (!seen.has(i)) hs[i] = 0;
+    fitK = 0; calibrate(); if (!fitK) fitK = guessK();
+    refit();
+    const e = els[anchor.p];
+    scrollTo(0, docTop(e) + anchor.f * e.offsetHeight);
+    pinI = anchor.p; pinY = docTop(e);
+    schedule();
+  };
+  const ro = new ResizeObserver(() => { relayout(); schedule(); });
+
+  fitK = guessK(); sig = layoutKey();
+  const fr = document.createDocumentFragment();
+  for (let i = 0; i < N; i++) fr.appendChild(els[i] = mk(i));
+  box.replaceChildren(fr);
+  (async () => {
+    // шрифт книги грузим до первой страницы (все его куски: кириллица, латиница, диакритика): иначе текст перерисуется и сдвинется, когда шрифт приедет
+    const ff = th.font || 'Source Serif 4';
+    await Promise.race([Promise.all(['400', '700', 'italic 400', 'italic 700'].map(w => document.fonts.load(`${w} 16px "${ff}"`, 'АаБбҐӢAaĀāŠšḤḥ’‘“”′—…№').catch(() => {}))), new Promise(r => setTimeout(r, 4000))]);
+    const saved = store.get('textPos', {})[id];
+    let p = 0, f = 0;
+    if (saved && typeof saved === 'object') { p = Math.min(N - 1, Math.max(0, saved.p | 0)); f = +saved.f || 0; } else if (typeof saved === 'number') p = Math.min(N - 1, Math.floor(saved * N));
+    try { await load(chunkOf(p)); } catch (e) { if (alive) box.innerHTML = '<p class="soon">Не получилось загрузить книгу. Проверьте интернет и откройте её снова.</p>'; return; }
+    if (!alive) return;
+    t = p; render(p);
+    calibrate(); refit();
+    if (p || f) scrollTo(0, docTop(els[p]) + f * els[p].offsetHeight); // открыли с начала — остаёмся наверху
+    pinI = p; pinY = docTop(els[p]);
+    ready = true;
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('readerchange', relayout);
+    document.fonts.addEventListener('loadingdone', schedule); // дозагрузился ещё один кусок шрифта: следующий кадр вернёт текст на место
+    ro.observe(box);
+    tick();
+  })();
+  return () => {
+    alive = false;
+    if (ready) { clearTimeout(saveTimer); save(); }
+    removeEventListener('scroll', schedule); removeEventListener('readerchange', relayout);
+    document.fonts.removeEventListener('loadingdone', schedule);
+    ro.disconnect(); cancelAnimationFrame(raf);
+  };
+}
+
 // Показываем книгу, следим за прокруткой: процент, «Стр. N из M», запоминаем место
 function mountText(id) {
   const b = bookById(id);
   if (!b || !b.text) return;
-  let alive = true, timer, stopTr = null;
+  let alive = true, timer, stopTr = null, stopChunks = null;
   const box = document.getElementById('bk');
   const bar = document.getElementById('rd-bar');
   const pct = document.getElementById('rd-pct');
@@ -1009,6 +1136,14 @@ function mountText(id) {
   applyReader();
   loadText(b).then(T => {
     if (!alive) return; // человек уже ушёл с экрана
+    if (T.parts) { // огромная книга, «невидимая нарезка»: свой показ и своё запоминание места (mountChunked)
+      readerStyle = 'pg';
+      applyReader();
+      box.className = 'pg pg-lazy';
+      pgTheme(box, T.theme);
+      stopChunks = mountChunked(id, T, box, { bar, pct, place });
+      return;
+    }
     if (T.style === 'bm') { // оригинальное оформление Bayt al-Magrifa: страницы с шапкой
       readerStyle = 'bm';
       applyReader();
@@ -1065,6 +1200,7 @@ function mountText(id) {
     alive = false;
     removeEventListener('scroll', onScroll);
     if (stopTr) stopTr();
+    if (stopChunks) stopChunks();
     readerStyle = null;
     ['--rb', '--rt', '--rm', '--rr'].forEach(v => document.body.style.removeProperty(v));
     const aa = document.querySelector('[data-action="rd-panel"]');
@@ -1188,3 +1324,6 @@ loadShelfFromCloud();
 applyTheme();
 window.addEventListener('hashchange', router);
 router();
+
+// «Кладовщик» на телефоне (sw.js): хранит куски огромных книг. Где недоступен (например, в части версий Telegram) — просто не нужен, книги грузятся как обычно.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

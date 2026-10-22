@@ -927,12 +927,12 @@ window.BOOKS = [
     id: 83,
     title: 'Убеждения приверженцев Сунны и единой общины',
     titleAr: '',
-    author: 'Мухаммад ибн Салих аль-′Усеймин',
+    author: 'Мухаммад ибн Салих ибн ′Усеймин',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '360 страниц',
+    cover: 'covers/83.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/83.js', version: 'clean', publisher: ''
   },
   {
     id: 84,
