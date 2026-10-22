@@ -729,12 +729,12 @@ window.BOOKS = [
     id: 65,
     title: 'Разъяснение «Книги Единобожия»',
     titleAr: '',
-    author: 'Абд ур-Раззак аль-Бадр',
+    author: '‘Абду Р-Раззак аль-Бадр',
     category: 'Акыда',
     description: '',
-    facts: '',
+    facts: '24 урока',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: 'Bayt al-Magrifa'
+    text: 'data/texts/65.js', version: 'clean', publisher: 'Bayt al-Magrifa'
   },
   {
     id: 66,
