@@ -544,7 +544,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-sep img { width: 18%; height: auto; }
 .pg-toc { display: flex; align-items: baseline; gap: .35em; margin-top: calc(var(--u) * .7); }
 .pg-toc > span:first-child { min-width: 0; overflow-wrap: anywhere; } /* длинное название главы сжимается, номер страницы не уезжает за край */
-.pg-toc i { flex: 1; min-width: 1em; border-bottom: 1px dotted currentColor; transform: translateY(-.25em); }
+.pg-toc > i { flex: 1; min-width: 1em; border-bottom: 1px dotted currentColor; transform: translateY(-.25em); }
 .pg-f { margin-top: 0; }
 .pg-a-c { text-align: center; } .pg-a-r { text-align: right; } .pg-a-l { text-align: left; }
 .pg-notes { list-style: none; font-size: var(--pg-nfs, .83em); line-height: var(--pg-nlh, 1.48); margin-top: calc(var(--u) * 1.3); padding-top: .6em; position: relative; }
@@ -558,6 +558,10 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-head.pg-hl span { display: table; margin: 0 auto; padding-bottom: calc(var(--pt) * 3); border-bottom: 1px solid var(--pg-head, #4C4C4C); }
 /* номер в цвете и короткая черта под ним справа (например, №119) */
 .pg-foot.pg-bar { display: block; text-align: right; }
+.pg-hr { padding-top: calc(var(--pt) * 31); } /* шапка «как в PDF» (№69): строка, линия с завитками, вторая строка */
+.pg-hr img { display: block; width: calc(100% + 16px); max-width: none; height: auto; margin: calc(var(--pt) * -1.5) -8px calc(var(--pt) * 1); }
+.pg-oval { justify-content: center; } /* номер страницы в узорном овале из PDF (№69) */
+.pg-oval span { flex: none; min-width: 0; display: flex; align-items: center; justify-content: center; width: calc(var(--pt) * 53.7); height: calc(var(--pt) * 26.2); background: center / 100% 100% no-repeat; font: 400 calc(var(--pt) * 13.9) 'PT Sans', sans-serif; }
 .pg-foot.pg-bar span { color: var(--pg-num, var(--pg-text, #000)); }
 .pg-foot.pg-bar::after { content: ""; display: block; margin: .25em 0 0 auto; width: 2.4em; height: 3px; background: var(--pg-num, var(--pg-text, #000)); }
 .pg-foot.pg-c { justify-content: center; }

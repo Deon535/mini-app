@@ -708,6 +708,7 @@ const pgPlaque = (k, h, ex, pls) => {
   if (ex.w) ms.push(`width:${K(ex.w)}`);
   if (k === 'h') ms.push('font-weight:700'); // заголовок «h» жирный сам (в «g» и «f» жирное задано в тексте тегом <b>)
   if (m.bg) ms.push(`background:${m.bg}`);
+  if (m.bi) ms.push(`background:url(${pls.dir}${m.bi}.svg) 0 0 / auto 100% repeat-x`); // плитка, повторяемая по ширине (цепочка вдоль заголовка №69)
   if (m.c) ms.push(`color:${m.c}`);
   if (m.bt) ms.push(`border-block:${K(m.bt)} solid ${m.bc}`);
   if (P.sg) h = h.replace(P.sg[0], P.sg[1].replace('@', `<img class="pg-plh" src="${pls.dir}${P.sg[2]}.svg" alt="">`)); // знак из PDF (рисунок, не буквы)
@@ -755,7 +756,7 @@ const pgBlock = ([k, h, ex = {}], th) => {
     case 'img': { // арабская картинка; ex.ic — значок слева от неё (по середине высоты картинки, у левого поля)
       const d = ex.ic && th && th.ics && th.ics[ex.ic], e = v => `${+(v / (th.body || 11)).toFixed(3)}em`;
       const ic = d ? `<img class="pg-icb" src="${d.src}" alt="" style="left:${e(d.lx || 0)};width:${e(d.w)};height:${e(d.h)};top:calc(50% - ${e(d.h / 2)})">` : '';
-      return `<div class="pg-img${d ? ' pg-img-ic' : ''}"${st}>${ic}<img src="${ex.src}" alt="" style="width:calc(100cqw * ${ex.w} / var(--pg-pw, 411) * 1.25)"></div>`;
+      return `<div class="pg-img${d ? ' pg-img-ic' : ''}"${st}>${ic}<img src="${ex.src}" alt="" style="width:calc(100cqw * ${ex.w} / var(--pg-pw, 411) * 1.25)${ex.h ? `;aspect-ratio:auto ${ex.r ? `1 / ${ex.r}` : `${ex.w} / ${ex.h}`}` : ''}"></div>`;
     }
     case 'art': { // нарисованное из PDF (каллиграфия, узор): векторная картинка img/art-N/*.svg. Размеры — в pt страницы PDF (--pt):
       // w/h — размер, mtp — отступ сверху, mbp — снизу, ox — сдвиг от середины страницы вправо (pt)
@@ -788,7 +789,9 @@ const pgFrame = (f, th, html) => {
     `padding:calc(var(--pt) * ${f.pt || 0}) calc(var(--pt) * ${f.pr}) calc(var(--u) * ${f.pb}) calc(var(--pt) * ${f.pl})`, // f.pt — отступ сверху (pt PDF), если сверху завиток
     // d.m — рамка из трёх кусков SVG (верх с завитком, тянущаяся середина, низ): img/…/t.svg, m.svg, b.svg; ширина кусков = ширина рамки
     ...(d.m ? [`background:url(${d.m}t.svg) top/100% auto no-repeat,url(${d.m}b.svg) bottom/100% auto no-repeat,url(${d.m}m.svg) 0 0/100% 100% no-repeat`] : []),
-    ...(d.src ? [`border-image-source:url(${d.src})`, `border-image-slice:${sh !== undefined ? sh : sw} ${sw} ${sh !== undefined ? sh : sw} ${sw} fill`,
+    // d.mt / d.mb — верхний и нижний узор отдельными адресами (SVG во всю ширину рамки, середина пустая): рамки цитат №69, верх бывает двух видов
+    ...(d.mt || d.mb ? [`background:${[d.mt && `url(${d.mt}) top/100% auto no-repeat`, d.mb && `url(${d.mb}) bottom/100% auto no-repeat`].filter(Boolean).join(',')}`] : []),
+    ...(d.src ? [`border-image-source:url(${d.src})`,`border-image-slice:${sh !== undefined ? sh : sw} ${sw} ${sh !== undefined ? sh : sw} ${sw} fill`,
       `border-image-width:${f.ot ? '0' : H} ${W} ${f.ob ? '0' : H} ${W}`] : []),
     ...(d.bg ? [`background:${d.bg}`, ...(d.rad ? [`border-radius:calc(var(--pt) * ${d.rad})`] : [])] : [])]; // d.bg — плоская заливка (серые плашки заголовков №9), без картинки-образца; d.rad — скругление углов, pt PDF
   const o = d.o && f.orn ? ['l', 'r'].map(k => `<i class="pg-fo" style="${k === 'l' ? 'left' : 'right'}:calc(var(--pt) * ${d.o[k + 'x']});width:calc(var(--pt) * ${d.o.w});top:${f.orn[0]}%;height:${f.orn[1]}%;background-image:url(${d.o[k]})"></i>`).join('') : '';
@@ -807,15 +810,18 @@ const pgBlocks = (p, th) => {
   flush();
   return html;
 };
+// Шапка «как в PDF» (th.hdr === 'rule', №69): строка, под ней линия с завитками на концах (th.hr — SVG из PDF), под линией вторая строка (в p.head строки через перенос).
+// У страницы без шапки место и высота те же, а линия скрыта — чтобы текст стоял там же, где в книге
+const pgHeadRule = (h, th) => { const [x, y] = (h || '').split('\n'); return `<header class="pg-head pg-hr"><span>${x || '&nbsp;'}</span><img src="${th.hr}" alt=""${h ? '' : ' style="visibility:hidden"'}><span>${y || '&nbsp;'}</span></header>`; };
 const pgPage = (p, i, th) => `
   <section class="pg-page${p.front ? ' pg-front' : ''}" data-page="${i + 1}">
     ${th.num === 'top' && !p.front && p.n !== undefined ? `<div class="pg-topnum pg-${p.side || 'r'}">${p.n}</div>` : ''}
-    ${p.front || !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${p.head || ''}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
+    ${p.front ? '' : th.hdr === 'rule' ? pgHeadRule(p.head, th) : !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${p.head || ''}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
     <div class="pg-body">
       ${pgBlocks(p, th)}
       ${p.notes.length ? `<ol class="pg-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${html}</div></li>`).join('')}</ol>` : ''}
     </div>
-    ${p.front || th.num === 'top' ? '' : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}
+    ${p.front || th.num === 'top' ? '' : th.foot === 'oval' ? `<footer class="pg-foot pg-oval"><span style="background-image:url(${th.ov})">${p.n !== undefined ? p.n : ''}</span></footer>` : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}
   </section>`;
 
 // Детские книги (оформление 'kid', №116, №117): половина разворота PDF = страница.

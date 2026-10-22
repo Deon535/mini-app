@@ -773,12 +773,12 @@ window.BOOKS = [
     id: 69,
     title: 'Разъяснение трёх основ',
     titleAr: '',
-    author: '',
+    author: 'Салих ибн Фаузан ибн ′Абдуллах аль-Фаузан',
     category: 'Акыда',
     description: '',
-    facts: '',
+    facts: '435 страниц',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/69.js', version: 'clean', publisher: ''
   },
   {
     id: 70,
