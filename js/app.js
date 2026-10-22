@@ -903,9 +903,9 @@ function trRender(T) {
 }
 
 // Обычная книга из Word без перевода: цвет «Бумага», заголовки, абзацы, арабские вставки, сноски под абзацем
-function plainRender(T) {
+function plainRender(T, first = true) { // first: это начало книги (у нарезанных книг страницы идут по кускам, титульная часть только на первой)
   const ar = h => `lang="ar" dir="rtl">${h}`;
-  let front = true; // титульная часть: всё до первого абзаца идёт по центру, как титульный лист
+  let front = first; // титульная часть: всё до первого абзаца идёт по центру, как титульный лист
   return T.blocks.map(([k, a, b], i) => {
     if (front && (k === 'p' || k === 'li' || k === 'n')) front = false;
     if (front && (k === 'h1' || k === 'h2' || k === 'h3' || k === 'c')) return `<p class="rd-front rd-front-${i === 0 ? 'h1' : k}">${a}</p>`;
@@ -983,15 +983,15 @@ function mountTranslation(box, ar) {
 // Пока страница не нарисована, её высота приблизительная (по числу букв T.wt); при подмене страницы выше экрана прокрутку сдвигаем на разницу, текст под глазами не прыгает.
 // Место запоминаем как «номер страницы + доля внутри неё»: textPos[id] = {p, f}. Возвращает функцию уборки.
 function mountChunked(id, T, box, ui) {
-  const N = T.n, th = T.theme, C0 = 200; // C0 — шапка, номер и отступы страницы, в «буквах»
+  const N = T.n, th = T.theme, plainBook = T.style === 'plain', C0 = plainBook ? 0 : 200; // C0 — шапка, номер и отступы страницы, в «буквах». plainBook: Word-книга без страниц, «страница» — группа абзацев
   const chunkOf = i => T.parts.findIndex(p => i >= p[1] && i <= p[2]);
   const data = [], loading = [], els = [], hs = new Array(N).fill(0), seen = new Set(); // hs — высота страницы, замеренная при уборке; seen — страницы, нарисованные сейчас
   let alive = true, ready = false, raf = 0, t = 0, saveTimer = 0, fitK = 0, fitAt = 0, sig = '', anchor = { p: 0, f: 0 }, pct = 0, pinI = 0, pinY = 0; // pinI/pinY — страница у верха экрана и её положение на документе после прошлого кадра
   const docTop = e => e.getBoundingClientRect().top + scrollY;
-  const unit = () => parseFloat(getComputedStyle(box).fontSize) || 18;
-  const guessK = () => 0.62 * unit() * unit() / Math.max(120, box.clientWidth - 40); // высота страницы на одну букву: межстрочный × размер × средняя буква / ширина строки
+  const unit = () => plainBook ? reader.fs : parseFloat(getComputedStyle(box).fontSize) || 18;
+  const guessK = () => (plainBook ? 0.8 : 0.62) * unit() * unit() / Math.max(120, box.clientWidth - 40); // высота страницы на одну букву: межстрочный × размер × средняя буква / ширина строки
   const est = i => Math.round(fitK * (T.wt[i] + C0));
-  const mk = i => { const s = document.createElement('section'); s.className = 'pg-page pg-ph'; s.dataset.page = i + 1; s.style.height = (hs[i] || est(i)) + 'px'; return s; };
+  const mk = i => { const s = document.createElement('section'); s.className = (plainBook ? 'rd-pg' : 'pg-page') + ' pg-ph'; s.dataset.page = i + 1; s.style.height = (hs[i] || est(i)) + 'px'; return s; };
   const layoutKey = () => box.clientWidth + '|' + reader.fs;
   const calibrate = () => { // уточняем «высоту на букву» по нарисованным страницам
     let h = 0, w = 0;
@@ -1001,7 +1001,7 @@ function mountChunked(id, T, box, ui) {
   const refit = () => { fitAt = fitK; for (let i = 0; i < N; i++) if (!seen.has(i) && !hs[i]) els[i].style.height = est(i) + 'px'; }; // заготовки, которые ещё не замеряли, получают новую оценку
   const render = i => {
     const k = chunkOf(i), tp = document.createElement('template');
-    tp.innerHTML = pgPage(data[k][i - T.parts[k][1]], i, th);
+    tp.innerHTML = plainBook ? `<section class="rd-pg" data-page="${i + 1}">${plainRender({ blocks: data[k][i - T.parts[k][1]] }, i === 0)}</section>` : pgPage(data[k][i - T.parts[k][1]], i, th);
     const e = tp.content.firstElementChild;
     els[i].replaceWith(e); els[i] = e; seen.add(i);
     e.querySelectorAll('.pg-p').forEach(hyphenate);
@@ -1052,7 +1052,7 @@ function mountChunked(id, T, box, ui) {
     const y2 = scrollY, h = els[t].offsetHeight || 1, f = Math.min(1, Math.max(0, (y2 - docTop(els[t])) / h));
     pct = y2 >= document.documentElement.scrollHeight - vh - 2 ? 100 : Math.min(99, Math.round((t + f) / N * 100));
     anchor = { p: t, f }; pinI = t; pinY = docTop(els[t]);
-    ui.bar.style.width = pct + '%'; ui.pct.textContent = pct + '%'; ui.place.textContent = `Стр. ${c + 1} из ${N}`;
+    ui.bar.style.width = pct + '%'; ui.pct.textContent = pct + '%'; if (!plainBook) ui.place.textContent = `Стр. ${c + 1} из ${N}`; // у Word-книг страниц нет, только процент
     if (ready) { clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); } // сохраняем, когда человек перестал листать
     if (pend) schedule();
   }
@@ -1075,7 +1075,7 @@ function mountChunked(id, T, box, ui) {
   box.replaceChildren(fr);
   (async () => {
     // шрифт книги грузим до первой страницы (все его куски: кириллица, латиница, диакритика): иначе текст перерисуется и сдвинется, когда шрифт приедет
-    const ff = th.font || 'Source Serif 4';
+    const ff = (th && th.font) || (plainBook ? 'Literata' : 'Source Serif 4');
     await Promise.race([Promise.all(['400', '700', 'italic 400', 'italic 700'].map(w => document.fonts.load(`${w} 16px "${ff}"`, 'АаБбҐӢAaĀāŠšḤḥ’‘“”′—…№').catch(() => {}))), new Promise(r => setTimeout(r, 4000))]);
     const saved = store.get('textPos', {})[id];
     let p = 0, f = 0;
@@ -1137,10 +1137,9 @@ function mountText(id) {
   loadText(b).then(T => {
     if (!alive) return; // человек уже ушёл с экрана
     if (T.parts) { // огромная книга, «невидимая нарезка»: свой показ и своё запоминание места (mountChunked)
-      readerStyle = 'pg';
-      applyReader();
-      box.className = 'pg pg-lazy';
-      pgTheme(box, T.theme);
+      const wordBook = T.style === 'plain'; // Word-книга: цвет «Бумага» как у обычных, без своей темы
+      if (!wordBook) { readerStyle = 'pg'; applyReader(); pgTheme(box, T.theme); }
+      box.className = wordBook ? 'rd pg-lazy' : 'pg pg-lazy';
       stopChunks = mountChunked(id, T, box, { bar, pct, place });
       return;
     }

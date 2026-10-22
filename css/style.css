@@ -469,6 +469,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-page { position: relative; background: var(--pg-bg, #fff); container-type: inline-size; padding-bottom: .4em; }
 .pg-page + .pg-page { border-top: 1px solid color-mix(in srgb, var(--pg-text, #000) 12%, var(--pg-bg, #fff)); }
 .pg-ph { box-sizing: border-box; padding: 0; container-type: normal; } /* заготовка страницы нарезанной книги: пустая, нужной высоты (mountChunked) */
+.rd-pg { display: flow-root; } /* «невидимая страница» Word-книги: группа абзацев, отступы внутри неё не уходят наружу (режем только там, где верхнего отступа нет) */
 .pg-lazy { overflow-anchor: none; } /* прокрутку при подмене страниц выравниваем сами, браузерная подстройка не нужна */
 .pg-front { min-height: calc(100cqw * 1.41); }
 .pg-head { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 28) 20px 0; text-align: center; }
@@ -579,6 +580,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .rd a { color: inherit; text-decoration: underline; text-decoration-color: var(--rline); text-underline-offset: 3px; overflow-wrap: anywhere; }
 .rd-notes { font-size: calc(var(--fs) * .78); line-height: 1.5; color: var(--rm); margin: -4px 0 18px; padding-top: 8px; border-top: 1px solid var(--rline); }
 .rd-notes p { margin: 0 0 4px; overflow-wrap: anywhere; }
+.rd-notes .rd-fig { display: block; max-width: 100%; height: auto; margin: 8px 0 4px; mix-blend-mode: multiply; } /* рисунок внутри сноски («Достаточное количество», схема к хадису): белый фон сливается с «Бумагой» */
 
 /* ---- Книги с переводом: цвет «Бумага», нажал на предложение → жёлтая подсветка и арабский текст ---- */
 .tr-hint { font-family: var(--ui); font-size: 13px; color: var(--rm); margin: 6px 0 18px; }

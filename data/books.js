@@ -63,7 +63,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#5A4A2A', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/4.js', version: 'draft', publisher: ''
   },
   {
     id: 5,
@@ -283,7 +283,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/24.js', version: 'draft', publisher: ''
   },
   {
     id: 25,
@@ -294,7 +294,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/25.js', version: 'draft', publisher: ''
   },
   {
     id: 26,
@@ -371,7 +371,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/32.js', version: 'draft', publisher: ''
   },
   {
     id: 33,
@@ -503,18 +503,18 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/44.js', version: 'draft', publisher: ''
   },
   {
     id: 45,
     title: 'Идеология тафуида',
     titleAr: '',
-    author: 'Мухаммад Махмуд аль Худайр',
+    author: 'Мухаммад Махмуд Аль Худайр',
     category: 'Акыда',
     description: '',
-    facts: '',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '582 страницы',
+    cover: 'covers/45.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/45.js', version: 'clean', publisher: ''
   },
   {
     id: 46,
@@ -558,7 +558,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/49.js', version: 'draft', publisher: ''
   },
   {
     id: 50,
@@ -635,7 +635,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/56.js', version: 'draft', publisher: ''
   },
   {
     id: 57,
@@ -855,7 +855,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/76.js', version: 'draft', publisher: ''
   },
   {
     id: 77,
