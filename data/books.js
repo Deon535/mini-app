@@ -113,12 +113,12 @@ window.BOOKS = [
     id: 9,
     title: 'Жемчужина фикха. Практический усуль аль-фикх и правила понимания шариата',
     titleAr: '',
-    author: 'Сыддик Хан аль-Кыннауджи',
+    author: 'Абу ат-Таййиб Мухаммад Сыддик Хан аль-Хусайни аль-Бухари аль-Кыннауджи',
     category: 'Фикх',
     description: '',
-    facts: '',
-    cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '1440 страниц',
+    cover: 'covers/9.jpg', color: '#1F4F5E', added: '', popular: false, starter: false,
+    text: 'data/texts/9.js', version: 'clean', publisher: ''
   },
   {
     id: 10,

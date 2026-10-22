@@ -502,6 +502,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-img img { max-width: 100%; height: auto; }
 /* рамка цитаты (группа В): вид и размеры задаёт js/app.js pgFrame; середина и края — картинка из PDF, узор по бокам (№66) — отдельные картинки */
 .pg-fr { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); position: relative; display: flow-root; border: 0 solid transparent; border-image-repeat: stretch; clip-path: inset(0 -3em); }
+.pg-fr-g .pg-h { margin: 0; font-size: 1em; line-height: 1.25; } /* серая плашка заголовка (№9): заголовок внутри — того же размера, что текст, по центру */
 .pg-fo { position: absolute; background-repeat: no-repeat; background-size: 100% 100%; pointer-events: none; }
 .pg-fr-r .pg-img { text-align: right; } /* арабская картинка у правого края (№37, как в PDF) */
 /* плашка у заголовка (№17, №66): края — векторные SVG из PDF, середина — CSS; размеры в pt PDF × --k (js/app.js pgPlaque).
@@ -549,7 +550,7 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-notes { list-style: none; font-size: var(--pg-nfs, .83em); line-height: var(--pg-nlh, 1.48); margin-top: calc(var(--u) * 1.3); padding-top: .6em; position: relative; }
 .pg-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 36%; border-top: 1px solid var(--pg-text, #000); }
 .pg-notes li { display: flex; }
-.pg-notes li span { flex: none; width: 1.8em; }
+.pg-notes li span { flex: none; width: var(--pg-nw, 1.8em); } /* nw книги — шире, если в сносках трёхзначные номера (№9) */
 .pg-notes li > div, .bm-notes li > div { min-width: 0; overflow-wrap: anywhere; } /* текст сноски одним блоком; длинная ссылка переносится, а не вылезает вбок */
 .pg-foot { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); display: flex; align-items: center; gap: calc(var(--pt) * 12); padding: calc(var(--pt) * 10) 20px calc(var(--pt) * 12); }
 .pg-foot span { flex: none; min-width: 2.2em; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }

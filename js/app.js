@@ -675,7 +675,7 @@ function bmTheme(box, th) {
 }
 
 // Книги «одна страница PDF = одна страница на экране» (оформление 'pg'): шапка с узором, номер внизу, сноски под текстом
-const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup' };
+const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup', nw: '--pg-nw' };
 function pgTheme(box, th) {
   for (const [k, v] of Object.entries(PG_VARS)) if (th[k] !== undefined) box.style.setProperty(v, th[k]);
   const b = document.body.style;
@@ -789,10 +789,11 @@ const pgFrame = (f, th, html) => {
     // d.m — рамка из трёх кусков SVG (верх с завитком, тянущаяся середина, низ): img/…/t.svg, m.svg, b.svg; ширина кусков = ширина рамки
     ...(d.m ? [`background:url(${d.m}t.svg) top/100% auto no-repeat,url(${d.m}b.svg) bottom/100% auto no-repeat,url(${d.m}m.svg) 0 0/100% 100% no-repeat`] : []),
     ...(d.src ? [`border-image-source:url(${d.src})`, `border-image-slice:${sh !== undefined ? sh : sw} ${sw} ${sh !== undefined ? sh : sw} ${sw} fill`,
-      `border-image-width:${f.ot ? '0' : H} ${W} ${f.ob ? '0' : H} ${W}`] : [])];
+      `border-image-width:${f.ot ? '0' : H} ${W} ${f.ob ? '0' : H} ${W}`] : []),
+    ...(d.bg ? [`background:${d.bg}`, ...(d.rad ? [`border-radius:calc(var(--pt) * ${d.rad})`] : [])] : [])]; // d.bg — плоская заливка (серые плашки заголовков №9), без картинки-образца; d.rad — скругление углов, pt PDF
   const o = d.o && f.orn ? ['l', 'r'].map(k => `<i class="pg-fo" style="${k === 'l' ? 'left' : 'right'}:calc(var(--pt) * ${d.o[k + 'x']});width:calc(var(--pt) * ${d.o.w});top:${f.orn[0]}%;height:${f.orn[1]}%;background-image:url(${d.o[k]})"></i>`).join('') : '';
   const ic = d.i && f.ic ? `<i class="pg-fo" style="left:calc(var(--pt) * ${f.ic[0]});top:calc(var(--pt) * ${f.ic[1]});width:calc(var(--pt) * ${d.i.w});height:calc(var(--pt) * ${d.i.h});background-image:url(${d.i.src})"></i>` : ''; // значок-книжка (№37)
-  return `<div class="pg-fr${d.r ? ' pg-fr-r' : ''}" style="${st.join(';')}">${o}${ic}${html}</div>`;
+  return `<div class="pg-fr${d.r ? ' pg-fr-r' : ''}${d.bg ? ' pg-fr-g' : ''}" style="${st.join(';')}">${o}${ic}${html}</div>`;
 };
 // блоки страницы: подряд идущие с одним ex.fr собираются в рамку
 const pgBlocks = (p, th) => {
