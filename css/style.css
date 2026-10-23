@@ -587,6 +587,20 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .rd-notes p { margin: 0 0 4px; overflow-wrap: anywhere; }
 .rd-notes .rd-fig { display: block; max-width: 100%; height: auto; margin: 8px 0 4px; mix-blend-mode: multiply; } /* рисунок внутри сноски («Достаточное количество», схема к хадису): белый фон сливается с «Бумагой» */
 
+/* ---- Сканы в Word-книгах (арабский оригинал, рукописи): прозрачный WebP лежит прямо на «Бумаге». f — на всю ширину экрана, m — цветной титул (чуть шире текста), s — маленькая, как в Word ---- */
+.rd-sc { margin: 10px 0 20px; text-align: center; }
+.rd-sc img { display: block; width: 100%; height: auto; margin: 0 auto; }
+.rd-sc-f { margin-inline: calc(-1 * (var(--side) + 4px)); }
+.rd-sc-m { margin-inline: -6px; }
+.rd-sc-s img { width: var(--sc, 40%); }
+.rd-sc[data-z] { cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
+/* окно приближения скана (openScan в app.js) */
+.sc-view { position: fixed; inset: 0; z-index: 200; background: var(--rb, #F5EEDF); touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
+.sc-view img { position: absolute; left: 0; top: 0; max-width: none; transform-origin: 0 0; will-change: transform; }
+.sc-x { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 12px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--rt, #2D251C) 80%, transparent); color: var(--rb, #F5EEDF); font: 26px/44px system-ui, sans-serif; text-align: center; cursor: pointer; }
+.sc-hint { position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); text-align: center; font: 13px system-ui, sans-serif; color: var(--rm, #7A6A55); pointer-events: none; transition: opacity .6s; }
+.sc-hint.off { opacity: 0; }
+
 /* ---- Книги с переводом: цвет «Бумага», нажал на предложение → жёлтая подсветка и арабский текст ---- */
 .tr-hint { font-family: var(--ui); font-size: 13px; color: var(--rm); margin: 6px 0 18px; }
 .tr-h { margin-top: 0; }

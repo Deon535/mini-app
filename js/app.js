@@ -224,6 +224,7 @@ async function shareBook(id) {
 
 // «Назад»: если человек пришёл в приложение сразу на эту страницу (по ссылке), ведём на главную
 function goBack() {
+  if (closeScan()) return; // открыто окно приближения скана: «Назад» закрывает его
   if (history.state && history.state.first) location.hash = '#/';
   else history.back();
 }
@@ -913,11 +914,15 @@ function trRender(T) {
 function plainRender(T, first = true) { // first: это начало книги (у нарезанных книг страницы идут по кускам, титульная часть только на первой)
   const ar = h => `lang="ar" dir="rtl">${h}`;
   let front = first; // титульная часть: всё до первого абзаца идёт по центру, как титульный лист
-  return T.blocks.map(([k, a, b], i) => {
+  return T.blocks.map(([k, a, b, c, d], i) => {
     if (front && (k === 'p' || k === 'li' || k === 'n')) front = false;
     if (front && (k === 'h1' || k === 'h2' || k === 'h3' || k === 'c')) return `<p class="rd-front rd-front-${i === 0 ? 'h1' : k}">${a}</p>`;
     switch (k) {
       case 'hr': return '<hr class="rd-hr">';
+      case 'sc': { // скан из Word (.claude/word-img.js): a — файл, b×c — размер, d — режим: 'f' на всю ширину, 'm' цветной титул (без приближения), 'sNN' маленькая, NN% ширины текста
+        const small = d && d[0] === 's';
+        return `<figure class="rd-sc rd-sc-${small ? 's' : d}"${small ? ` style="--sc:${d.slice(1)}%"` : ''}${d === 'm' ? '' : ' data-z'}><img src="${a}" width="${b}" height="${c}" alt="Скан страницы оригинала" loading="lazy" decoding="async"></figure>`;
+      }
       case 'sep': return '<p class="rd-sep" aria-hidden="true">* * *</p>';
       case 'h1': return `<h1 class="rd-h rd-h1">${a}</h1>`;
       case 'h2': return `<h2 class="rd-h">${a}</h2>`;
@@ -932,6 +937,53 @@ function plainRender(T, first = true) { // first: это начало книги
     }
   }).join('');
 }
+
+// Окно приближения скана (Word-книги): нажали на картинку → она на весь экран.
+// Одним пальцем двигать, двумя приближать, двойное нажатие — в 2 раза крупнее / обратно, × или «Назад» закрывает
+let scanView = null;
+function closeScan() { if (!scanView) return false; scanView.remove(); scanView = null; return true; }
+function openScan(src) {
+  closeScan();
+  const lb = scanView = document.createElement('div');
+  lb.className = 'sc-view';
+  lb.innerHTML = `<img src="${src}" alt="Скан страницы оригинала" draggable="false"><button class="sc-x" aria-label="Закрыть">×</button><div class="sc-hint">Двумя пальцами — приблизить. Двойное нажатие — крупнее.</div>`;
+  document.body.appendChild(lb);
+  const im = lb.firstChild, hint = lb.lastChild, pts = new Map();
+  let S = 1, S0 = 1, X = 0, Y = 0, pinch = null, travel = 0, lastTap = 0;
+  const apply = () => { // картинка не уезжает за край; если меньше экрана — по центру
+    const w = im.naturalWidth * S, h = im.naturalHeight * S;
+    X = w <= innerWidth ? (innerWidth - w) / 2 : Math.min(0, Math.max(innerWidth - w, X));
+    Y = h <= innerHeight ? (innerHeight - h) / 2 : Math.min(0, Math.max(innerHeight - h, Y));
+    im.style.transform = `translate(${X}px,${Y}px) scale(${S})`;
+  };
+  const fit = () => { im.style.width = im.naturalWidth + 'px'; S0 = S = Math.min(innerWidth / im.naturalWidth, innerHeight / im.naturalHeight); X = Y = 0; apply(); };
+  const zoomAt = (cx, cy, ns) => { ns = Math.min(Math.max(ns, S0), S0 * 6); X = cx - (cx - X) * ns / S; Y = cy - (cy - Y) * ns / S; S = ns; apply(); };
+  if (im.complete && im.naturalWidth) fit(); else im.onload = fit;
+  setTimeout(() => hint.classList.add('off'), 3500);
+  lb.querySelector('.sc-x').addEventListener('click', closeScan);
+  lb.addEventListener('pointerdown', e => {
+    if (e.target.closest('.sc-x')) return;
+    lb.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); travel = 0;
+    if (pts.size === 2) { const [p, q] = [...pts.values()]; pinch = { d: Math.hypot(p[0] - q[0], p[1] - q[1]), s: S }; }
+  });
+  lb.addEventListener('pointermove', e => {
+    const o = pts.get(e.pointerId); if (!o) return;
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2 && pinch) { const [p, q] = [...pts.values()]; travel += 9; zoomAt((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, pinch.s * Math.hypot(p[0] - q[0], p[1] - q[1]) / pinch.d); }
+    else if (pts.size === 1) { const dx = e.clientX - o[0], dy = e.clientY - o[1]; travel += Math.abs(dx) + Math.abs(dy); X += dx; Y += dy; apply(); }
+  });
+  const up = e => {
+    const was = pts.size; pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
+    if (was !== 1 || travel > 8) return;
+    const t = Date.now();
+    if (t - lastTap < 320) { zoomAt(e.clientX, e.clientY, S > S0 * 1.2 ? S0 : S0 * 2); lastTap = 0; } else lastTap = t;
+  };
+  lb.addEventListener('pointerup', up); lb.addEventListener('pointercancel', up);
+  lb.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, S * (e.deltaY < 0 ? 1.2 : 1 / 1.2)); }, { passive: false }); // колесо мыши (компьютер)
+}
+document.addEventListener('click', e => { const f = e.target.closest('.rd-sc[data-z]'); if (f) openScan(f.firstChild.currentSrc || f.firstChild.src); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeScan(); });
+addEventListener('hashchange', closeScan);
 
 // Нажатие на предложение: оно подсвечивается жёлтым, рядом всплывает плашка с арабским.
 // Нажатие в любое другое место: плашка уходит, а подсветка гаснет через 2,5 секунды
