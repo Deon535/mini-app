@@ -523,17 +523,18 @@ function readIntroScreen(id) {
 
 // Темы читалки (свои, не зависят от темы приложения) и размер шрифта
 const READER_THEMES = [
-  { key: 'paper', name: 'Бумага' },
-  { key: 'matn',  name: 'Матн' },
+  { key: 'ivory', name: 'Слоновая кость' },
   { key: 'white', name: 'Белая' }
 ];
 const FS_MIN = 14, FS_MAX = 26;
-let reader = { theme: 'paper', fs: 18, ...store.get('reader', {}) };
+let reader = { theme: 'ivory', fs: 18, ...store.get('reader', {}) };
+if (!READER_THEMES.some(t => t.key === reader.theme)) reader.theme = 'ivory'; // прежние «Бумага» и «Матн» стали «Слоновой костью»
 // У книг в оригинальном оформлении (например 'bm', Bayt al-Magrifa) свои цвета вместо темы читалки
 let readerStyle = null;
 
 function applyReader() {
   document.body.dataset.rt = readerStyle || reader.theme;
+  if (readerStyle === 'pg' && pgCur) pgTheme(pgCur.box, pgCur.th); // книга-PDF: перекрасить страницы под выбранную бумагу
   document.body.style.setProperty('--fs', reader.fs + 'px');
   document.querySelectorAll('[data-rtheme]').forEach(b => b.setAttribute('aria-pressed', b.dataset.rtheme === reader.theme));
   const v = document.getElementById('fs-val');
@@ -677,10 +678,14 @@ function bmTheme(box, th) {
 
 // Книги «одна страница PDF = одна страница на экране» (оформление 'pg'): шапка с узором, номер внизу, сноски под текстом
 const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup', nw: '--pg-nw' };
+let pgCur = null; // книга-PDF на экране: нужна, чтобы перекрасить страницы, когда человек меняет цвет бумаги
 function pgTheme(box, th) {
+  pgCur = { box, th };
   for (const [k, v] of Object.entries(PG_VARS)) if (th[k] !== undefined) box.style.setProperty(v, th[k]);
+  const bg = reader.theme === 'white' ? '#FFFFFF' : '#FAF6EC'; // цвет бумаги по выбору читателя (th.bg в файле книги — прежний, его не используем)
+  box.style.setProperty('--pg-bg', bg);
   const b = document.body.style;
-  b.setProperty('--rb', th.bg); b.setProperty('--rt', th.text); b.setProperty('--rm', th.head); b.setProperty('--rr', th.text);
+  b.setProperty('--rb', bg); b.setProperty('--rt', th.text); b.setProperty('--rm', th.head); b.setProperty('--rr', th.text);
   paintTelegramBars();
 }
 // z — размер шрифта блока в долях основного, mt — отступ сверху в долях основного размера (--u = основной размер в пикселях)
@@ -874,6 +879,9 @@ function kidFit(svg) {
   }
 }
 
+// у книг со своими цветами (Bayt al-Magrifa, детские) выбора цвета бумаги нет
+function hideThemes() { const t = document.querySelector('#rd-panel .themes'); if (t) t.style.display = 'none'; }
+
 function textScreen(id) {
   const b = bookById(id);
   if (!b || !b.text) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
@@ -886,6 +894,8 @@ function textScreen(id) {
     <article id="bk" lang="ru"></article>
     <div class="rd-prog"><span id="rd-place"></span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
     <div class="rd-panel" id="rd-panel">
+      <div class="themes">${READER_THEMES.map(t =>
+        `<button class="th th-${t.key}" data-rtheme="${t.key}"><i>Аа</i>${t.name}</button>`).join('')}</div>
       <div class="sizes">
         <button data-fs="-1" aria-label="Шрифт меньше" class="fs-s">А</button>
         <span id="fs-val"></span>
@@ -1191,12 +1201,12 @@ function mountText(id) {
     }, 300);
   }
 
-  readerStyle = 'paper'; // пока книга грузится, фон «Бумага»
+  readerStyle = null; // пока книга грузится и у обычных книг: цвет бумаги по выбору читателя
   applyReader();
   loadText(b).then(T => {
     if (!alive) return; // человек уже ушёл с экрана
     if (T.parts) { // огромная книга, «невидимая нарезка»: свой показ и своё запоминание места (mountChunked)
-      const wordBook = T.style === 'plain'; // Word-книга: цвет «Бумага» как у обычных, без своей темы
+      const wordBook = T.style === 'plain'; // Word-книга: цвет бумаги по выбору читателя, без своей темы
       if (!wordBook) { readerStyle = 'pg'; applyReader(); pgTheme(box, T.theme); }
       box.className = wordBook ? 'rd pg-lazy' : 'pg pg-lazy';
       stopChunks = mountChunked(id, T, box, { bar, pct, place });
@@ -1205,6 +1215,7 @@ function mountText(id) {
     if (T.style === 'bm') { // оригинальное оформление Bayt al-Magrifa: страницы с шапкой
       readerStyle = 'bm';
       applyReader();
+      hideThemes(); // у этих книг свои цвета
       box.className = 'bm';
       bmTheme(box, T.theme);
       box.innerHTML = T.pages.map((p, i) => bmPage(T, p, i + 1)).join('');
@@ -1221,6 +1232,7 @@ function mountText(id) {
     } else if (T.style === 'kid') { // детская книга: картинка страницы + настоящий текст поверх
       readerStyle = 'kid';
       applyReader();
+      hideThemes();
       box.className = 'kid';
       document.body.style.setProperty('--rb', T.bg);
       paintTelegramBars();

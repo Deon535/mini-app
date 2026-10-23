@@ -178,8 +178,7 @@ body[data-theme="light"] .tab.on{color:var(--text)}
 
 /* ===== Читалка: свои темы, не зависят от темы приложения ===== */
 .reader{--fs:18px}
-.reader[data-rt="paper"]{--rb:#F5EEDF;--rt:#2D251C;--rm:#7A6A55;--rr:#2D251C}
-.reader[data-rt="matn"] {--rb:#ECDDB4;--rt:#3B2A17;--rm:#7C6440;--rr:#8A2B1E}
+.reader[data-rt="ivory"]{--rb:#FAF6EC;--rt:#2B2620;--rm:#76695A;--rr:#2B2620}
 .reader[data-rt="white"]{--rb:#FFFFFF;--rt:#1A1A1A;--rm:#6B6B6B;--rr:#1A1A1A}
 .reader .phone{background:var(--rb);border-color:color-mix(in srgb,var(--rt) 14%,var(--rb));transition:background .3s}
 .reader .screen{color:var(--rt);padding:16px 22px 200px}
@@ -306,7 +305,7 @@ const SHELF = {
   want: {label:'Хочу прочитать',icon:'clock', ids:[4,6,5]},
   done: {label:'Прочитано',     icon:'check', ids:[2]}
 };
-const READER = {paper:['Бумага','#F5EEDF','#2D251C'], matn:['Матн','#ECDDB4','#3B2A17'], white:['Белая','#FFFFFF','#1A1A1A']};
+const READER = {ivory:['Слоновая кость','#FAF6EC','#2B2620'], white:['Белая','#FFFFFF','#1A1A1A']};
 const PALETTES = {
   light:['Светлая тема',{Фон:'#F6F1E8',Поверхность:'#FCF9F3',Текст:'#2A231C',Приглушённый:'#7A6E60',Линии:'#E6DED1',Акцент:'#4E5A2B'}],
   dark: ['Тёмная тема', {Фон:'#141B17',Поверхность:'#1D2620',Текст:'#E8DDC7',Приглушённый:'#9C9482',Линии:'#2C3830',Акцент:'#C7A35A'}]
@@ -314,7 +313,7 @@ const PALETTES = {
 
 let look = 'auto';        // выбор человека: auto (как в Telegram) / light / dark
 let shelfTab = 'fav';
-let rTheme = 'paper', fs = 18; // читалка по умолчанию на «Бумаге»
+let rTheme = 'ivory', fs = 18; // читалка по умолчанию на «Слоновой кости»
 
 const sysDark = matchMedia('(prefers-color-scheme: dark)');
 const resolved = () => look === 'auto' ? (sysDark.matches ? 'dark' : 'light') : look;
