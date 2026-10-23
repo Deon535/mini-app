@@ -151,7 +151,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/12.js', version: 'draft', publisher: ''
   },
   {
     id: 13,
@@ -195,7 +195,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#2F4A5A', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/16.js', version: 'draft', publisher: ''
   },
   {
     id: 17,
@@ -349,7 +349,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/30.js', version: 'draft', publisher: ''
   },
   {
     id: 31,
@@ -360,7 +360,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/31.js', version: 'draft', publisher: ''
   },
   {
     id: 32,
@@ -800,7 +800,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/71.js', version: 'draft', publisher: ''
   },
   {
     id: 72,
@@ -833,7 +833,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/74.js', version: 'draft', publisher: ''
   },
   {
     id: 75,
@@ -1020,7 +1020,7 @@ window.BOOKS = [
     description: '',
     facts: 'Коранические знания, книга 1',
     cover: '', color: '#2E5A4F', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/91.js', version: 'draft', publisher: ''
   },
   {
     id: 92,
@@ -1031,7 +1031,7 @@ window.BOOKS = [
     description: '',
     facts: 'Коранические знания, книга 4',
     cover: '', color: '#2E5A4F', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/92.js', version: 'draft', publisher: ''
   },
   {
     id: 93,
@@ -1053,7 +1053,7 @@ window.BOOKS = [
     description: '',
     facts: 'Коранические знания, книга 3',
     cover: '', color: '#2E5A4F', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/94.js', version: 'draft', publisher: ''
   },
   {
     id: 95,
@@ -1097,7 +1097,7 @@ window.BOOKS = [
     description: '',
     facts: '',
     cover: '', color: '#6B3A2E', added: '', popular: false, starter: false,
-    text: '', version: 'draft', publisher: ''
+    text: 'data/texts/98.js', version: 'draft', publisher: ''
   },
   {
     id: 99,
