@@ -930,9 +930,9 @@ function plainRender(T, first = true) { // first: это начало книги
     if (front && (k === 'h1' || k === 'h2' || k === 'h3' || k === 'c')) return `<p class="rd-front rd-front-${i === 0 ? 'h1' : k}">${a}</p>`;
     switch (k) {
       case 'hr': return '<hr class="rd-hr">';
-      case 'sc': { // скан из Word (.claude/word-img.js): a — файл, b×c — размер, d — режим: 'f' на всю ширину, 'm' цветной титул (без приближения), 'sNN' маленькая, NN% ширины текста
+      case 'sc': { // скан из Word (.claude/word-img.js): a — файл, b×c — размер, d — режим: 'f' на всю ширину, 'm' цветной титул (без приближения), 'sNN' маленькая, NN% ширины текста, 'g' страница книги-скана до краёв экрана (без приближения, №122)
         const small = d && d[0] === 's';
-        return `<figure class="rd-sc rd-sc-${small ? 's' : d}"${small ? ` style="--sc:${d.slice(1)}%"` : ''}${d === 'm' ? '' : ' data-z'}><img src="${a}" width="${b}" height="${c}" alt="Скан страницы оригинала" loading="lazy" decoding="async"></figure>`;
+        return `<figure class="rd-sc rd-sc-${small ? 's' : d}"${small ? ` style="--sc:${d.slice(1)}%"` : ''}${d === 'm' || d === 'g' ? '' : ' data-z'}><img src="${a}" width="${b}" height="${c}" alt="Скан страницы оригинала" loading="lazy" decoding="async"></figure>`;
       }
       case 'sep': return '<p class="rd-sep" aria-hidden="true">* * *</p>';
       case 'h1': return `<h1 class="rd-h rd-h1">${a}</h1>`;

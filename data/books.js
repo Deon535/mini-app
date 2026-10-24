@@ -1356,11 +1356,11 @@ window.BOOKS = [
     id: 122,
     title: 'Сунны пророка',
     titleAr: '',
-    author: '',
+    author: 'Доктор Абдуллах ибн Хамуд аль-Фурейх',
     category: 'Другое',
     description: '',
-    facts: '',
+    facts: '224 страницы',
     cover: '', color: '#3F4A3C', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    text: 'data/texts/122.js', version: 'clean', publisher: ''
   }
 ];

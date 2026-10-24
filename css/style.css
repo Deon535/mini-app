@@ -594,6 +594,8 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .rd-sc img { display: block; width: 100%; height: auto; margin: 0 auto; }
 .rd-sc-f { margin-inline: calc(-1 * (var(--side) + 4px)); }
 .rd-sc-m { margin-inline: -6px; }
+.rd-sc-g { margin: 6px calc(-1 * (var(--side) + 4px)) 14px; } /* g — страница книги-скана (№122): до краёв экрана, без приближения; белое скана → цвет бумаги */
+.rd-sc-g img { mix-blend-mode: multiply; }
 .rd-sc-s img { width: var(--sc, 40%); }
 .rd-sc[data-z] { cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
 /* окно приближения скана (openScan в app.js) */
