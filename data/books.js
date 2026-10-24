@@ -685,12 +685,12 @@ window.BOOKS = [
     id: 61,
     title: 'Поэма Нуния',
     titleAr: '',
-    author: '',
+    author: 'Абу Мухаммад Абдуллах ибн Мухаммад аль-Андалюси аль-Кахтани',
     category: 'Акыда',
     description: '',
-    facts: 'Стихи с арабским оригиналом',
-    cover: '', color: '#4E5A2B', added: '', popular: false, starter: false,
-    text: '', version: 'clean', publisher: ''
+    facts: '176 страниц',
+    cover: 'covers/61.jpg', color: '#4E5A2B', added: '', popular: false, starter: false,
+    text: 'data/texts/61.js', version: 'clean', publisher: ''
   },
   {
     id: 62,

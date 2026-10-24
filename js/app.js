@@ -677,7 +677,7 @@ function bmTheme(box, th) {
 }
 
 // Книги «одна страница PDF = одна страница на экране» (оформление 'pg'): шапка с узором, номер внизу, сноски под текстом
-const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup', nw: '--pg-nw' };
+const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup', nw: '--pg-nw', ar: '--pg-ar' };
 let pgCur = null; // книга-PDF на экране: нужна, чтобы перекрасить страницы, когда человек меняет цвет бумаги
 function pgTheme(box, th) {
   pgCur = { box, th };
@@ -773,6 +773,7 @@ const pgBlock = ([k, h, ex = {}], th) => {
       if (ex.mbp) s.push(`margin-bottom:calc(var(--pt) * ${ex.mbp})`);
       return `<div class="pg-art" style="${s.join(';')}"><img src="${ex.src}" alt="" style="width:calc(var(--pt) * ${ex.w});aspect-ratio:${ex.w} / ${ex.h}${ex.ox ? `;left:calc(var(--pt) * ${ex.ox})` : ''}"></div>`;
     }
+    case 'ar': return `<p class="pg-ar" lang="ar" dir="rtl"${st}>${h.replace(/إ(?=له(?!\p{L}))/gu, 'إ\u200E').replace(/^([٠-٩]+) — /, '$1 <span class="ar-d">—</span> ')}</p>`; // арабская строка поэмы (№61): размер z, межстрочие lh и отступ mt — в данных книги; тире между номером и текстом в PDF набрано другим (тонким) шрифтом; «إله» в конце слова: невидимый LRM (U+200E) между إ и ل — иначе шрифт v2 рисует над ل лишний знак, которого в PDF (старая версия шрифта) нет
     case 'sep': return `<div class="pg-sep"${st}><img src="img/pg-orn-stars.png" alt=""></div>`;
     case 'toc': return `<p class="pg-toc"${st}><span>${h}</span><i></i><span>${ex.pg || ''}</span></p>`;
     case 'f': { // титульная строка: размер и отступ в pt страницы PDF (--pt), чтобы титул выглядел как в книге при любой ширине экрана

@@ -487,6 +487,11 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-p { text-indent: var(--pg-ind, 1.2em); text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin-top: var(--pg-gap, .47em); }
 .pg-p.pg-cont { text-indent: 0; margin-top: 0; }
 .pg-p.pg-flat { text-indent: 0; }
+/* Арабская строка поэмы («Поэма Нуния», №61): шрифт Комплекса короля Фахда, как в PDF (грузится только на этой книге), красный цвет из PDF, строка справа налево.
+   Размер (z) и межстрочие (lh) задаёт сама книга. Не влезла — переносится на вторую строку. Номер бейта и тире перед текстом (.ar-n, .ar-d) стоят как в PDF. */
+@font-face { font-family: "KFGQPC Naskh"; src: url(../fonts/UthmanTN_v2-0.ttf) format("truetype"); font-display: block; }
+.pg-ar { direction: rtl; text-align: right; font-family: "KFGQPC Naskh", "Amiri", serif; color: var(--pg-ar, #C00000); text-indent: 0; margin-bottom: 0; overflow-wrap: break-word; }
+.pg-ar .ar-d { font-family: "Source Serif 4", serif; font-weight: 300; font-variation-settings: "opsz" 20; line-height: 0; margin: 0 -.05em; } /* тире в PDF — Source Serif Pro Light 20 pt: длина и толщина подобраны по оптическому размеру; line-height 0 — тире другого шрифта не делает строку выше; margin −0,05em: пробелы вокруг тире в PDF 2,9 pt, а не 3,9 */
 .pg-h, .pg-p { overflow-wrap: break-word; } /* слово, которое иначе не влезает в экран (длинный заголовок при крупном шрифте, адрес в сноске), переносится по буквам, а не вылезает вбок */
 .pg b { font-weight: 700; }
 .pg .pg-m { color: #7A6E60; } /* текст, который читает ученик (в PDF цветной): наш приглушённый цвет вместо цвета PDF */
