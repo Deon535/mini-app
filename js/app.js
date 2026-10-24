@@ -922,6 +922,15 @@ function trRender(T) {
 }
 
 // Обычная книга из Word без перевода: цвет «Бумага», заголовки, абзацы, арабские вставки, сноски под абзацем
+// Книга-скан (№122, режим 'g'): страницы-картинки тяжёлые, а lazy браузера начинает качать поздно, на медленной сети листание упирается в загрузку.
+// Поэтому страница, оказавшаяся не дальше 3000 px под экраном (≈ 5–6 страниц вперёд), качается сразу. Возвращает функцию «отключить».
+function loadAhead(box) {
+  const imgs = [...box.querySelectorAll('.rd-sc-g img')];
+  if (!imgs.length || !window.IntersectionObserver) return null;
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.loading = 'eager'; io.unobserve(e.target); } }), { rootMargin: '0px 0px 3000px 0px' });
+  imgs.forEach(i => io.observe(i));
+  return () => io.disconnect();
+}
 function plainRender(T, first = true) { // first: это начало книги (у нарезанных книг страницы идут по кускам, титульная часть только на первой)
   const ar = h => `lang="ar" dir="rtl">${h}`;
   let front = first; // титульная часть: всё до первого абзаца идёт по центру, как титульный лист
@@ -1261,6 +1270,7 @@ function mountText(id) {
       if (!alive) return;
       const pos = store.get('textPos', {})[id] || 0;
       if (pos > 0) scrollTo(0, pos * scrollable());
+      if (T.style === 'plain') stopTr = loadAhead(box); // у книги-скана страницы качаются заранее (для остальных plain-книг ничего не делает)
       show();
       addEventListener('scroll', onScroll, { passive: true });
     });
