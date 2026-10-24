@@ -922,12 +922,15 @@ function trRender(T) {
 }
 
 // Обычная книга из Word без перевода: цвет «Бумага», заголовки, абзацы, арабские вставки, сноски под абзацем
-// Книга-скан (№122, режим 'g'): страницы-картинки тяжёлые, а lazy браузера начинает качать поздно, на медленной сети листание упирается в загрузку.
-// Поэтому страница, оказавшаяся не дальше 3000 px под экраном (≈ 5–6 страниц вперёд), качается сразу. Возвращает функцию «отключить».
+// Книга-скан (№122, режим 'g'): страницы-картинки тяжёлые, а встроенная «ленивая» загрузка у разных версий iOS/Chrome срабатывает по-разному (на новом iPhone медленнее),
+// поэтому загрузкой управляем сами: у картинки нет src, адрес лежит в data-src, а src выдаётся странице, которая не дальше 3000 px под экраном (≈ 5–6 страниц вперёд)
+// или 1500 px над ним. Возвращает функцию «отключить». Без IntersectionObserver — выдаёт адреса всем сразу.
 function loadAhead(box) {
-  const imgs = [...box.querySelectorAll('.rd-sc-g img')];
-  if (!imgs.length || !window.IntersectionObserver) return null;
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.loading = 'eager'; io.unobserve(e.target); } }), { rootMargin: '0px 0px 3000px 0px' });
+  const imgs = [...box.querySelectorAll('img[data-src]')];
+  if (!imgs.length) return null;
+  const go = i => { if (!i.src) { i.src = i.dataset.src; i.alt = 'Скан страницы оригинала'; } };
+  if (!window.IntersectionObserver) { imgs.forEach(go); return null; }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { go(e.target); io.unobserve(e.target); } }), { rootMargin: '1500px 0px 3000px 0px' });
   imgs.forEach(i => io.observe(i));
   return () => io.disconnect();
 }
@@ -941,7 +944,7 @@ function plainRender(T, first = true) { // first: это начало книги
       case 'hr': return '<hr class="rd-hr">';
       case 'sc': { // скан из Word (.claude/word-img.js): a — файл, b×c — размер, d — режим: 'f' на всю ширину, 'm' цветной титул (без приближения), 'sNN' маленькая, NN% ширины текста, 'g' страница книги-скана до краёв экрана (без приближения, №122)
         const small = d && d[0] === 's';
-        return `<figure class="rd-sc rd-sc-${small ? 's' : d}"${small ? ` style="--sc:${d.slice(1)}%"` : ''}${d === 'm' || d === 'g' ? '' : ' data-z'}><img src="${a}" width="${b}" height="${c}" alt="Скан страницы оригинала" loading="lazy" decoding="async"></figure>`;
+        return `<figure class="rd-sc rd-sc-${small ? 's' : d}"${small ? ` style="--sc:${d.slice(1)}%"` : ''}${d === 'm' || d === 'g' ? '' : ' data-z'}>${d === 'g' ? `<img data-src="${a}" width="${b}" height="${c}" alt="" decoding="async">` : `<img src="${a}" width="${b}" height="${c}" alt="Скан страницы оригинала" loading="lazy" decoding="async">`}</figure>`;
       }
       case 'sep': return '<p class="rd-sep" aria-hidden="true">* * *</p>';
       case 'h1': return `<h1 class="rd-h rd-h1">${a}</h1>`;
