@@ -438,7 +438,7 @@ function homeScreen() {
 
   return `
     <div class="home-head">
-      <div><div class="hello">Ассаляму алейкум</div><h1 class="title">Библиотека</h1></div>
+      <div><div class="hello">Ассаляму алейкум</div><h1 class="title title-logo">Библиотека<span class="emblem" aria-hidden="true"></span></h1></div>
       <div class="head-btns">
         ${canAddToHome() ? `<button class="btn btn-icon" data-action="add-home" aria-label="Добавить на экран «Домой»">${icon('smartphone')}</button>` : ''}
         <button class="btn btn-icon" data-action="open-look" aria-label="Оформление">${icon('sunMoon')}</button>

@@ -64,6 +64,10 @@ a { color: inherit; text-decoration: none; }
 }
 .home-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .head-btns { display: flex; gap: 8px; }
+/* Знак Bayt al-Magrifa рядом с названием: рисунок-маска, цвет берёт у шрифта (бежевый в тёмной теме, тёмный в светлой) */
+.title-logo { display: flex; align-items: center; gap: 9px; }
+.emblem { flex: none; width: 22px; height: 31px; background: currentColor; -webkit-mask: url(../img/app/emblem.png) center / contain no-repeat; mask: url(../img/app/emblem.png) center / contain no-repeat; }
+@media (max-width: 349px) { .emblem { display: none; } } /* на самых узких экранах не влезает рядом с кнопками */
 .sec-h { display: flex; align-items: center; justify-content: space-between; margin: 26px 0 12px; }
 .sec-h h2 {
   font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track);
