@@ -49,7 +49,7 @@ const store = {
 const tg = window.Telegram && window.Telegram.WebApp;
 const inTG = !!(tg && tg.initData);
 const tgCan = version => inTG && tg.isVersionAtLeast(version); // поддерживает ли Telegram у человека эту функцию
-const BOT = 'islam_books_demo_bot';
+const BOT = 'baytalmagrifa_bot';
 
 if (inTG) {
   document.body.classList.add('tg');
