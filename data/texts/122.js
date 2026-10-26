@@ -230,7 +230,7 @@ window.TEXTS[122] = {
     ["sc","img/scan-122/220.webp",780,1088,"g"],
     ["sc","img/scan-122/221.webp",780,1136,"g"],
     ["sc","img/scan-122/222.webp",780,1073,"g"],
-    ["sc","img/scan-122/223.webp",780,84,"g"],
-    ["sc","img/scan-122/224.webp",780,82,"g"]
+    ["sc","img/scan-122/223n.webp",780,1128,"g"],
+    ["sc","img/scan-122/224n.webp",780,1126,"g"]
   ]
 };

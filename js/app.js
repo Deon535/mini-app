@@ -22,7 +22,10 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   type: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
-  smartphone: '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>'
+  smartphone: '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
+  send: '<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+  megaphone: '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+  more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'
 };
 const icon = name =>
   `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -82,25 +85,53 @@ const BOOKS = window.BOOKS;
 const bookById = id => BOOKS.find(b => b.id === Number(id));
 
 // Обложка: настоящая картинка, если есть, иначе обложка-образец
+/* Обложка-заглушка (у книг без картинки): всё внизу, как на книжной обложке: название, тонкая черта, автор.
+   Размер названия подбирается ступенями (COVER_STEPS) так, чтобы ни одно слово не обрезалось и текст влез: меряем один раз
+   на образцовой обложке шириной 200 px (всё на обложке в долях её ширины, поэтому на любом размере выходит так же) и запоминаем. */
+const COVER_STEPS = [.14, .125, .11, .1, .09, .08, .072];
+const COVER_FIT = {}; // номер книги → { k: ступень, soft: слова с мягкими переносами, any: слово режется где угодно }
+let coverRef = null;
+const softHyph = t => { for (let n = 0; n < 2; n++) HYPHEN_RULES.forEach(r => { t = t.replace(r, '$1\u00AD$2'); }); return t; };
+function fitCover(b) {
+  if (COVER_FIT[b.id]) return COVER_FIT[b.id];
+  if (!(document.fonts && document.fonts.check('700 16px Alegreya') && document.fonts.check('500 12px Onest'))) return null; // шрифты ещё не приехали: меряем позже
+  if (!coverRef) { coverRef = document.createElement('div'); coverRef.style.cssText = 'position:fixed;left:-9999px;top:0;visibility:hidden;pointer-events:none'; document.body.appendChild(coverRef); }
+  coverRef.innerHTML = coverHTML(b, .1, false);
+  const c = coverRef.firstChild, t = c.querySelector('.cv-t'), a = c.querySelector('.cv-a'), W = 200;
+  c.style.setProperty('--cw', W + 'px');
+  const cs = getComputedStyle(c), room = c.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - a.offsetHeight - parseFloat(getComputedStyle(a).marginTop);
+  const bad = () => t.scrollWidth > t.clientWidth + .5 || t.offsetHeight > room;
+  const run = from => { for (const k of COVER_STEPS) if (k <= from) { t.style.fontSize = W * k + 'px'; if (!bad()) return k; } return 0; };
+  let k = run(.14), soft = false, any = false;
+  if (!k) { t.innerHTML = softHyph(b.title); soft = true; k = run(.115); }
+  if (!k) { any = true; k = COVER_STEPS[COVER_STEPS.length - 1]; }
+  return (COVER_FIT[b.id] = { k, soft, any });
+}
+const coverHTML = (b, k, soft, any) => `<div class="cover drawn${k === null ? ' unfit' : ''}"${any ? ' data-any="1"' : ''} data-id="${b.id}" style="--c:${b.color};--tk:${k === null ? .1 : k}"><div class="cv-t" lang="ru">${soft ? softHyph(b.title) : b.title}</div><div class="cv-a">${b.author || ''}</div></div>`;
 function cover(b) {
   // пока картинка грузится, видна плашка нужного размера; загрузилась: плавно проявляется
   if (b.cover) return `<div class="cover"><img src="${b.cover}" alt="" loading="lazy" onload="this.classList.add('on')"></div>`;
-  // длинные названия на обложке-образце делаем мельче, чтобы влезали
-  const tf = b.title.length > 75 ? .082 : b.title.length > 55 ? .098 : .12;
-  const af = (b.titleAr || '').length > 30 ? .09 : .125;
-  return `<div class="cover drawn" style="--c:${b.color};--tf:${tf};--af:${af}">
-    <div class="cv-ar">${b.titleAr || ''}</div>
-    <div class="cv-t">${b.title}<span class="cv-a">${b.author}</span></div>
-  </div>`;
+  const f = fitCover(b);
+  return f ? coverHTML(b, f.k, f.soft, f.any) : coverHTML(b, null);
 }
+// шрифты приехали: обложки, нарисованные до этого с запасным размером, подгоняем заново
+function refitCovers() {
+  document.querySelectorAll('.cover.unfit').forEach(c => {
+    const b = bookById(c.dataset.id), f = b && fitCover(b); if (!f) return;
+    const t = c.querySelector('.cv-t'); t.innerHTML = f.soft ? softHyph(b.title) : b.title;
+    c.style.setProperty('--tk', f.k); if (f.any) c.dataset.any = '1'; c.classList.remove('unfit');
+  });
+}
+if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('700 16px Alegreya', 'Аа'), document.fonts.load('500 12px Onest', 'Аа')]).then(() => { refitCovers(); }).catch(() => {});
 // Подпись под названием: автор, а если он не указан, то категория
 const byline = b => b.author || b.category;
 // Куда ведёт «Читать»: настоящий текст книги, если он есть, иначе экран «Полная книга появится здесь»
 const readHref = b => b.text ? `#/text/${b.id}` : `#/read/${b.id}`;
 const bookCard = b => `<a class="bcard" href="#/book/${b.id}">${cover(b)}<div class="t">${b.title}</div><div class="a">${byline(b)}</div></a>`;
 // Строка книги; sub: подпись под названием (по умолчанию автор)
-const rowWith = (b, sub) => `<a class="row" href="#/book/${b.id}">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${sub}</div></div></a>`;
-const bookRow = b => rowWith(b, byline(b));
+const rowWith = (b, sub, tag = '') => `<a class="row" href="#/book/${b.id}">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${sub}</div>${tag}</div></a>`;
+// в списках у книг с параллельным переводом маленькая пометка (иначе две «Разъяснения условий молитвы» одного автора не отличить)
+const bookRow = b => rowWith(b, byline(b), b.parallel ? '<span class="par-tag">параллельный перевод</span>' : '');
 
 // Заглушка для пустой подборки
 const SOON = 'Здесь, ин ша Аллах, появятся книги.';
@@ -182,6 +213,55 @@ function loadShelfFromCloud() {
   });
 }
 
+/* ---------- «Читаю»: книги, которые человек начал ----------
+   Книга попадает в список, когда прочитано хотя бы 2% или книга открыта около минуты (случайное открытие не считается).
+   Порядок: свежие сверху, пока человек сам ничего не переставлял (readingManual); после ручной перестановки порядок его.
+   Дочитал до самого конца: книга уходит из «Читаю» в «Прочитано». */
+const READ_MIN_PCT = 2, READ_MIN_MS = 60000;
+function getReading() {
+  let list = store.get('reading', null);
+  if (!Array.isArray(list)) { // первый запуск после обновления: берём книги, где уже накопилось 2% и больше
+    const pr = store.get('progress', {});
+    list = Object.keys(pr).filter(k => pr[k] >= READ_MIN_PCT).map(Number);
+    store.set('reading', list);
+  }
+  return [...new Set(list.map(Number))].filter(id => bookById(id)); // номера всегда числами, без повторов
+}
+function noteReading(id, pct, since, atEnd) {
+  id = Number(id); // из адреса номер приходит текстом
+  if (atEnd) { // дочитал до последней страницы
+    store.set('reading', getReading().filter(x => x !== id));
+    if (!onShelf('done', id)) toggleShelf('done', id);
+    const tp = store.get('textPos', {}); delete tp[id]; store.set('textPos', tp); // в следующий раз откроется с начала
+    const pr = store.get('progress', {}); delete pr[id]; store.set('progress', pr);
+    return;
+  }
+  if (pct < READ_MIN_PCT && Date.now() - since < READ_MIN_MS) return;
+  const list = getReading(), at = list.indexOf(id);
+  if (at === 0 || (at > 0 && store.get('readingManual', false))) return;
+  if (at > 0) list.splice(at, 1);
+  list.unshift(id);
+  store.set('reading', list);
+}
+function unread(id) { // «Убрать из списка»
+  store.set('reading', getReading().filter(x => x !== id));
+  const pr = store.get('progress', {}); delete pr[id]; store.set('progress', pr);
+}
+function restartBook(id) { // «Читать с начала»
+  unread(id);
+  const tp = store.get('textPos', {}); delete tp[id]; store.set('textPos', tp);
+}
+function reorderReading(visibleIds) { // человек переставил книги: показанные встают впереди в его порядке
+  store.set('reading', [...visibleIds, ...getReading().filter(x => !visibleIds.includes(x))]);
+  store.set('readingManual', true);
+}
+function openReadingMenu(id) {
+  const b = bookById(id);
+  openSheet(`
+    <div class="sheet-h">${b.title}</div>
+    <div class="shelf-opts"><button class="shelf-opt" data-action="unread" data-id="${id}">${icon('close')}<span>Убрать из списка «Читаю»</span></button></div>`);
+}
+
 const shelfBtnHTML = id => onAnyShelf(id) ? `${icon('check')}На полке` : `${icon('bookmark')}На полку`;
 
 function openShelfSheet(id) {
@@ -196,13 +276,13 @@ function openShelfSheet(id) {
 
 /* ---------- Короткое сообщение внизу («Ссылка скопирована») ---------- */
 let toastTimer;
-function toast(text) {
+function toast(text, ms = 2200) {
   let el = document.getElementById('toast');
   if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; document.body.append(el); }
   el.textContent = text;
   el.classList.add('on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('on'), 2200);
+  toastTimer = setTimeout(() => el.classList.remove('on'), ms);
 }
 
 // «Поделиться»: ссылка на бота с меткой книги (startapp=book_5). Друг нажмёт и сразу попадёт на эту книгу.
@@ -222,6 +302,21 @@ async function shareBook(id) {
   catch (e) { toast('Не получилось скопировать ссылку'); }
 }
 
+// «Поделиться приложением» (вкладка «Ещё»): то же, но ссылка ведёт на само приложение
+async function shareApp() {
+  const url = `https://t.me/${BOT}?startapp=app`, text = 'Библиотека исламских книг на русском языке';
+  if (inTG) {
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+    return;
+  }
+  if (navigator.share) {
+    try { await navigator.share({ title: text, text, url }); } catch (e) {}
+    return;
+  }
+  try { await navigator.clipboard.writeText(url); toast('Ссылка скопирована'); }
+  catch (e) { toast('Не получилось скопировать ссылку'); }
+}
+
 // «Назад»: если человек пришёл в приложение сразу на эту страницу (по ссылке), ведём на главную
 function goBack() {
   if (closeScan()) return; // открыто окно приближения скана: «Назад» закрывает его
@@ -229,24 +324,117 @@ function goBack() {
   else history.back();
 }
 
+/* ---------- Перестановка зажатием ----------
+   Зажал книгу (~0,4 с): она «поднимается» и едет за пальцем, остальные плавно расступаются.
+   Отпустил: книга встаёт на новое место (onMove получает новый порядок номеров).
+   Зажал и не двигал: onMenu (меню «Убрать из списка»). Обычное касание работает как раньше (ссылка).
+   Элементы списка: прямые дети box с классом .ro и data-id. Вернуть функцию «отключить». */
+function mountReorder(box, onMove, onMenu) {
+  let st = null, lastY = 0, raf = 0, eatClick = 0;
+  const items = () => [...box.children].filter(e => e.classList.contains('ro'));
+  const clean = () => { clearTimeout(st && st.timer); cancelAnimationFrame(raf); raf = 0; box.classList.remove('ro-on'); box.querySelectorAll('.ro').forEach(e => { e.classList.remove('ro-drag'); e.style.transform = ''; e.style.transition = ''; }); st = null; };
+  function frame() {
+    raf = 0;
+    if (!st || !st.active) return;
+    if (lastY < 90) scrollBy(0, -9); else if (lastY > innerHeight - 110) scrollBy(0, 9);
+    const dy = lastY + scrollY - st.pageY0;
+    const { list, hs, tops, from } = st, gap = list.length > 1 ? tops[1] - tops[0] - hs[0] : 0, slot = hs[from] + gap;
+    st.el.style.transform = `translateY(${dy}px) scale(1.025)`;
+    const mid = tops[from] + hs[from] / 2 + dy;
+    let to = 0;
+    list.forEach((e, i) => { if (i !== from && tops[i] + hs[i] / 2 < mid) to += 1; });
+    st.to = to;
+    list.forEach((e, i) => {
+      if (i === from) return;
+      const s = from < to && i > from && i <= to ? -slot : from > to && i < from && i >= to ? slot : 0;
+      e.style.transform = s ? `translateY(${s}px)` : '';
+    });
+    raf = requestAnimationFrame(frame);
+  }
+  function lift() {
+    if (!st) return;
+    st.active = true;
+    const list = items();
+    Object.assign(st, { list, from: list.indexOf(st.el), tops: list.map(e => e.offsetTop), hs: list.map(e => e.offsetHeight) });
+    st.to = st.from; st.pageY0 = st.y0 + scrollY;
+    box.classList.add('ro-on'); st.el.classList.add('ro-drag');
+    list.forEach(e => { if (e !== st.el) e.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; });
+    haptic('medium');
+    raf = requestAnimationFrame(frame);
+  }
+  const down = e => {
+    const el = e.target.closest('.ro');
+    if (!el || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    st = { el, y0: e.clientY, x0: e.clientX, active: false };
+    lastY = e.clientY;
+    st.timer = setTimeout(lift, 380);
+  };
+  const move = e => {
+    if (!st) return;
+    lastY = e.clientY;
+    if (!st.active && Math.hypot(e.clientX - st.x0, e.clientY - st.y0) > 9) clean(); // человек листает, а не зажимает
+  };
+  const up = () => {
+    if (!st) return;
+    if (!st.active) return clean();
+    eatClick = Date.now(); // после зажатия «щелчок» по ссылке не должен открывать книгу
+    const { list, from, to, tops, hs, el } = st, moved = Math.abs(lastY + scrollY - st.pageY0) > 12 || from !== to;
+    cancelAnimationFrame(raf);
+    const id = Number(el.dataset.id);
+    if (!moved) { clean(); return onMenu && onMenu(id); }
+    const gap = list.length > 1 ? tops[1] - tops[0] - hs[0] : 0;
+    let target = 0; // на сколько сместиться, чтобы встать в слот
+    if (to > from) for (let i = from + 1; i <= to; i++) target += hs[i] + gap; else for (let i = to; i < from; i++) target -= hs[i] + gap;
+    el.style.transition = 'transform .2s cubic-bezier(.2,.8,.2,1)';
+    el.style.transform = `translateY(${target}px)`;
+    const ids = list.map(x => Number(x.dataset.id)); ids.splice(to, 0, ids.splice(from, 1)[0]);
+    const s = st; st = null;
+    setTimeout(() => { clearTimeout(s.timer); box.classList.remove('ro-on'); onMove(ids); }, 210);
+  };
+  const stopTouch = e => { if (st && st.active) e.preventDefault(); }; // пока книга «в руке», страница не листается
+  const noClick = e => { if (Date.now() - eatClick < 500) { e.preventDefault(); e.stopPropagation(); } };
+  const noMenu = e => e.preventDefault();
+  box.addEventListener('pointerdown', down);
+  addEventListener('pointermove', move);
+  addEventListener('pointerup', up);
+  addEventListener('pointercancel', clean);
+  box.addEventListener('touchmove', stopTouch, { passive: false });
+  box.addEventListener('click', noClick, true);
+  box.addEventListener('contextmenu', noMenu);
+  box.addEventListener('dragstart', noMenu);
+  return () => {
+    clean();
+    removeEventListener('pointermove', move); removeEventListener('pointerup', up); removeEventListener('pointercancel', clean);
+  };
+}
+
 /* ---------- Экраны ---------- */
+
+// «С чего начать»: книги с номером starter (1, 2, 3…), по порядку; на главной первые START_HOME, остальные на экране #/start
+const START_HOME = 6;
+const startList = () => BOOKS.filter(b => b.starter).sort((a, b) => a.starter - b.starter);
+function startScreen() {
+  const list = startList();
+  return `
+    ${topbar()}
+    <h1 class="title">С чего начать</h1>
+    <p class="found">${booksCount(list.length)} по порядку: от самого простого к следующим шагам</p>
+    ${list.map(bookRow).join('')}`;
+}
 
 // Главная
 function homeScreen() {
-  // «Новинки»: только книги с датой, самые свежие первыми
-  const newest = BOOKS.filter(b => b.added).sort((a, b) => b.added.localeCompare(a.added)).slice(0, 10);
-  const popular = BOOKS.filter(b => b.popular);
-  const starter = BOOKS.filter(b => b.starter);
+  const starter = startList();
 
-  // «Продолжить»: книги, которые человек начал читать (появится вместе с читалкой)
+  // «Продолжить»: две последние начатые книги (список «Читаю»); если их больше, ссылка на всю вкладку на полке
   const progress = store.get('progress', {});
-  const reading = Object.keys(progress).map(bookById).filter(Boolean);
+  const reading = getReading().map(bookById).filter(Boolean);
   const continueBlock = reading.length ? `
-    <div class="sec-h"><h2>Продолжить</h2></div>
-    ${reading.map(b => `<a class="cont" href="${readHref(b)}">${cover(b)}<div class="tx">
+    <div class="sec-h"><h2>Продолжить</h2>${reading.length > 2 ? `<a href="#/shelf/reading">Все, что я читаю (${reading.length})${icon('next')}</a>` : ''}</div>
+    <div class="ro-list" id="ro-home">${reading.slice(0, 2).map(b => `<a class="cont ro" data-id="${b.id}" href="${readHref(b)}">${cover(b)}<div class="tx">
       <div class="t">${b.title}</div><div class="a">${byline(b)}</div>
-      <div class="bar"><i style="width:${progress[b.id]}%"></i></div>
-      <div class="p">Прочитано ${progress[b.id]}%</div></div></a>`).join('')}` : '';
+      <div class="bar"><i style="width:${progress[b.id] || 0}%"></i></div>
+      <div class="p">Прочитано ${progress[b.id] || 0}%</div></div></a>`).join('')}</div>` : '';
 
   return `
     <div class="home-head">
@@ -254,29 +442,22 @@ function homeScreen() {
       <button class="btn btn-icon" data-action="open-look" aria-label="Оформление">${icon('sunMoon')}</button>
     </div>
     <a class="search" href="#/search">${icon('search')}Название или автор</a>
-    <div class="demo-note">
-      ${icon('info')}
-      <div><b>Демо-версия</b>
-      <p>Это пробная версия приложения. Подборки, категории и описания пока заполнены не полностью и могут быть неточными. Ин ша Аллах, скоро здесь будет вся библиотека канала.</p></div>
-    </div>
     ${continueBlock}
     <div class="sec-h"><h2>Категории</h2></div>
     <div class="chips">${window.CATEGORIES.map(c => `<a class="chip" href="#/search/cat/${encodeURIComponent(c)}">${c}</a>`).join('')}</div>
-    <div class="sec-h"><h2>С чего начать</h2></div>
-    ${starter.length ? starter.map(bookRow).join('') : soon()}
-    <div class="sec-h"><h2>Новинки</h2></div>
-    ${newest.length ? `<div class="shelf-row">${newest.map(bookCard).join('')}</div>` : soon()}
-    <div class="sec-h"><h2>Популярное</h2></div>
-    ${popular.length ? `<div class="shelf-row">${popular.map(bookCard).join('')}</div>` : soon()}
-    <div class="sec-h"><h2>Все книги</h2><a href="#/search">Смотреть${icon('next')}</a></div>
-    <div class="shelf-row">${BOOKS.map(bookCard).join('')}</div>
+    ${starter.length ? `<div class="sec-h"><h2>С чего начать</h2>${starter.length > START_HOME ? `<a href="#/start">Все ${starter.length}${icon('next')}</a>` : ''}</div>${starter.slice(0, START_HOME).map(bookRow).join('')}` : ''}
+    <div class="sec-h"><h2>Все книги</h2></div>
+    <div class="book-grid">${BOOKS.slice(0, 9).map(bookCard).join('')}</div>
+    <a class="btn btn-second btn-wide all-books" href="#/search">Все книги (${BOOKS.length})${icon('next')}</a>
     <div id="home-screen"></div>
   `;
 }
 
 // «На экран Домой»: показываем предложение, только если телефон это умеет и значка ещё нет
 function mountHome() {
-  if (!tgCan('8.0')) return;
+  const ro = document.getElementById('ro-home');
+  const stop = ro ? mountReorder(ro, ids => { reorderReading(ids); router(); }, openReadingMenu) : null;
+  if (!tgCan('8.0')) return stop;
   tg.checkHomeScreenStatus(status => {
     const box = document.getElementById('home-screen');
     if (!box || (status !== 'missed' && status !== 'unknown')) return;
@@ -287,6 +468,7 @@ function mountHome() {
       <button class="btn btn-second" data-action="home-screen">Добавить</button></div>
     </div>`;
   });
+  return stop;
 }
 if (inTG) tg.onEvent('homeScreenAdded', () => {
   const box = document.getElementById('home-screen');
@@ -302,7 +484,7 @@ const normalize = s => (s || '').toLowerCase().replace(/ё/g, 'е')
 const escapeHTML = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // Для каждой книги заранее готовим строку «где искать»
-const SEARCH_INDEX = BOOKS.map(b => ({ book: b, text: normalize([b.title, b.author, b.category, b.titleAr].join(' ')) }));
+const SEARCH_INDEX = BOOKS.map(b => ({ book: b, text: normalize([b.title, b.sub, b.author, b.category, b.titleAr].join(' ')) }));
 
 function findBooks(query, category) {
   const words = normalize(query).split(' ').filter(Boolean);
@@ -310,8 +492,13 @@ function findBooks(query, category) {
     .filter(x => !category || x.book.category === category)
     .filter(x => words.every(w => x.text.includes(w))) // каждое слово запроса должно найтись
     .map(x => x.book)
-    .sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+    .sort(store.get('sort', 'title') === 'author'
+      ? (a, b) => (a.author ? 0 : 1) - (b.author ? 0 : 1) || (a.author || '').localeCompare(b.author || '', 'ru') || a.title.localeCompare(b.title, 'ru')
+      : (a, b) => a.title.localeCompare(b.title, 'ru'));
 }
+// «122 книги» и выбор порядка (по названию / по автору)
+const sortHead = n => `<div class="sr-head"><span class="found">${booksCount(n)}</span>
+  <select id="sort" aria-label="Порядок книг"><option value="title">По названию</option><option value="author">По автору</option></select></div>`;
 
 const RECENT_MAX = 6;
 function saveRecent(query) {
@@ -353,8 +540,8 @@ function mountSearch(category) {
         ${recent.length ? `<div class="sec-h"><h2>Недавние</h2><button class="link" data-action="clear-recent">Очистить</button></div>
           <div class="recent">${recent.map(r => `<button class="chip" data-recent="${escapeHTML(r)}">${escapeHTML(r)}</button>`).join('')}</div>` : ''}
         <div class="sec-h"><h2>Все книги</h2></div>
-        ${found.map(bookRow).join('')}`;
-      return;
+        ${sortHead(found.length)}${found.map(bookRow).join('')}`;
+      return pickSort();
     }
     // Выбрана категория, в которой пока нет книг
     if (!q.trim() && cat && !found.length) {
@@ -367,8 +554,10 @@ function mountSearch(category) {
         <p class="empty-s">Проверьте написание или поищите по автору${cat ? ', или уберите категорию' : ''}.</p></div>`;
       return;
     }
-    results.innerHTML = `<p class="found">Найдено: ${found.length}</p>${found.map(bookRow).join('')}`;
+    results.innerHTML = `${sortHead(found.length)}${found.map(bookRow).join('')}`;
+    pickSort();
   }
+  function pickSort() { const sel = document.getElementById('sort'); if (sel) sel.value = store.get('sort', 'title'); }
 
   input.addEventListener('input', show);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') { saveRecent(input.value); input.blur(); } });
@@ -384,6 +573,7 @@ function mountSearch(category) {
     show();
   });
 
+  results.addEventListener('change', e => { if (e.target.id === 'sort') { store.set('sort', e.target.value); show(); } });
   results.addEventListener('click', e => {
     const r = e.target.closest('[data-recent]');
     if (r) { input.value = r.dataset.recent; show(); return; }
@@ -412,22 +602,24 @@ function bookScreen(id) {
   if (!b) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
 
   const similar = BOOKS.filter(x => x.category === b.category && x.id !== b.id);
+  const going = b.text && getReading().includes(b.id), pr = store.get('progress', {})[b.id] || 0;
   return `
     ${topbar(`<button class="btn btn-icon" data-action="share" data-id="${b.id}" aria-label="Поделиться">${icon('share')}</button>`)}
     <div class="bk-cover">${cover(b)}</div>
     <div class="bk-meta">
       <a class="bk-cat" href="#/search/cat/${encodeURIComponent(b.category)}">${b.category}</a>
-      ${b.titleAr ? `<span class="bk-ar" lang="ar">${b.titleAr}</span>` : ''}
     </div>
     <h1 class="bk-title">${b.title}</h1>
+    ${b.sub ? `<p class="bk-sub">${b.sub}</p>` : ''}
     ${b.author ? `<a class="bk-author" href="${authorLink(b.author)}">${b.author}</a>` : ''}
     ${b.facts ? `<p class="bk-facts">${b.facts}</p>` : ''}
     <div class="bk-actions">
-      <a class="btn btn-main btn-wide" href="${readHref(b)}">${icon('bookOpen')}Читать</a>
+      <a class="btn btn-main btn-wide" href="${readHref(b)}">${icon('bookOpen')}${going ? `Продолжить · ${pr}%` : 'Читать'}</a>
       <button class="btn btn-second" data-action="shelf" data-id="${b.id}">${shelfBtnHTML(b.id)}</button>
     </div>
+    ${going ? `<button class="link restart" data-action="restart" data-id="${b.id}">Читать с начала</button>` : ''}
     ${versionNote(b)}
-    ${b.description ? `<p class="bk-desc">${b.description}</p>` : `<p class="bk-desc bk-desc-none">Описание появится позже.</p>`}
+    ${b.description ? `<p class="bk-desc">${b.description}</p>` : ''}
     ${similar.length ? `
       <div class="sec-h"><h2>Похожие</h2></div>
       <div class="shelf-row">${similar.map(bookCard).join('')}</div>` : ''}
@@ -437,11 +629,15 @@ function bookScreen(id) {
 // Плашка «Чистовик / Черновик» (как «Демо-версия» на главной): PDF вычитан, Word может быть с опечатками
 function versionNote(b) {
   const from = b.publisher ? ` от <span class="nowrap">${b.publisher}</span>` : '';
-  if (b.version === 'clean') return `<div class="demo-note bk-note">${icon('check')}
+  let note = '';
+  if (b.version === 'clean') note = `<div class="demo-note bk-note">${icon('check')}
     <div><b>Чистовик</b><p>Окончательная версия книги${from}.</p></div></div>`;
-  if (b.version === 'draft') return `<div class="demo-note bk-note">${icon('info')}
+  if (b.version === 'draft') note = `<div class="demo-note bk-note">${icon('info')}
     <div><b>Черновик</b><p>Рабочая версия книги${from}, возможны опечатки.</p></div></div>`;
-  return '';
+  // параллельный перевод: отдельная плашка под чистовиком/черновиком
+  if (b.parallel) note += `<div class="demo-note bk-note bk-par">${icon('bookOpen')}
+    <div><b>Параллельный перевод</b><p>${b.parallel === 'app' ? 'Арабский оригинал под каждым предложением: зажмите предложение на секунду.' : 'В оригинале арабский текст идёт рядом с русским. В приложении пока только русский текст.'}</p></div></div>`;
+  return note;
 }
 
 // «1 книга / 2 книги / 5 книг»
@@ -466,32 +662,44 @@ function authorScreen(name) {
 
 // Моя полка: вкладки-сегменты и список книг выбранной вкладки
 const SHELF_EMPTY = {
+  reading: ['Здесь будут книги, которые вы читаете', 'Откройте любую книгу и начните читать: она появится здесь сама.'],
   fav:  ['Здесь будут любимые книги', 'Откройте книгу, нажмите «На полку» и выберите «Избранное».'],
   want: ['Здесь будут книги на потом', 'Откройте книгу, нажмите «На полку» и выберите «Хочу прочитать».'],
   done: ['Здесь будут прочитанные книги', 'Откройте книгу, нажмите «На полку» и выберите «Прочитано».']
 };
 
+const SHELF_TABS = [{ key: 'reading', name: 'Читаю' }, ...SHELVES];
 function shelfList(key) {
-  const books = getShelf()[key].map(bookById).filter(Boolean);
+  const reading = key === 'reading', progress = store.get('progress', {});
+  const books = (reading ? getReading() : getShelf()[key]).map(bookById).filter(Boolean);
   if (!books.length) {
     const [t, s] = SHELF_EMPTY[key];
     return `<div class="empty"><p class="empty-t">${t}</p><p class="empty-s">${s}</p>
       <a class="btn btn-second empty-btn" href="#/search">${icon('search')}Найти книгу</a></div>`;
   }
+  if (reading) return `<p class="found">${booksCount(books.length)} · зажмите книгу, чтобы переставить или убрать</p>
+    <div class="ro-list" id="ro-shelf">${books.map(b => `<a class="row ro" data-id="${b.id}" href="${readHref(b)}">${cover(b)}<div class="tx"><div class="t">${b.title}</div><div class="a">${byline(b)}</div><div class="bar"><i style="width:${progress[b.id] || 0}%"></i></div></div></a>`).join('')}</div>`;
   return `<p class="found">${booksCount(books.length)}</p>${books.map(bookRow).join('')}`;
 }
 
 function shelfScreen(tab) {
-  const key = tab || store.get('shelfTab', 'fav');
+  const key = tab || store.get('shelfTab', 'reading');
   return `
     <h1 class="title">Моя полка</h1>
-    <div class="seg" role="tablist">${SHELVES.map(s =>
+    <div class="seg" role="tablist">${SHELF_TABS.map(s =>
       `<button role="tab" data-seg="${s.key}" aria-selected="${s.key === key}">${s.name}</button>`).join('')}
     </div>
     <div id="shelf-list">${shelfList(key)}</div>`;
 }
 
 function mountShelf() {
+  let stop = null;
+  const hook = () => { // перестановка и «Убрать» работают на вкладке «Читаю»
+    if (stop) stop(); stop = null;
+    const ro = document.getElementById('ro-shelf');
+    if (ro) stop = mountReorder(ro, ids => { reorderReading(ids); document.getElementById('shelf-list').innerHTML = shelfList('reading'); hook(); }, openReadingMenu);
+  };
+  hook();
   document.querySelector('.seg').addEventListener('click', e => {
     const b = e.target.closest('[data-seg]');
     if (!b) return;
@@ -500,7 +708,9 @@ function mountShelf() {
     document.querySelectorAll('.seg [data-seg]').forEach(x => x.setAttribute('aria-selected', x === b));
     document.getElementById('shelf-list').innerHTML = shelfList(key);
     history.replaceState(history.state, '', `#/shelf/${key}`);
+    hook();
   });
+  return () => { if (stop) stop(); };
 }
 
 /* ---------- Читалка ---------- */
@@ -528,29 +738,125 @@ const READER_THEMES = [
 ];
 const FS_MIN = 14, FS_MAX = 26;
 let reader = { theme: 'ivory', fs: 18, ...store.get('reader', {}) };
+reader.fs = Math.min(FS_MAX, Math.max(FS_MIN, Math.round(reader.fs / 2) * 2)); // шаг размера 2 (ползунок)
 if (!READER_THEMES.some(t => t.key === reader.theme)) reader.theme = 'ivory'; // прежние «Бумага» и «Матн» стали «Слоновой костью»
 // У книг в оригинальном оформлении (например 'bm', Bayt al-Magrifa) свои цвета вместо темы читалки
 let readerStyle = null;
 
-function applyReader() {
+// Место чтения при смене шрифта: запоминаем абзац у верха экрана и после смены возвращаем его на то же место
+// (в Chrome это делает сам браузер, в Safari/iPhone нет). У огромных нарезанных книг своя защита (mountChunked).
+function placeProbe() {
+  const box = document.getElementById('bk') || document.querySelector('article.rd');
+  if (!box || box.classList.contains('pg-lazy') || scrollY < 5) return null;
+  const y = 96;
+  let el = null;
+  for (const x of [innerWidth / 2, innerWidth / 3, innerWidth * .7]) { el = document.elementFromPoint(x, y); if (el && box.contains(el)) break; el = null; }
+  if (!el) return null;
+  el = el.closest('p, li, h1, h2, h3, h4, blockquote, .pg-p, .pg-h, .tr-s') || el;
+  if (el.classList.contains('tr-s')) el = el.closest('p, h1, h2') || el;
+  const r = el.getBoundingClientRect(), f = r.height ? (y - r.top) / r.height : 0;
+  return () => { const r2 = el.getBoundingClientRect(), d = r2.top + f * r2.height - y; if (Math.abs(d) > 1) scrollBy(0, d); };
+}
+
+function applyReader(keep) {
+  const back = keep ? placeProbe() : null;
   document.body.dataset.rt = readerStyle || reader.theme;
   if (readerStyle === 'pg' && pgCur) pgTheme(pgCur.box, pgCur.th); // книга-PDF: перекрасить страницы под выбранную бумагу
   document.body.style.setProperty('--fs', reader.fs + 'px');
   document.querySelectorAll('[data-rtheme]').forEach(b => b.setAttribute('aria-pressed', b.dataset.rtheme === reader.theme));
   const v = document.getElementById('fs-val');
   if (v) v.textContent = reader.fs;
+  const rg = document.getElementById('fs-range');
+  if (rg) rg.value = reader.fs;
   paintTelegramBars();
   window.dispatchEvent(new Event('readerchange')); // нарезанные книги (mountChunked) пересчитывают высоты страниц
+  if (back) back();
+}
+
+/* Читалка: шапка, ползунок страниц, панель «Оформление».
+   Шапка прячется, когда листаешь вниз, и возвращается при движении вверх или касании текста.
+   Ползунок внизу: тянешь — над ним номер страницы; после большого прыжка 7 секунд виден «Вернуться». */
+let seeking = false;
+function syncSeek(p) { const r = document.getElementById('rd-seek'); if (r && !seeking) r.value = p * 10; }
+function mountReaderUI() {
+  const bar = document.querySelector('.rd-top'), seek = document.getElementById('rd-seek');
+  const bub = document.getElementById('rd-bubble'), back = document.getElementById('rd-back');
+  if (!bar || !seek) return null;
+  let last = scrollY, acc = 0, from = 0, fromTxt = '', backTimer = 0, gy = null;
+  const setHide = h => { bar.classList.toggle('hide', h); if (h) document.body.classList.remove('rd-panel-open'); };
+  const place = () => { const pl = document.getElementById('rd-place'), pc = document.getElementById('rd-pct'); return (pl && pl.textContent ? pl.textContent + ' · ' : '') + (pc ? pc.textContent : ''); };
+  const doc = () => document.documentElement.scrollHeight - innerHeight;
+  const onScroll = () => {
+    const y = scrollY, d = y - last; last = y;
+    if (seeking) { bub.textContent = place(); return; }
+    if (document.body.classList.contains('rd-panel-open')) { acc = 0; return; } // панель открыта: подгонка места после смены шрифта не должна её закрывать
+    if (y < 80) { acc = 0; return setHide(false); }
+    acc = (d > 0) === (acc > 0) ? acc + d : d;
+    if (acc > 40) setHide(true); else if (acc < -28) setHide(false);
+  };
+  const onTap = e => {
+    if (!e.target.closest('#bk, article.rd')) return;
+    if (e.target.closest('a, button, input, .tr-s, .tr-pop, .rd-sc, .rd-sc-g')) return;
+    if (String(getSelection())) return;
+    setHide(!bar.classList.contains('hide'));
+  };
+  const showBack = () => {
+    back.firstChild.textContent = 'Вы были на: ' + fromTxt;
+    back.classList.add('on');
+    clearTimeout(backTimer); backTimer = setTimeout(() => back.classList.remove('on'), 7000);
+  };
+  const start = () => { seeking = true; from = scrollY; const pl = document.getElementById('rd-place'); fromTxt = pl && pl.textContent ? pl.textContent : document.getElementById('rd-pct').textContent; bub.textContent = place(); bub.classList.add('on'); setHide(false); };
+  const end = () => { if (!seeking) return; seeking = false; bub.classList.remove('on'); if (Math.abs(scrollY - from) > innerHeight * 1.5) showBack(); };
+  const onInput = () => { if (!seeking) start(); scrollTo(0, seek.value / 1000 * doc()); requestAnimationFrame(() => { bub.textContent = place(); }); };
+  const onBack = e => { if (e.target.closest('[data-action="rd-return"]')) { scrollTo(0, from); back.classList.remove('on'); } };
+  // потянул ручку панели вниз: закрылась
+  const ts = e => { gy = e.target.closest('.rd-grab, .rd-ph') ? e.touches[0].clientY : null; };
+  const te = e => { if (gy !== null && e.changedTouches[0].clientY - gy > 50) document.body.classList.remove('rd-panel-open'); gy = null; };
+  addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('click', onTap);
+  seek.addEventListener('pointerdown', start);
+  seek.addEventListener('input', onInput);
+  seek.addEventListener('pointerup', end); seek.addEventListener('pointercancel', end); seek.addEventListener('change', end);
+  back.addEventListener('click', onBack);
+  document.addEventListener('touchstart', ts, { passive: true }); document.addEventListener('touchend', te);
+  return () => {
+    seeking = false; clearTimeout(backTimer);
+    removeEventListener('scroll', onScroll); document.removeEventListener('click', onTap);
+    document.removeEventListener('touchstart', ts); document.removeEventListener('touchend', te);
+  };
+}
+
+// Общие куски читалки: шапка с кнопками, нижняя полоска-ползунок, панель «Оформление», подсказка «Вернуться»
+function rdTopHTML(title, extra = '') {
+  return `<div class="topbar rd-top">
+      <button class="btn btn-icon" data-action="back" aria-label="Назад">${icon('back')}</button>
+      <span class="rd-book">${title}</span>
+      <span class="rd-right">${extra}<button class="btn btn-icon" data-action="rd-panel" aria-label="Оформление: шрифт и фон">${icon('type')}</button></span>
+    </div>`;
+}
+function rdBottomHTML(placeHTML) {
+  return `<div class="rd-prog">${placeHTML}<div class="bar rd-seekbar"><i id="rd-bar"></i><input type="range" id="rd-seek" min="0" max="1000" value="0" aria-label="Перейти по книге"></div><span id="rd-pct">0%</span></div>
+    <div class="rd-bubble" id="rd-bubble"></div>
+    <div class="rd-back" id="rd-back"><span></span><button data-action="rd-return">Вернуться</button></div>
+    <div class="rd-scrim" data-action="rd-close"></div>
+    <div class="rd-panel" id="rd-panel">
+      <div class="rd-grab"></div>
+      <div class="rd-ph"><b>Оформление</b><button class="btn btn-icon" data-action="rd-close" aria-label="Закрыть">${icon('close')}</button></div>
+      <div class="themes-box"><div class="rd-sub">Фон</div>
+        <div class="themes">${READER_THEMES.map(t => `<button class="th th-${t.key}" data-rtheme="${t.key}"><i>Аа</i>${t.name}</button>`).join('')}</div></div>
+      <div class="rd-sub">Шрифт · <span id="fs-val"></span></div>
+      <div class="sizes">
+        <button data-fs="-2" aria-label="Шрифт меньше" class="fs-s">А</button>
+        <input type="range" id="fs-range" min="${FS_MIN}" max="${FS_MAX}" step="2" aria-label="Размер шрифта">
+        <button data-fs="2" aria-label="Шрифт больше" class="fs-l">А</button>
+      </div>
+    </div>`;
 }
 
 function sampleScreen() {
   const S = window.SAMPLE;
   return `
-    <div class="topbar rd-top">
-      <button class="btn btn-icon" data-action="back" aria-label="Назад">${icon('back')}</button>
-      <span class="rd-book">${S.bookTitle}</span>
-      <button class="btn btn-icon" data-action="rd-panel" aria-label="Шрифт и тема">${icon('type')}</button>
-    </div>
+    ${rdTopHTML(S.bookTitle)}
     <article class="rd">
       <p class="rd-label">${S.label}</p>
       <div lang="ar" dir="rtl">
@@ -565,16 +871,7 @@ function sampleScreen() {
       <p class="rd-foot">${S.source}</p>
       <p class="rd-note">${S.demoNote}</p>
     </article>
-    <div class="rd-prog"><span>${S.place}</span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
-    <div class="rd-panel" id="rd-panel">
-      <div class="themes">${READER_THEMES.map(t =>
-        `<button class="th th-${t.key}" data-rtheme="${t.key}"><i>Аа</i>${t.name}</button>`).join('')}</div>
-      <div class="sizes">
-        <button data-fs="-1" aria-label="Шрифт меньше" class="fs-s">А</button>
-        <span id="fs-val"></span>
-        <button data-fs="1" aria-label="Шрифт больше" class="fs-l">А</button>
-      </div>
-    </div>`;
+    ${rdBottomHTML(`<span>${S.place}</span>`)}`;
 }
 
 // Прогресс: сколько процентов главы человек пролистал. Запоминаем, чтобы вернуть на то же место
@@ -584,7 +881,7 @@ function mountSample() {
   const pct = document.getElementById('rd-pct');
   const scrollable = () => document.documentElement.scrollHeight - innerHeight;
 
-  function show(p) { bar.style.width = p + '%'; pct.textContent = p + '%'; }
+  function show(p) { bar.style.width = p + '%'; pct.textContent = p + '%'; syncSeek(p); }
   const current = () => scrollable() > 0 ? Math.min(100, Math.round(scrollY / scrollable() * 100)) : 0;
 
   let timer;
@@ -602,6 +899,7 @@ function mountSample() {
 
   let alive = true;
   applyReader();
+  const stopUI = mountReaderUI();
   // Возвращаем на место, где человек остановился (после загрузки шрифтов, иначе высота текста другая)
   document.fonts.ready.then(() => {
     if (!alive) return; // человек уже ушёл с экрана
@@ -615,6 +913,7 @@ function mountSample() {
   return () => {
     alive = false;
     removeEventListener('scroll', onScroll);
+    if (stopUI) stopUI();
     delete document.body.dataset.rt;
     document.body.classList.remove('rd-panel-open');
     paintTelegramBars(); // шапку Telegram снова в цвет приложения
@@ -642,7 +941,41 @@ const HYPHEN_RULES = (() => {
   return [`(${x})(${a}${a})`, `(${g})(${g}${a})`, `(${g}${s})(${s}${g})`, `(${s}${g})(${s}${g})`,
     `(${g}${s})(${s}${s}${g})`, `(${g}${s}${s})(${s}${s}${g})`].map(r => new RegExp(r, 'gi'));
 })();
+// Заголовок, набранный прописными (короткий, почти все буквы заглавные): в нём слова не переносим, а висячий левый отступ PDF
+// (узкая колонка справа от номера «I.», «2.») на экране телефона убираем: заголовок идёт во всю ширину
+const capsHead = h => {
+  const t = String(h).replace(/<[^>]+>/g, '').replace(/&[#\w]+;/g, ''), l = t.replace(/[^\p{L}]/gu, '');
+  return t.length < 220 && l.length > 8 && l.replace(/[^\p{Lu}]/gu, '').length / l.length > .7;
+};
+// Строки титула в PDF умещаются в одну строку, а наш шрифт чуть шире, и строка переносилась «хвостом» («необхо-» / «димости»).
+// Подряд идущие строки одного размера с малым отступом — абзац титула: если какой-то строке не хватает до 20 % ширины, уменьшаем
+// ВСЮ группу на один и тот же коэффициент (--ff), чтобы строки остались одной высоты и одной строкой, как в PDF.
+// Блок, которому не хватает больше (целый абзац в одном блоке), переносится как обычный текст
+function fitFront(root, again) {
+  const rg = document.createRange();
+  const width = p => { // ширина строки в одну линию
+    p.style.whiteSpace = 'nowrap'; rg.selectNodeContents(p);
+    const rs = [...rg.getClientRects()].filter(r => r.width > 0); p.style.whiteSpace = '';
+    return rs.length ? Math.max(...rs.map(r => r.right)) - Math.min(...rs.map(r => r.left)) : 0;
+  };
+  const gap = p => { const m = /\*\s*(-?[\d.]+)\)/.exec(p.style.marginTop); return m ? +m[1] : 0; }; // отступ сверху в pt PDF
+  const fs = [...root.querySelectorAll('.pg-front .pg-f')]; fs.forEach(p => p.style.removeProperty('--ff'));
+  const runs = [];
+  for (const p of fs) { const last = runs[runs.length - 1]; if (last && last[last.length - 1].nextElementSibling === p && p.style.fontSize === last[0].style.fontSize && gap(p) <= 4) last.push(p); else runs.push([p]); }
+  for (const run of runs) {
+    const cw = run[0].clientWidth; if (!cw) continue;
+    const lo = .8, kOf = p => { const n = width(p); return n ? cw / n : 1; };
+    const tight = run.filter(p => { const k = kOf(p); return k < 1 && k >= lo; }); // строки, которым не хватает ширины (остальные — влезают или это целый абзац)
+    if (!tight.length) continue;
+    let f = 1, k = Math.min(...tight.map(kOf));
+    for (let i = 0; i < 5 && k < 1; i++) { // ширина не строго пропорциональна размеру (оптический размер шрифта) — подгоняем несколькими шагами
+      f *= k * .997; run.forEach(p => p.style.setProperty('--ff', f.toFixed(3))); k = Math.min(...tight.map(kOf));
+    }
+  }
+  if (!again && fs.length && document.fonts) document.fonts.ready.then(() => fitFront(root, 1)); // шрифты могли догрузиться уже после первого замера
+}
 function hyphenate(root) {
+  if (root.classList && root.classList.contains('pg-hd')) return; // заголовок прописными: без переносов
   const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n; (n = walk.nextNode());) {
     let t = n.nodeValue;
@@ -651,16 +984,38 @@ function hyphenate(root) {
   }
 }
 
+// Волна нижнего фона брошюры: в PDF это одна гладкая кривая Безье на весь лист из трёх страниц (T.wave: s2 — лист со страницами 1–3, s1 — страницы 4–5).
+// Каждой странице достаётся свой кусок листа. Форма рисуется в масштабе по ширине (без растяжения по высоте — страница на экране выше, чем лист PDF),
+// сверху волна стоит на той же доле высоты страницы, что и в PDF; всё под волной закрашено (маска: картинка волны + сплошная заливка ниже неё).
+const BM_PW = 841.89 / 3, BM_PH = 595.28; // ширина страницы-панели и высота листа PDF, pt
+function bmWave(T, n) {
+  if (!T.wave) return '';
+  const [key, pn] = n <= 3 ? ['s2', n - 1] : ['s1', (n - 4) % 3], d = T.wave[key], x0 = pn * BM_PW;
+  const v = d.match(/-?\d+(?:\.\d+)?/g).map(Number); // M x y, затем C (x1 y1 x2 y2 x y) ×3: точки кривой; ymin = самая высокая точка кривой в пределах панели
+  let cx = v[0], cy = v[1], ymin = BM_PH;
+  for (let i = 2; i + 5 < v.length; i += 6) {
+    for (let k = 0; k <= 60; k++) {
+      const t = k / 60, u = 1 - t, b = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+      const x = b[0] * cx + b[1] * v[i] + b[2] * v[i + 2] + b[3] * v[i + 4], y = b[0] * cy + b[1] * v[i + 1] + b[2] * v[i + 3] + b[3] * v[i + 5];
+      if (x >= x0 && x <= x0 + BM_PW && y < ymin) ymin = y;
+    }
+    cx = v[i + 4]; cy = v[i + 5];
+  }
+  ymin = Math.max(0, Math.floor(ymin) - 1);
+  const h = BM_PH - ymin, svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${BM_PW}" height="${h}" viewBox="${x0} ${ymin} ${BM_PW} ${h}"><path d="${d}"/></svg>`;
+  return `--bm-wy:${(ymin / BM_PH * 100).toFixed(2)}%;--bm-wr:${(h / BM_PW).toFixed(4)};--bm-wm:url('data:image/svg+xml,${encodeURIComponent(svg)}')`;
+}
+
 // Шапка страницы как в книгах Bayt al-Magrifa: фонарь, название, номер и стрелка
 const bmPage = (T, p, n) => `
-  <section class="bm-page" data-page="${n}" data-wave="${(n - 1) % 3}"${T.waves ? ` style="--bm-wave:${T.waves[n - 1]}"` : ''}>
+  <section class="bm-page" data-page="${n}" style="${bmWave(T, n)}">
     <header class="bm-band"><span class="bm-lamp" aria-hidden="true"></span>
       <span class="bm-run">${T.running}</span>
       <span class="bm-num">${n}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></span>
     </header>
     <div class="bm-body">
-      ${p.blocks.map(([t, html]) => t === 'h' || t === 'g' ? `<h2 class="bm-h${t === 'g' ? ' bm-reg' : ''}">${html}</h2>` : `<p class="bm-p${t === 'c' ? ' bm-cont' : t === 'q' ? ' bm-flat' : ''}">${html}</p>`).join('')}
-      ${p.notes.length ? `<ol class="bm-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${html}</div></li>`).join('')}</ol>` : ''}
+      ${p.blocks.map(([t, html]) => t === 'h' || t === 'g' ? `<h2 class="bm-h${t === 'g' ? ' bm-reg' : ''}">${honHtml(html, T.theme)}</h2>` : `<p class="bm-p${t === 'c' ? ' bm-cont' : t === 'q' ? ' bm-flat' : ''}">${honHtml(html, T.theme)}</p>`).join('')}
+      ${p.notes.length ? `<ol class="bm-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${honHtml(html, T.theme)}</div></li>`).join('')}</ol>` : ''}
     </div>
   </section>`;
 
@@ -677,7 +1032,7 @@ function bmTheme(box, th) {
 }
 
 // Книги «одна страница PDF = одна страница на экране» (оформление 'pg'): шапка с узором, номер внизу, сноски под текстом
-const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup', nw: '--pg-nw', ar: '--pg-ar' };
+const PG_VARS = { numc: '--pg-num', font: '--pg-font', pw: '--pg-pw', text: '--pg-text', head: '--pg-head', bg: '--pg-bg', k: '--pg-k', lh: '--pg-lh', ind: '--pg-ind', gap: '--pg-gap', nfs: '--pg-nfs', nlh: '--pg-nlh', sup: '--pg-sup', nw: '--pg-nw', ar: '--pg-ar', arwrap: '--pg-arwrap' };
 let pgCur = null; // книга-PDF на экране: нужна, чтобы перекрасить страницы, когда человек меняет цвет бумаги
 function pgTheme(box, th) {
   pgCur = { box, th };
@@ -745,7 +1100,33 @@ const pgRPlaque = (k, h, ex, th) => {
   const m = mt === undefined ? '' : `margin-top:${k === 'f' ? P(mt) : `calc(${mt} * var(--u))`};`;
   return `<div class="pg-rp" style="${m}min-height:${P(T.h)}"><img src="${d}t${ex.rp}-l.webp" alt="" style="width:${P(T.c)}"><div class="m" style="background-image:url(${d}t${ex.rp}-m.webp);font-size:${P(ex.fz)}"><span>${h}</span></div><img src="${d}t${ex.rp}-r.webp" alt="" style="width:${P(T.c)}"></div>`;
 };
+// Значки почтения (ﷺ, «رضي الله عنه», «رحمه الله», «عليه السلام»…): в оригинале это каллиграфические знаки шрифта книги, поэтому на экране — картинки из PDF
+// (img/hon/<набор>-<код>.webp, красятся цветом текста маской, выглядят одинаково на любом телефоне). th.hon = { fam: набор, f: { код: размер знака относительно текста вокруг, если не 1 } }.
+// Набор 'kf' — шрифт KFGQPC (книги №17, 66, 95), 'aga' — AGA-Arabesque (№9, 37). Стили знаков (размер и сдвиг от базовой линии, снятые с PDF) — в css: .hk067 и т. п.
+const HON_TXT = { 'ﷺ': 'salla', 'صلى الله عليه وسلم': 'salla', 'رضي الله عنه': 'radi', 'رضي الله عنها': 'radiha', 'رضي الله عنهما': 'radihma', 'رضي الله عنهم': 'radihm',
+  'رحمه الله': 'rahim', 'عليه السلام': 'alay', 'عليهم السلام': 'alayhm', 'عليهما السلام': 'alayhma' };
+const HON_FAM = {
+  kf: { salla: '067', radi: '068', radiha: '069', radihm: '06a', radihma: '06b', alay: '06e', alayhm: '070', alayhma: '071', rahim: '072' },
+  aga: { salla: '072', radi: '074', radihm: '079' },
+  bm: { salla: 'arial' } // брошюры: ﷺ — глиф Arial или Times New Roman (в PDF №102 они чередуются): форма указана в data-v у знака
+};
+const honHtml = (h, th) => {
+  const hs = th && (th.hon || (th.theme && th.theme.hon)), fam = hs && HON_FAM[hs.fam]; // th — тема книги (pg, bm) или сама книга (Word: T.hon)
+  if (!fam) return h;
+  // кроме готовых <span class="hon"> знаками считаются «голый» ﷺ и служебные символы шрифта AGA Arabesque из Word (U+F072 = ﷺ, U+F074 = «رضي الله عنه»), которые без шрифта рисуются квадратом
+  return String(h).replace(/(?:([^\s<>]+)((?:<\/(?:i|b|u|em|strong)>)*)(?:\s|&nbsp;| )+)?(<span class="hon"((?: data-[a-z]+="[^"]*")*)>([^<]*)<\/span>|[ﷺ])([,.;:!?)»”…]*|<(i|b|u|em|strong)>[,.;:!?)»”…]+<\/\7>)/g, (m, pw, cl, sg, at, t, pu) => {
+    const v = at && (at.match(/data-v="([^"]*)"/) || [])[1], fz = at && (at.match(/data-f="([^"]*)"/) || [])[1]; // data-v — вид знака в брошюрах (arial/tnr), data-f — размер именно этого знака относительно текста (из PDF)
+    const tt = t !== undefined ? t.trim() : '', txt = t !== undefined ? (tt === '\uF072' ? 'ﷺ' : tt === '\uF074' ? 'رضي الله عنه' : tt) : sg === '\uF074' ? 'رضي الله عنه' : 'ﷺ', c = (hs.fam === 'bm' && (v || hs.def)) || fam[HON_TXT[txt]];
+    if (!c) return m; // такого знака в книге нет в наборе: остаётся текстом
+    const f = fz ? +fz : hs.f && hs.f[c];
+    const sp = `<span class="hon hi h${hs.fam[0]}${c}"${f && f !== 1 ? ` style="--hf:${f}"` : ''} role="img" aria-label="${HON_TXT[txt] === 'salla' ? 'صلى الله عليه وسلم' : txt}"></span>`;
+    if (!(pw || pu)) return sp;
+    const op = cl ? cl.match(/<\/[a-z]+>/g).reverse().map(c => '<' + c.slice(2)).join('') : ''; // слово стояло внутри <i>/<b>: закрываем их перед группой и открываем снова внутри неё
+    return `${cl || ''}<span class="nw">${pw ? op + pw + (cl || '') + '&nbsp;' : ''}${sp}${pu}</span>`; // слово + значок + знак после него — одной неразрывной группой: значок не остаётся один в начале строки
+  });
+};
 const pgBlock = ([k, h, ex = {}], th) => {
+  h = honHtml(h, th);
   if (ex.rp && th && th.rp) return pgRPlaque(k, h, ex, th);
   if (ex.mf && th && th.mf) return pgMotto(k, h, ex, th);
   if (ex.pill) { // заголовок в рамке-«пилюле» («Как начать требовать знания»): тонкая линия, скруглённые края (pill: 1 — на одну строку в PDF, 2 — на две)
@@ -777,12 +1158,17 @@ const pgBlock = ([k, h, ex = {}], th) => {
     case 'sep': return `<div class="pg-sep"${st}><img src="img/pg-orn-stars.png" alt=""></div>`;
     case 'toc': return `<p class="pg-toc"${st}><span>${h}</span><i></i><span>${ex.pg || ''}</span></p>`;
     case 'f': { // титульная строка: размер и отступ в pt страницы PDF (--pt), чтобы титул выглядел как в книге при любой ширине экрана
-      const s = [`font-size:calc(var(--pt) * ${ex.z || 12})`];
+      const s = [`font-size:calc(var(--pt) * ${ex.z || 12} * var(--ff, 1))`];
       if (ex.ff) s.push(`font-family:'${ex.ff}',serif`);
       if (ex.mt !== undefined) s.push(`margin-top:calc(var(--pt) * ${ex.mt})`);
       return `<p class="pg-f pg-a-${ex.a || 'l'}" style="${s.join(';')}">${h}</p>`;
     }
-    default: return `<p class="pg-p${k === 'c' ? ' pg-cont' : k === 'q' ? ' pg-flat' : ''}"${st}>${h}</p>`;
+    default: {
+      if (ex.al === 'r') return `<p class="pg-p pg-hd pg-hr"${pgStyle({ ...ex, pl: undefined, ti: undefined })}>${h}</p>`; // строка по правому краю (подпись в конце послания, №62)
+      if (ex.al === 'c') return `<p class="pg-p pg-hd pg-hc"${pgStyle({ ...ex, pl: undefined, ti: undefined })}>${h}</p>`; // абзац по центру с отступом первой строки («Глава: …» в №65): слова не переносятся
+      if ((k !== 'c' || capsHead(h)) && (capsHead(h) || (ex.pl >= 5 && String(h).replace(/<[^>]+>/g, '').length < 160))) return `<p class="pg-p pg-hd${k === 'q' ? ' pg-flat' : ''}"${pgStyle({ ...ex, pl: undefined, ti: undefined })}>${h}</p>`; // заголовок прописными: без висячего отступа
+      return `<p class="pg-p${k === 'c' ? ' pg-cont' : k === 'q' ? ' pg-flat' : ''}"${st}>${h}</p>`;
+    }
   }
 };
 // Рамка цитаты (группа В: №17, 66, 95): подряд идущие блоки с одним ex.fr — внутри общей рамки p.frames[fr − 1].
@@ -819,14 +1205,14 @@ const pgBlocks = (p, th) => {
 };
 // Шапка «как в PDF» (th.hdr === 'rule', №69): строка, под ней линия с завитками на концах (th.hr — SVG из PDF), под линией вторая строка (в p.head строки через перенос).
 // У страницы без шапки место и высота те же, а линия скрыта — чтобы текст стоял там же, где в книге
-const pgHeadRule = (h, th) => { const [x, y] = (h || '').split('\n'); return `<header class="pg-head pg-hr"><span>${x || '&nbsp;'}</span><img src="${th.hr}" alt=""${h ? '' : ' style="visibility:hidden"'}><span>${y || '&nbsp;'}</span></header>`; };
+const pgHeadRule = (h, th) => { const [x, y] = (h || '').split('\n'); return `<header class="pg-head pg-hr"><span>${honHtml(x || '', th) || '&nbsp;'}</span><img src="${th.hr}" alt=""${h ? '' : ' style="visibility:hidden"'}><span>${honHtml(y || '', th) || '&nbsp;'}</span></header>`; };
 const pgPage = (p, i, th) => `
   <section class="pg-page${p.front ? ' pg-front' : ''}" data-page="${i + 1}">
     ${th.num === 'top' && !p.front && p.n !== undefined ? `<div class="pg-topnum pg-${p.side || 'r'}">${p.n}</div>` : ''}
-    ${p.front ? '' : th.hdr === 'rule' ? pgHeadRule(p.head, th) : !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${p.head || ''}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
+    ${p.front ? '' : th.hdr === 'rule' ? pgHeadRule(p.head, th) : !p.head ? '' : `<header class="pg-head${th.hdr === 'line' ? ' pg-hl' : ''}"><span>${honHtml(p.head || '', th).replace(/ (?=<span class="hon )/g, '\u00A0')}</span>${th.hdr === 'line' ? '' : '<img src="img/pg-orn-head.png" alt="">'}</header>`}
     <div class="pg-body">
       ${pgBlocks(p, th)}
-      ${p.notes.length ? `<ol class="pg-notes">${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${html}</div></li>`).join('')}</ol>` : ''}
+      ${p.notes.length ? `<ol class="pg-notes"${Math.max(...p.notes.map(([k]) => String(k).length)) >= 3 ? ` data-d="${Math.min(4, Math.max(...p.notes.map(([k]) => String(k).length)))}"` : ''}>${p.notes.map(([k, html]) => `<li><span>${k}.</span><div>${honHtml(html, th)}</div></li>`).join('')}</ol>` : ''}
     </div>
     ${p.front || th.num === 'top' ? '' : th.foot === 'oval' ? `<footer class="pg-foot pg-oval"><span style="background-image:url(${th.ov})">${p.n !== undefined ? p.n : ''}</span></footer>` : `<footer class="pg-foot pg-${p.side || 'r'}${th.foot === 'bar' ? ' pg-bar' : ''}"><span>${p.n !== undefined ? p.n : ''}</span>${th.foot === 'plain' || th.foot === 'bar' ? '' : '<i></i>'}</footer>`}
   </section>`;
@@ -881,28 +1267,15 @@ function kidFit(svg) {
 }
 
 // у книг со своими цветами (Bayt al-Magrifa, детские) выбора цвета бумаги нет
-function hideThemes() { const t = document.querySelector('#rd-panel .themes'); if (t) t.style.display = 'none'; }
+function hideThemes() { const t = document.querySelector('#rd-panel .themes-box'); if (t) t.style.display = 'none'; }
 
 function textScreen(id) {
   const b = bookById(id);
   if (!b || !b.text) return notFound('Книга не найдена', 'Возможно, ссылка устарела. Посмотрите другие книги на главной.');
   return `
-    <div class="topbar rd-top">
-      <button class="btn btn-icon" data-action="back" aria-label="Назад">${icon('back')}</button>
-      <span class="rd-book">${b.title}</span>
-      <button class="btn btn-icon" data-action="rd-panel" aria-label="Размер шрифта">${icon('type')}</button>
-    </div>
+    ${rdTopHTML(b.title, `<button class="btn btn-icon" data-action="rd-hint" aria-label="Как смотреть арабский текст" hidden>?</button>`)}
     <article id="bk" lang="ru"></article>
-    <div class="rd-prog"><span id="rd-place"></span><div class="bar"><i id="rd-bar"></i></div><span id="rd-pct">0%</span></div>
-    <div class="rd-panel" id="rd-panel">
-      <div class="themes">${READER_THEMES.map(t =>
-        `<button class="th th-${t.key}" data-rtheme="${t.key}"><i>Аа</i>${t.name}</button>`).join('')}</div>
-      <div class="sizes">
-        <button data-fs="-1" aria-label="Шрифт меньше" class="fs-s">А</button>
-        <span id="fs-val"></span>
-        <button data-fs="1" aria-label="Шрифт больше" class="fs-l">А</button>
-      </div>
-    </div>`;
+    ${rdBottomHTML('<span id="rd-place"></span>')}`;
 }
 
 // Книга с переводом: каждое русское предложение помнит свой арабский оригинал (номер в списке ar)
@@ -910,15 +1283,15 @@ function trRender(T) {
   const ar = [];
   // [русский текст, арабский]: если арабского нет (null), предложение просто текст без нажатия
   const sents = list => list.map(([ru, a]) => a ? `<span class="tr-s" data-i="${ar.push(a) - 1}">${ru}</span>` : ru).join(' ');
-  const html = `<p class="tr-hint">Нажмите на предложение, чтобы увидеть его по-арабски</p>` +
+  const html = `<p class="tr-hint">Зажмите предложение на секунду, чтобы увидеть его по-арабски</p>` +
     T.blocks.map(([kind, list]) => {
       if (kind === 'h') return `<h1 class="rd-h tr-h">${sents(list)}</h1>`;
       if (kind === 'h2') return `<h2 class="rd-h">${sents(list)}</h2>`;
       if (kind === 'a') return `<p class="rd-ar" lang="ar" dir="rtl">${list}</p>`; // арабский абзац без перевода
       if (kind === 'n') return `<div class="rd-notes">${list.map(([n, t]) => `<p><sup class="fn">${n}</sup> ${t}</p>`).join('')}</div>`;
-      return `<p class="rd-p${kind === 'b' ? ' tr-b' : ''}">${sents(list)}</p>`;
+      return `<p class="rd-p${kind === 'b' ? ' tr-b' : ''}${capsHead(list.map(x => x[0]).join(' ')) ? ' rd-caps' : ''}">${sents(list)}</p>`;
     }).join('');
-  return { html, ar };
+  return { html: honHtml(html, T), ar };
 }
 
 // Обычная книга из Word без перевода: цвет «Бумага», заголовки, абзацы, арабские вставки, сноски под абзацем
@@ -937,7 +1310,7 @@ function loadAhead(box) {
 function plainRender(T, first = true) { // first: это начало книги (у нарезанных книг страницы идут по кускам, титульная часть только на первой)
   const ar = h => `lang="ar" dir="rtl">${h}`;
   let front = first; // титульная часть: всё до первого абзаца идёт по центру, как титульный лист
-  return T.blocks.map(([k, a, b, c, d], i) => {
+  return honHtml(T.blocks.map(([k, a, b, c, d], i) => {
     if (front && (k === 'p' || k === 'li' || k === 'n')) front = false;
     if (front && (k === 'h1' || k === 'h2' || k === 'h3' || k === 'c')) return `<p class="rd-front rd-front-${i === 0 ? 'h1' : k}">${a}</p>`;
     switch (k) {
@@ -956,9 +1329,9 @@ function plainRender(T, first = true) { // first: это начало книги
       case 'arh': return `<p class="rd-ar-h rd-ar-c" ${ar(a)}</p>`;
       case 'li': return `<p class="rd-p rd-li"><span class="rd-n">${a}</span><span>${b}</span></p>`;
       case 'n': return `<div class="rd-notes">${a.map(([n, t]) => `<p><sup class="fn">${n}</sup> ${t}</p>`).join('')}</div>`;
-      default: return `<p class="rd-p">${a}</p>`;
+      default: return `<p class="rd-p${capsHead(a) ? ' rd-caps' : ''}">${a}</p>`;
     }
-  }).join('');
+  }).join(''), T);
 }
 
 // Окно приближения скана (Word-книги): нажали на картинку → она на весь экран.
@@ -1008,8 +1381,8 @@ document.addEventListener('click', e => { const f = e.target.closest('.rd-sc[dat
 addEventListener('keydown', e => { if (e.key === 'Escape') closeScan(); });
 addEventListener('hashchange', closeScan);
 
-// Нажатие на предложение: оно подсвечивается жёлтым, рядом всплывает плашка с арабским.
-// Нажатие в любое другое место: плашка уходит, а подсветка гаснет через 2,5 секунды
+// Зажатие предложения (~0,8 с): оно подсвечивается жёлтым, рядом всплывает плашка с арабским.
+// Обычное касание (и листание) ничего не открывает; касание в любое место закрывает плашку, подсветка гаснет через 2,5 секунды
 function mountTranslation(box, ar) {
   const pop = document.createElement('div');
   pop.className = 'tr-pop';
@@ -1049,14 +1422,31 @@ function mountTranslation(box, ar) {
     pop.classList.add('on');
     haptic();
   }
-  const onTap = e => {
+  let timer = 0, press = null, shownAt = 0;
+  const HOLD = 800;
+  const cancel = () => { clearTimeout(timer); timer = 0; press = null; };
+  const down = e => {
     const s = e.target.closest('.tr-s');
-    const was = open;
-    hide();
-    if (s && s !== was) show(s, e.clientX);
+    if (!s || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    press = { s, x: e.clientX, y: e.clientY };
+    timer = setTimeout(() => { const pr = press; cancel(); if (pr) { hide(); show(pr.s, pr.x); shownAt = Date.now(); } }, HOLD);
   };
+  const move = e => { if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancel(); }; // человек листает
+  const onTap = () => { if (open && Date.now() - shownAt > 400) hide(); }; // обычное касание закрывает; «отпускание» после зажатия не считается
+  const noMenu = e => { if (e.target.closest('.tr-s')) e.preventDefault(); }; // без системного меню «Копировать» при долгом нажатии
+  box.addEventListener('pointerdown', down);
+  addEventListener('pointermove', move);
+  addEventListener('pointerup', cancel);
+  addEventListener('pointercancel', cancel);
+  addEventListener('scroll', cancel, { passive: true });
+  box.addEventListener('contextmenu', noMenu);
   document.addEventListener('click', onTap);
-  return () => { document.removeEventListener('click', onTap); pop.remove(); };
+  return () => {
+    cancel();
+    box.removeEventListener('pointerdown', down); box.removeEventListener('contextmenu', noMenu);
+    removeEventListener('pointermove', move); removeEventListener('pointerup', cancel); removeEventListener('pointercancel', cancel); removeEventListener('scroll', cancel);
+    document.removeEventListener('click', onTap); pop.remove();
+  };
 }
 
 // Огромные книги (оформление 'pg', «невидимая нарезка»): для читателя это одна сплошная книга, внутри она разрезана.
@@ -1068,6 +1458,7 @@ function mountChunked(id, T, box, ui) {
   const N = T.n, th = T.theme, plainBook = T.style === 'plain', C0 = plainBook ? 0 : 200; // C0 — шапка, номер и отступы страницы, в «буквах». plainBook: Word-книга без страниц, «страница» — группа абзацев
   const chunkOf = i => T.parts.findIndex(p => i >= p[1] && i <= p[2]);
   const data = [], loading = [], els = [], hs = new Array(N).fill(0), seen = new Set(); // hs — высота страницы, замеренная при уборке; seen — страницы, нарисованные сейчас
+  const openedAt = Date.now();
   let alive = true, ready = false, raf = 0, t = 0, saveTimer = 0, fitK = 0, fitAt = 0, sig = '', anchor = { p: 0, f: 0 }, pct = 0, pinI = 0, pinY = 0; // pinI/pinY — страница у верха экрана и её положение на документе после прошлого кадра
   const docTop = e => e.getBoundingClientRect().top + scrollY;
   const unit = () => plainBook ? reader.fs : parseFloat(getComputedStyle(box).fontSize) || 18;
@@ -1083,10 +1474,11 @@ function mountChunked(id, T, box, ui) {
   const refit = () => { fitAt = fitK; for (let i = 0; i < N; i++) if (!seen.has(i) && !hs[i]) els[i].style.height = est(i) + 'px'; }; // заготовки, которые ещё не замеряли, получают новую оценку
   const render = i => {
     const k = chunkOf(i), tp = document.createElement('template');
-    tp.innerHTML = plainBook ? `<section class="rd-pg" data-page="${i + 1}">${plainRender({ blocks: data[k][i - T.parts[k][1]] }, i === 0)}</section>` : pgPage(data[k][i - T.parts[k][1]], i, th);
+    tp.innerHTML = plainBook ? `<section class="rd-pg" data-page="${i + 1}">${plainRender({ blocks: data[k][i - T.parts[k][1]], hon: T.hon }, i === 0)}</section>` : pgPage(data[k][i - T.parts[k][1]], i, th);
     const e = tp.content.firstElementChild;
     els[i].replaceWith(e); els[i] = e; seen.add(i);
     e.querySelectorAll('.pg-p').forEach(hyphenate);
+    fitFront(e);
   };
   const unrender = (i, h) => { hs[i] = h; const p = mk(i); els[i].replaceWith(p); els[i] = p; seen.delete(i); };
   const load = k => k < 0 || k >= T.parts.length ? Promise.resolve() : (loading[k] = loading[k] || new Promise((ok, no) => {
@@ -1099,6 +1491,7 @@ function mountChunked(id, T, box, ui) {
   const save = () => {
     store.set('progress', { ...store.get('progress', {}), [id]: Math.max(pct, 1) });
     store.set('textPos', { ...store.get('textPos', {}), [id]: { p: anchor.p, f: +anchor.f.toFixed(4) } });
+    noteReading(id, pct, openedAt, pct >= 100);
   };
   const schedule = () => { if (!raf && alive) raf = requestAnimationFrame(tick); };
   function tick() {
@@ -1134,7 +1527,7 @@ function mountChunked(id, T, box, ui) {
     const y2 = scrollY, h = els[t].offsetHeight || 1, f = Math.min(1, Math.max(0, (y2 - docTop(els[t])) / h));
     pct = y2 >= document.documentElement.scrollHeight - vh - 2 ? 100 : Math.min(99, Math.round((t + f) / N * 100));
     anchor = { p: t, f }; pinI = t; pinY = docTop(els[t]);
-    ui.bar.style.width = pct + '%'; ui.pct.textContent = pct + '%'; if (!plainBook) ui.place.textContent = `Стр. ${c + 1} из ${N}`; // у Word-книг страниц нет, только процент
+    ui.bar.style.width = pct + '%'; ui.pct.textContent = pct + '%'; syncSeek(pct); if (!plainBook) ui.place.textContent = `Стр. ${c + 1} из ${N}`; // у Word-книг страниц нет, только процент
     if (ready) { clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); } // сохраняем, когда человек перестал листать
     if (pend) schedule();
   }
@@ -1196,10 +1589,11 @@ function mountText(id) {
   const scrollable = () => document.documentElement.scrollHeight - innerHeight;
   const current = () => scrollable() > 0 ? Math.min(100, Math.round(scrollY / scrollable() * 100)) : 0;
   let pages = [];
+  const openedAt = Date.now(); // когда открыли книгу (для «Читаю»: около минуты чтения)
 
   function show() {
     const p = current();
-    bar.style.width = p + '%'; pct.textContent = p + '%';
+    bar.style.width = p + '%'; pct.textContent = p + '%'; syncSeek(p);
     if (!pages.length) return; // у книг без страниц (с переводом) только процент
     const n = pages.filter(s => s.getBoundingClientRect().top < innerHeight / 2).length || 1;
     place.textContent = `Стр. ${n} из ${pages.length}`;
@@ -1211,11 +1605,13 @@ function mountText(id) {
     timer = setTimeout(() => {
       store.set('progress', { ...store.get('progress', {}), [id]: Math.max(current(), 1) });
       store.set('textPos', { ...store.get('textPos', {}), [id]: scrollY / scrollable() });
+      noteReading(id, current(), openedAt, scrollY >= scrollable() - 2);
     }, 300);
   }
 
   readerStyle = null; // пока книга грузится и у обычных книг: цвет бумаги по выбору читателя
   applyReader();
+  const stopUI = mountReaderUI();
   loadText(b).then(T => {
     if (!alive) return; // человек уже ушёл с экрана
     if (T.parts) { // огромная книга, «невидимая нарезка»: свой показ и своё запоминание места (mountChunked)
@@ -1241,6 +1637,7 @@ function mountText(id) {
       pgTheme(box, T.theme);
       box.innerHTML = T.pages.map((p, i) => pgPage(p, i, T.theme)).join('');
       box.querySelectorAll('.pg-p').forEach(hyphenate);
+      fitFront(box);
       pages = [...box.querySelectorAll('.pg-page')];
     } else if (T.style === 'kid') { // детская книга: картинка страницы + настоящий текст поверх
       readerStyle = 'kid';
@@ -1250,7 +1647,7 @@ function mountText(id) {
       document.body.style.setProperty('--rb', T.bg);
       paintTelegramBars();
       const aa = document.querySelector('[data-action="rd-panel"]');
-      if (aa) aa.style.visibility = 'hidden'; // размер задан страницей книги, «Аа» здесь не действует
+      if (aa) aa.classList.add('dim'); // размер задан страницей книги: «Aa» приглушена и не нажимается
       box.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
         <filter id="kid-sh" x="-5%" y="-30%" width="110%" height="160%"><feDropShadow dx=".6" dy=".9" stdDeviation=".9" flood-color="#000" flood-opacity=".37"/></filter>
         <filter id="kid-gl" x="-5%" y="-40%" width="110%" height="180%"><feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#fff" flood-opacity=".8"/></filter>
@@ -1264,6 +1661,8 @@ function mountText(id) {
       box.innerHTML = plainRender(T);
     } else { // книга с переводом: цвет «Бумага», по нажатию арабский текст предложения
       box.className = 'rd tr';
+      const hb = document.querySelector('[data-action="rd-hint"]');
+      if (hb) { hb.hidden = false; document.querySelector('.rd-top').classList.add('has-hint'); }
       const { html, ar } = trRender(T);
       box.innerHTML = html;
       stopTr = mountTranslation(box, ar);
@@ -1283,12 +1682,13 @@ function mountText(id) {
   return () => {
     alive = false;
     removeEventListener('scroll', onScroll);
+    if (stopUI) stopUI();
     if (stopTr) stopTr();
     if (stopChunks) stopChunks();
     readerStyle = null;
     ['--rb', '--rt', '--rm', '--rr'].forEach(v => document.body.style.removeProperty(v));
     const aa = document.querySelector('[data-action="rd-panel"]');
-    if (aa) aa.style.visibility = '';
+    if (aa) aa.classList.remove('dim');
     delete document.body.dataset.rt;
     document.body.classList.remove('rd-panel-open');
     paintTelegramBars(); // шапку Telegram снова в цвет приложения
@@ -1305,14 +1705,46 @@ function mountText(id) {
    #/shelf       моя полка
    #/read/1      «Полная книга появится здесь» (у книг без текста)
    #/text/1      читалка с настоящим текстом книги */
+/* ---------- «Ещё»: О приложении, Поделиться, О разработчике ---------- */
+const DEV_TG = 'https://t.me/abusufyan_tech';  // личные сообщения разработчика
+const DEV_CH = 'https://t.me/abusufyan_it';    // канал разработчика
+
+// Строка меню без рамок: значок, текст, стрелка
+const menuRow = (attrs, ic, title, sub = '') =>
+  `<${attrs.startsWith('href') ? 'a' : 'button'} class="mrow" ${attrs}>${icon(ic)}<span class="mr-t"><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span>${icon('next')}</${attrs.startsWith('href') ? 'a' : 'button'}>`;
+
+function moreScreen() {
+  return `
+    <div class="topbar"><a class="btn btn-icon" href="#/" aria-label="Назад">${icon('back')}</a></div>
+    <h1 class="title">Ещё</h1>
+    ${menuRow('href="#/about"', 'info', 'О приложении')}
+    ${menuRow('data-action="share-app"', 'share', 'Поделиться приложением')}
+    <div class="sec-h dev-h"><h2>О разработчике</h2></div>
+    <p class="dev-t">Ассаляму алейкум! Меня зовут Абу Суфьян, я создал это приложение для канала Bayt al-Magrifa.</p>
+    ${menuRow(`href="${DEV_TG}" target="_blank" rel="noopener" data-tglink`, 'send', 'Написать мне', 'Telegram')}
+    ${menuRow(`href="${DEV_CH}" target="_blank" rel="noopener" data-tglink`, 'megaphone', 'Мой канал', 'Telegram')}`;
+}
+
+function aboutScreen() {
+  return `
+    ${topbar()}
+    <h1 class="title">О приложении</h1>
+    <p class="ab-t">Это бесплатная библиотека исламских книг: ${booksCount(BOOKS.length)} в ${window.CATEGORIES.length} категориях. Читайте прямо в Telegram, выбирайте цвет страницы и размер шрифта: приложение запомнит, где вы остановились. В части книг арабский оригинал открывается удержанием предложения.</p>
+    <div class="ab-web">${icon('smartphone')}<p>Это приложение можно использовать и как веб-приложение: добавьте его на экран «Домой», и оно будет открываться само, без Telegram.</p></div>
+    <p class="ab-wish">Распространяйте это приложение во благо и будьте причиной распространения знаний.</p>`;
+}
+
 const ROUTES = [
   { re: /^#?\/?$/,                 tab: 'home',   view: homeScreen, mount: mountHome },
   { re: /^#\/search(?:\/cat\/(.+))?$/, tab: 'search', view: searchScreen, mount: mountSearch },
+  { re: /^#\/start$/,             tab: 'home',   view: startScreen,  back: true },
   { re: /^#\/book\/(\d+)$/,        tab: 'home',   view: bookScreen,   back: true },
   { re: /^#\/author\/(.+)$/,       tab: 'home',   view: authorScreen, back: true },
-  { re: /^#\/shelf(?:\/(fav|want|done))?$/, tab: 'shelf', view: shelfScreen, mount: mountShelf },
+  { re: /^#\/shelf(?:\/(reading|fav|want|done))?$/, tab: 'shelf', view: shelfScreen, mount: mountShelf },
   { re: /^#\/read\/(\d+)$/,        tab: 'home',   view: readIntroScreen, back: true },
-  { re: /^#\/sample$/,             tab: null,     view: sampleScreen, mount: mountSample, back: true },
+  { re: /^#\/more$/,               tab: 'more',   view: moreScreen },
+  { re: /^#\/about$/,              tab: 'more',   view: aboutScreen, back: true },
+  { re: /^#\/sample$/,             tab: null,    view: sampleScreen, mount: mountSample, back: true },
   { re: /^#\/text\/(\d+)$/,        tab: null,     view: textScreen,   mount: mountText,   back: true }
 ];
 // back: на этом экране показываем кнопку «Назад» (в Telegram это кнопка в его шапке)
@@ -1323,7 +1755,8 @@ function renderTabbar(active) {
   document.getElementById('tabbar').innerHTML = `<div class="tabbar-in">
     ${tab('#/', 'home', 'Главная', 'home')}
     ${tab('#/search', 'search', 'Поиск', 'search')}
-    ${tab('#/shelf', 'library', 'Моя полка', 'shelf')}</div>`;
+    ${tab('#/shelf', 'library', 'Моя полка', 'shelf')}
+    ${tab('#/more', 'more', 'Ещё', 'more')}</div>`;
 }
 
 let cleanup = null; // что убрать за прошлым экраном (например, слежение за прокруткой в читалке)
@@ -1354,6 +1787,11 @@ function router() {
 // На что нажимают «с щелчком» (лёгкая вибрация в Telegram)
 const TAPPABLE = '.btn, .chip, .tab, .seg button, .look, .th, .sizes button, .bcard, .row, .cont, .search, .bk-author';
 
+document.addEventListener('input', e => { // ползунок размера шрифта
+  if (e.target.id !== 'fs-range') return;
+  reader.fs = Number(e.target.value); store.set('reader', reader); applyReader(true);
+});
+
 document.addEventListener('click', e => {
   const t = e.target;
   if (t.closest(TAPPABLE)) haptic();
@@ -1364,18 +1802,30 @@ document.addEventListener('click', e => {
 
   // Читалка: панель «Aa» (тема и размер шрифта)
   if (t.closest('[data-action="rd-panel"]')) return document.body.classList.toggle('rd-panel-open');
+  if (t.closest('[data-action="rd-close"]')) return document.body.classList.remove('rd-panel-open');
+  if (t.closest('[data-action="rd-hint"]')) return toast('Зажмите предложение на секунду: появится арабский текст', 4500);
   const rt = t.closest('[data-rtheme]');
-  if (rt) { reader.theme = rt.dataset.rtheme; store.set('reader', reader); return applyReader(); }
+  if (rt) { reader.theme = rt.dataset.rtheme; store.set('reader', reader); return applyReader(true); }
   const fs = t.closest('[data-fs]');
   if (fs) {
     reader.fs = Math.min(FS_MAX, Math.max(FS_MIN, reader.fs + Number(fs.dataset.fs)));
     store.set('reader', reader);
-    return applyReader();
+    return applyReader(true);
   }
   if (t.closest('.rd, .bm')) document.body.classList.remove('rd-panel-open'); // нажал на текст: панель прячем
 
+  const unr = t.closest('[data-action="unread"]');
+  if (unr) { unread(Number(unr.dataset.id)); closeSheet(); return router(); }
+  const rst = t.closest('[data-action="restart"]');
+  if (rst) { const id = Number(rst.dataset.id); restartBook(id); location.hash = readHref(bookById(id)); return; }
+
   const share = t.closest('[data-action="share"]');
   if (share) return shareBook(Number(share.dataset.id));
+  if (t.closest('[data-action="share-app"]')) return shareApp();
+
+  // Ссылки на t.me внутри Telegram открываем средствами самого Telegram (в браузере остаётся обычная ссылка)
+  const tgl = t.closest('[data-tglink]');
+  if (tgl && inTG) { e.preventDefault(); return tg.openTelegramLink(tgl.href); }
 
   const shelfBtn = t.closest('[data-action="shelf"]');
   if (shelfBtn) return openShelfSheet(Number(shelfBtn.dataset.id));

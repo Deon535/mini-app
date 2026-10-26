@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Веер: Ещё, О приложении, значок телефона</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Amiri:wght@400;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Настоящие стили приложения -->
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Только для показа на этой странице: рамки телефонов */
+body { background: #ddd5c6; }
+body[data-theme="dark"] { background: #0c110e; }
+.stage { max-width: 1240px; margin: 0 auto; padding: 22px 16px 80px; }
+.pg { font: 700 28px Alegreya, Georgia, serif; }
+.lead { color: var(--muted); margin: 6px 0 14px; max-width: 700px; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctrl .lbl { color: var(--muted); font-size: 13.5px; margin-left: 8px; }
+.mini { height: 38px; padding: 0 16px; font-size: 14px; }
+.mini.on { background: var(--text); color: var(--bg); }
+.grid { display: flex; flex-wrap: wrap; gap: 30px; margin-top: 22px; }
+.cell { flex: 1 1 340px; max-width: 375px; }
+.cell h2 { font: 700 20px Alegreya, Georgia, serif; margin-bottom: 2px; }
+.cell p.cap { color: var(--muted); font-size: 13.5px; margin-bottom: 10px; min-height: 40px; }
+.phone { width: 100%; max-width: 375px; height: 700px; background: var(--bg); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; position: relative; transform: translateZ(0); box-shadow: 0 16px 36px -18px rgba(0,0,0,.5); }
+.scr { height: 100%; overflow-y: auto; padding: 20px var(--side) calc(var(--tabbar-h) + 28px); scrollbar-width: none; }
+.scr::-webkit-scrollbar { display: none; }
+.phone.sheet-open .scrim { opacity: 1; pointer-events: auto; }
+.phone.sheet-open .sheet { transform: none; }
+.phone .scrim, .phone .sheet, .phone .tabbar { position: absolute; }
+
+/* ===== Экран «Ещё»: простые строки без рамок ===== */
+.back-h { display: flex; align-items: center; gap: 4px; margin: 2px 0 10px -6px; font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track); font-size: 28px; line-height: 1.1; }
+.back-h .ic { width: 28px; height: 28px; }
+.mrow { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px 2px; border-bottom: 1px solid var(--line); font-size: 16px; text-align: left; }
+.mrow .tt { display: block; font-weight: 600; line-height: 1.3; }
+.mrow .ss { display: block; color: var(--muted); font-size: 13px; line-height: 1.3; margin-top: 1px; }
+.topbar { margin-bottom: 6px; }
+.mrow .go { margin-left: auto; color: var(--muted); display: flex; }
+.mrow .go .ic { width: 18px; height: 18px; }
+
+/* ===== Экран «О приложении» ===== */
+.top { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.top .title { margin: 0; font-size: 28px; }
+.who { display: flex; gap: 14px; align-items: center; }
+.appic { width: 64px; height: 64px; border-radius: 16px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; }
+.appic .ic { width: 32px; height: 32px; }
+.who .nm { font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track); font-size: 24px; line-height: 1.1; }
+.who .sb { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.greet { font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track); font-size: 22px; line-height: 1.1; margin: 24px 0 8px; }
+.txt { color: var(--muted); font-size: 15px; line-height: 1.6; margin-bottom: 14px; }
+.txt b { color: var(--text); font-weight: 600; }
+.lnks { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 20px; }
+.lnk { display: flex; align-items: center; gap: 14px; background: var(--chip); border-radius: var(--r-card); padding: 12px; }
+.lnk .bub { width: 44px; height: 44px; border-radius: var(--r-btn); background: var(--accent); color: var(--on-accent); display: grid; place-items: center; flex: none; }
+.lnk .t { font-weight: 600; font-size: 15px; line-height: 1.25; } .lnk .a { color: var(--muted); font-size: 13px; }
+.lnk .go { margin-left: auto; color: var(--muted); display: flex; } .lnk .go .ic { width: 18px; height: 18px; }
+.web-note { display: flex; gap: 12px; align-items: flex-start; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.web-note .ic { width: 22px; height: 22px; margin-top: 3px; color: var(--text); }
+.wish { text-align: center; font-family: var(--head); font-style: italic; font-weight: 500; font-size: 20px; line-height: 1.4; margin: 28px 8px 8px; }
+
+/* ===== Панель «Добавить на экран Домой» ===== */
+.steps { list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 10px; margin: 14px 0 18px; }
+.steps li { counter-increment: s; display: flex; gap: 12px; align-items: baseline; font-size: 15px; line-height: 1.45; }
+.steps li::before { content: counter(s); font-family: var(--head); font-weight: 700; font-size: 20px; width: 16px; flex: none; }
+.sheet-sub { color: var(--muted); font-size: 14px; margin-top: 4px; line-height: 1.5; }
+.sheet .btn { width: 100%; }
+
+/* ===== Окно Telegram «Поделиться» (системное, не наше) ===== */
+.tgwin { position: absolute; left: 0; right: 0; bottom: 0; z-index: 41; background: #fff; color: #111; border-radius: 16px 16px 0 0; padding: 8px 16px 20px; transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1); font-family: system-ui, sans-serif; }
+.phone.tg-open .tgwin { transform: none; }
+.tgscrim { position: absolute; inset: 0; z-index: 40; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .25s; }
+.phone.tg-open .tgscrim { opacity: 1; pointer-events: auto; }
+.tgwin .grab { width: 36px; height: 4px; background: #ccc; border-radius: 4px; margin: 0 auto 12px; }
+.tgwin h4 { font: 600 17px system-ui; margin-bottom: 10px; }
+.tgsearch { background: #f0f1f3; border-radius: 10px; padding: 9px 12px; color: #888; font-size: 15px; margin-bottom: 14px; }
+.tgchats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tgchat { text-align: center; font-size: 12px; } .tgchat i { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; margin: 0 auto 4px; color: #fff; font: 600 20px system-ui; font-style: normal; }
+.tgchat.sel i { box-shadow: 0 0 0 3px #fff, 0 0 0 5px #3390ec; }
+.tgsend { margin-top: 16px; background: #3390ec; color: #fff; text-align: center; border-radius: 10px; padding: 12px; font-weight: 600; }
+.tgprev { margin-top: 14px; background: #f0f1f3; border-radius: 10px; padding: 10px 12px; font-size: 13.5px; line-height: 1.4; }
+.tgprev b { display: block; font-weight: 600; }
+.note { max-width: 700px; margin-top: 26px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.note b { color: var(--text); }
+</style>
+</head>
+<body data-theme="light">
+<div class="stage">
+  <h1 class="pg">Ещё, О приложении и значок телефона</h1>
+  <p class="lead">Экраны на настоящих стилях приложения, нажимать можно всё: вкладки, значок телефона, строки на «Ещё», «Назад».</p>
+  <div class="ctrl">
+    <button class="btn btn-second mini" id="thm">Тёмная тема</button>
+    <span class="lbl">Проверка: какой телефон у человека</span>
+    <button class="btn btn-second mini on" data-os="ios">iPhone</button>
+    <button class="btn btn-second mini" data-os="and">Android</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="note"><b>Важно.</b> Выбор iPhone или Android сверху нужен только для проверки здесь. В приложении человек его не видит: телефон определяется сам, и показывается одна подходящая инструкция. Окно «Поделиться» в приложении будет настоящим окном Telegram. Само добавление на экран «Домой» (чтобы открывалось без Telegram) мы сделаем позже отдельной функцией.</p>
+</div>
+
+<script>
+const P = {
+  home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  library:'<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
+  more:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  sunMoon:'<path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+  smartphone:'<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
+  next:'<path d="m9 18 6-6-6-6"/>', back:'<path d="m15 18-6-6 6-6"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  share:'<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
+  send:'<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+  mega:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+  bookOpen:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const books = [['Три основы','Мухаммад ибн Абдульваххаб','#4E5A2B'],['Шесть основ','Мухаммад ибн Абдульваххаб','#7A5A2B'],['Кашф уш-шубухат','Мухаммад ибн Абдульваххаб','#2B4A5A'],['Сунны пророка','Сборник хадисов','#5A2B3A']];
+let OS = 'ios';
+
+const home = () => `<div class="screen-in">
+  <div class="home-head">
+    <div><div class="hello">Ассаляму алейкум</div><h1 class="title">Библиотека</h1></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-icon" data-act="a2hs" aria-label="Добавить на экран «Домой»">${ic('smartphone')}</button>
+      <button class="btn btn-icon" aria-label="Оформление">${ic('sunMoon')}</button>
+    </div>
+  </div>
+  <div class="search">${ic('search')}Название или автор</div>
+  <div class="sec-h"><h2>Категории</h2></div>
+  <div class="chips"><span class="chip">Акыда</span><span class="chip">Фикх</span><span class="chip">Нравственность</span><span class="chip">Хадисы</span></div>
+  <div class="sec-h"><h2>С чего начать</h2></div>
+  ${books.map(b => `<div style="display:flex;gap:14px;align-items:center;padding:8px 0"><div class="cover" style="--cw:52px;background:${b[2]};border-radius:var(--r-cover)"></div><div class="tx"><div class="t" style="font-weight:600;font-size:15px">${b[0]}</div><div class="a" style="color:var(--muted);font-size:13px">${b[1]}</div></div></div>`).join('')}
+</div>`;
+
+/* «Назад» как в приложении: .topbar со стрелкой, прозрачная кнопка-иконка слева (js/app.js, функция topbar) */
+const topbar = to => `<div class="topbar"><button class="btn btn-icon" data-go="${to}" aria-label="Назад">${ic('back')}</button></div>`;
+
+const more = () => `<div class="screen-in">
+  ${topbar('home')}
+  <h1 class="title">Ещё</h1>
+  <button class="mrow" data-go="about">${ic('info')}О приложении<span class="go">${ic('next')}</span></button>
+  <button class="mrow" data-act="share">${ic('share')}Поделиться приложением<span class="go">${ic('next')}</span></button>
+  <div class="sec-h" style="margin-top:34px"><h2>О разработчике</h2></div>
+  <p class="txt">Ассаляму алейкум! Меня зовут Абу Суфьян, я создал это приложение для канала Bayt al-Magrifa.</p>
+  <a class="mrow" href="#" onclick="return false">${ic('send')}<span><b class="tt">Написать мне</b><span class="ss">Telegram</span></span><span class="go">${ic('next')}</span></a>
+  <a class="mrow" href="#" onclick="return false">${ic('mega')}<span><b class="tt">Мой канал</b><span class="ss">Telegram</span></span><span class="go">${ic('next')}</span></a>
+</div>`;
+
+const about = () => `<div class="screen-in">
+  ${topbar('more')}
+  <h1 class="title">О приложении</h1>
+  <p class="txt">Это бесплатная библиотека исламских книг: 122 книги по акыде, фикху, нравственности, хадисам и тафсиру. Читайте прямо в Telegram, выбирайте цвет страницы и размер шрифта: приложение запомнит, где вы остановились. В части книг арабский оригинал открывается удержанием предложения.</p>
+  <div class="web-note">${ic('smartphone')}<span>Это приложение можно использовать и как веб-приложение: добавьте его на экран «Домой» кнопкой со значком телефона на главной, и оно будет открываться само, без Telegram.</span></div>
+  <div class="wish">Распространяйте это приложение во благо и будьте причиной распространения знаний.</div>
+</div>`;
+
+const STEPS = {
+  ios: ['Нажмите «Открыть»: страница откроется в браузере', 'Внизу экрана нажмите «Поделиться»', 'Выберите «На экран “Домой”»'],
+  and: ['Нажмите «Открыть»: страница откроется в браузере', 'Вверху справа нажмите три точки', 'Выберите «Добавить на главный экран»']
+};
+const a2hsSheet = () => `<div class="sheet-h">Добавить на экран «Домой»</div>
+  <div class="sheet-sub">Приложение будет открываться как обычное, без Telegram.</div>
+  <ol class="steps">${STEPS[OS].map(s => `<li>${s}</li>`).join('')}</ol>
+  <button class="btn btn-main">Открыть</button>`;
+
+const tgWin = `<div class="tgscrim" data-act="tgclose"></div><div class="tgwin"><div class="grab"></div><h4>Поделиться</h4>
+  <div class="tgsearch">Кому отправить?</div>
+  <div class="tgchats">${[['Избранное','#3390ec','И',1],['Семья','#e17076','С',0],['Друзья','#7bc862','Д',0],['Коллеги','#e5ca77','К',0]].map(c=>`<div class="tgchat ${c[3]?'sel':''}"><i style="background:${c[1]}">${c[2]}</i>${c[0]}</div>`).join('')}</div>
+  <div class="tgprev"><b>Исламские книги</b>Библиотека книг на русском языке. Открыть приложение</div>
+  <div class="tgsend" data-act="tgclose">Отправить</div></div>`;
+
+const CELLS = [
+  { t:'1. Главная', c:'Рядом с «Оформлением» значок телефона.', start:{ screen:'home' } },
+  { t:'2. Нажали на значок телефона', c:'Одна короткая инструкция, подходящая телефону человека. Кнопка просто «Открыть».', start:{ screen:'home', sheet:true } },
+  { t:'3. Вкладка «Ещё»', c:'Две строки, ниже «О разработчике». Стрелка «Назад» как в книгах возвращает на главную.', start:{ screen:'more' } },
+  { t:'4. «О приложении»', c:'Весь текст на отдельном экране, стрелка «Назад» возвращает на «Ещё».', start:{ screen:'about' } },
+  { t:'5. «Поделиться приложением»', c:'Открывается обычное окно Telegram, человек выбирает, кому отправить.', start:{ screen:'more', tg:true } }
+];
+
+const draws = [];
+const grid = document.getElementById('grid');
+CELLS.forEach(cell => {
+  const el = document.createElement('div'); el.className = 'cell';
+  el.innerHTML = `<h2>${cell.t}</h2><p class="cap">${cell.c}</p><div class="phone"></div>`;
+  grid.appendChild(el);
+  const ph = el.querySelector('.phone');
+  const st = Object.assign({ sheet:false, tg:false }, cell.start);
+  const draw = () => {
+    const tab = (k, n, l, on) => `<a class="tab ${on ? 'on' : ''}" data-go="${k}" href="#" onclick="return false">${ic(n)}${l}</a>`;
+    ph.className = 'phone' + (st.sheet ? ' sheet-open' : '') + (st.tg ? ' tg-open' : '');
+    const old = ph.querySelector('.scr'); const top = old ? old.scrollTop : 0;
+    ph.innerHTML = `<div class="scr">${st.screen === 'home' ? home() : st.screen === 'more' ? more() : about()}</div>
+      <div class="tabbar"><div class="tabbar-in">${tab('home','home','Главная',st.screen==='home')}${tab('home','search','Поиск',false)}${tab('home','library','Моя полка',false)}${tab('more','more','Ещё',st.screen!=='home')}</div></div>
+      <div class="scrim" data-act="close"></div><div class="sheet">${a2hsSheet()}</div>${tgWin}`;
+    ph.querySelector('.scr').scrollTop = top;
+  };
+  draws.push(draw);
+  ph.addEventListener('click', e => {
+    const go = e.target.closest('[data-go]'), act = e.target.closest('[data-act]');
+    if (go) { st.screen = go.dataset.go; st.sheet = false; st.tg = false; }
+    else if (act) { const a = act.dataset.act;
+      if (a === 'a2hs') st.sheet = true; else if (a === 'close') st.sheet = false;
+      else if (a === 'share') st.tg = true; else if (a === 'tgclose') st.tg = false; }
+    else return;
+    draw();
+  });
+  draw();
+});
+document.getElementById('thm').onclick = e => { const d = document.body.dataset.theme === 'light'; document.body.dataset.theme = d ? 'dark' : 'light'; e.target.textContent = d ? 'Светлая тема' : 'Тёмная тема'; };
+document.querySelectorAll('[data-os]').forEach(b => b.onclick = () => { OS = b.dataset.os; document.querySelectorAll('[data-os]').forEach(x => x.classList.toggle('on', x === b)); draws.forEach(f => f()); });
+</script>
+</body>
+</html>

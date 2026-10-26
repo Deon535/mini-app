@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Веер: подпись автора</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Цвета — как в приложении (design/design-system.md): «Светлая лавка» и «Ночная библиотека» */
+body[data-theme="light"] { --bg:#F6F1E8; --surface:#FCF9F3; --text:#2A231C; --muted:#7A6E60; --line:#E6DED1; --accent:#4E5A2B; --on-accent:#F8F4EA; --chip:#EDE6D9; --page:#E9E2D4; }
+body[data-theme="dark"]  { --bg:#141B17; --surface:#1D2620; --text:#E8DDC7; --muted:#9C9482; --line:#2C3830; --accent:#C7A35A; --on-accent:#17140E; --chip:#24302A; --page:#0E1310; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--page); color:var(--text); font:15px/1.5 Onest,system-ui,sans-serif; padding:20px 16px 80px; -webkit-font-smoothing:antialiased; }
+a { color:inherit; text-decoration:none; }
+button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+.wrap { max-width:1100px; margin:0 auto; }
+h1 { font:700 28px Alegreya,Georgia,serif; }
+.lead { color:var(--muted); margin:4px 0 14px; max-width:620px; }
+.theme { background:var(--chip); border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500; margin-bottom:8px; }
+.grid { display:flex; flex-wrap:wrap; gap:28px; margin-top:18px; }
+.var { flex:1 1 340px; max-width:380px; }
+.var h2 { font:700 20px Alegreya,Georgia,serif; margin-bottom:2px; }
+.var h2 span { color:var(--accent); margin-right:6px; }
+.why { color:var(--muted); font-size:13.5px; margin-bottom:10px; min-height:40px; }
+.var h2 span.rec { display:inline-block; background:var(--accent); color:var(--on-accent); margin-right:0; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:2px 9px; border-radius:20px; margin-left:6px; vertical-align:3px; }
+
+/* рамка-телефон */
+.phone { width:100%; max-width:375px; height:640px; background:var(--bg); border:1px solid var(--line); border-radius:26px; overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:0 14px 34px -16px rgba(0,0,0,.45); }
+.scroll { flex:1; overflow:auto; padding:18px 18px 24px; }
+.h { font:700 24px Alegreya,Georgia,serif; letter-spacing:-.015em; }
+.hello { color:var(--muted); font-size:14px; }
+.row { display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+.cov { width:44px; height:60px; border-radius:5px; flex:none; }
+.rt { font-weight:600; font-size:14.5px; } .rs { color:var(--muted); font-size:12.5px; }
+.ic { width:22px; height:22px; flex:none; stroke-width:1.75; }
+
+/* ---------- Вариант 1: карточка автора ---------- */
+.author { margin-top:26px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px 18px 14px; text-align:center; }
+.author .orn { color:var(--accent); display:flex; justify-content:center; margin-bottom:8px; }
+.author .orn .ic { width:26px; height:26px; }
+.author .sal { font:700 21px Alegreya,Georgia,serif; letter-spacing:-.01em; }
+.author .txt { color:var(--muted); font-size:14px; margin:8px 2px 14px; line-height:1.55; }
+.author .txt b { color:var(--text); font-weight:600; }
+.links { display:flex; flex-direction:column; gap:8px; text-align:left; }
+.lnk { display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:12px; background:var(--chip); transition:transform .12s; }
+.lnk:active { transform:scale(.98); }
+.lnk .bub { width:38px; height:38px; border-radius:10px; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; flex:none; }
+.lnk .l1 { font-weight:600; font-size:14.5px; line-height:1.25; }
+.lnk .l2 { color:var(--muted); font-size:12.5px; }
+.lnk .go { margin-left:auto; color:var(--muted); }
+.lnk .go .ic { width:18px; height:18px; }
+
+/* ---------- Вариант 2: конец книги ---------- */
+.page { font:400 15.5px/1.7 "Literata",Georgia,serif; color:var(--text); }
+.end { margin-top:22px; text-align:center; color:var(--muted); font-size:13px; }
+.end hr { border:0; border-top:1px solid var(--line); margin:0 40px 14px; }
+.endcard { margin-top:14px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; text-align:left; }
+.endcard .t { font-weight:600; color:var(--text); font-size:14px; margin-bottom:2px; }
+.endcard .btns { display:flex; gap:8px; margin-top:10px; }
+.btn { flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 8px; border-radius:12px; background:var(--accent); color:var(--on-accent); font-weight:600; font-size:13.5px; }
+.btn.alt { background:var(--chip); color:var(--text); }
+.btn .ic { width:18px; height:18px; }
+
+/* ---------- Вариант 3: тихая подпись ---------- */
+.tabbar { height:64px; border-top:1px solid var(--line); display:flex; background:var(--bg); flex:none; }
+.tabbar div { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; color:var(--muted); gap:2px; }
+.tabbar div.on { color:var(--accent); }
+.sign { flex:none; text-align:center; font-size:12px; color:var(--muted); padding:7px 10px; border-top:1px solid var(--line); background:var(--bg); display:flex; justify-content:center; align-items:center; gap:10px; }
+.sign a { display:inline-flex; align-items:center; gap:5px; color:var(--accent); font-weight:600; }
+.sign .ic { width:14px; height:14px; }
+.sign i { width:3px; height:3px; border-radius:50%; background:var(--muted); display:block; }
+
+/* ---------- Вариант 4: заставка ---------- */
+.splash { position:absolute; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; z-index:5; animation:spl 5s ease-in-out forwards; }
+@keyframes spl { 0%{opacity:0} 12%{opacity:1} 80%{opacity:1} 100%{opacity:0; visibility:hidden} }
+.splash .sal { font:700 26px Alegreya,Georgia,serif; margin-top:12px; }
+.splash .sub { color:var(--muted); margin-top:8px; font-size:14.5px; }
+.splash .tag { margin-top:20px; display:inline-flex; gap:8px; align-items:center; color:var(--accent); font-weight:600; font-size:14px; }
+.replay { position:absolute; right:10px; top:10px; z-index:6; background:var(--chip); border-radius:16px; padding:4px 11px; font-size:12px; }
+
+/* ---------- Вариант 5: страница «О приложении» + всплывашка ---------- */
+.toast { position:absolute; left:14px; right:14px; bottom:76px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:11px 12px; display:flex; gap:10px; align-items:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.4); font-size:13px; }
+.toast .x { margin-left:auto; color:var(--muted); padding:4px; } .toast .x .ic { width:16px; height:16px; }
+.toast b { font-weight:600; }
+.about h3 { font:700 22px Alegreya,Georgia,serif; margin:6px 0 10px; }
+.about p { color:var(--muted); font-size:14px; margin-bottom:12px; }
+.menu { margin-top:6px; }
+.menu div { display:flex; align-items:center; padding:13px 2px; border-bottom:1px solid var(--line); gap:12px; }
+.menu .go { margin-left:auto; color:var(--muted); }
+</style>
+</head>
+<body data-theme="light">
+<div class="wrap">
+  <h1>Подпись автора — 5 вариантов</h1>
+  <p class="lead">Все варианты показаны на размере телефона. Ссылки пока условные (@ваш_аккаунт) — подставим настоящие после выбора. Тема переключается кнопкой.</p>
+  <button class="theme" id="thm">Тёмная тема</button>
+
+  <!-- значки (набор Lucide, как в приложении) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="send" viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+      <symbol id="mega" viewBox="0 0 24 24"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+      <symbol id="next" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+      <symbol id="home" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+      <symbol id="lib" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+      <symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+      <symbol id="book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+      <symbol id="star" viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6L12 3z"/></symbol>
+    </defs>
+  </svg>
+  <script>
+    // короткая запись значка
+    window.ic = id => `<svg class="ic" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#${id}"/></svg>`;
+  </script>
+
+  <div class="grid">
+
+    <!-- ===== 1 ===== -->
+    <section class="var">
+      <h2><span>1</span>Карточка на главной <span class="rec">твой выбор</span></h2>
+      <p class="why">Внизу главной, после всех книг. Приветствие, две кнопки-ссылки: личное сообщение и канал.</p>
+      <div class="phone"><div class="scroll">
+        <div class="hello">Ассаляму алейкум</div><div class="h">Библиотека</div>
+        <div style="margin-top:14px" id="rows1"></div>
+        <div class="author">
+          <div class="orn"><script>document.write(ic('star'))</script></div>
+          <div class="sal">Ассаляму алейкум!</div>
+          <p class="txt">Меня зовут <b>Абу Суфьян</b>, я создал это приложение. Если нужно такое же для вашего канала или проекта — буду рад помочь, напишите мне.</p>
+          <div class="links">
+            <a class="lnk" href="https://t.me/ваш_аккаунт" target="_blank" rel="noopener">
+              <span class="bub"><script>document.write(ic('send'))</script></span>
+              <span><div class="l1">Написать мне</div><div class="l2">Личные сообщения в Telegram</div></span>
+              <span class="go"><script>document.write(ic('next'))</script></span>
+            </a>
+            <a class="lnk" href="https://t.me/ваш_канал" target="_blank" rel="noopener">
+              <span class="bub"><script>document.write(ic('mega'))</script></span>
+              <span><div class="l1">Мой канал</div><div class="l2">Новости и новые работы</div></span>
+              <span class="go"><script>document.write(ic('next'))</script></span>
+            </a>
+          </div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- ===== 2 ===== -->
+    <section class="var">
+      <h2><span>2</span>Конец каждой книги</h2>
+      <p class="why">После последней страницы: человек дочитал, ему приятно — самый тёплый момент.</p>
+      <div class="phone"><div class="scroll">
+        <div class="page">…и да поможет нам Аллах в добрых делах. Хвала Аллаху, Господу миров.</div>
+        <div class="end"><hr>Конец книги</div>
+        <div class="endcard">
+          <div class="t">Понравилось приложение?</div>
+          <div class="hello">Его сделал Абу Суфьян. Могу сделать такое же для вас.</div>
+          <div class="btns">
+            <a class="btn" href="#"><script>document.write(ic('send'))</script>Написать</a>
+            <a class="btn alt" href="#"><script>document.write(ic('mega'))</script>Канал</a>
+          </div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- ===== 3 ===== -->
+    <section class="var">
+      <h2><span>3</span>Тихая строка внизу</h2>
+      <p class="why">Маленькая строка над меню — всегда на виду, но не мешает.</p>
+      <div class="phone"><div class="scroll">
+        <div class="hello">Ассаляму алейкум</div><div class="h">Библиотека</div>
+        <div style="margin-top:14px" id="rows3"></div>
+      </div>
+        <div class="sign">Сделано Абу Суфьяном <i></i><a href="#"><script>document.write(ic('send'))</script>Написать</a></div>
+        <div class="tabbar"><div class="on"><script>document.write(ic('home'))</script>Главная</div><div><script>document.write(ic('lib'))</script>Полка</div><div><script>document.write(ic('info'))</script>Ещё</div></div>
+      </div>
+    </section>
+
+    <!-- ===== 4 ===== -->
+    <section class="var">
+      <h2><span>4</span>Заставка при входе</h2>
+      <p class="why">Один раз при открытии, на пару секунд. Нужно показывать только в первый вход.</p>
+      <div class="phone" id="ph4">
+        <button class="replay" id="rp4">Повторить</button>
+        <div class="splash" id="sp4">
+          <div style="color:var(--accent)"><script>document.write(ic('star'))</script></div>
+          <div class="sal">Ассаляму алейкум!</div>
+          <div class="sub">Это приложение сделал Абу Суфьян</div>
+          <a class="tag" href="#"><script>document.write(ic('send'))</script>Написать мне</a>
+        </div>
+        <div class="scroll">
+          <div class="hello">Ассаляму алейкум</div><div class="h">Библиотека</div>
+          <div style="margin-top:14px" id="rows4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 5 ===== -->
+    <section class="var">
+      <h2><span>5</span>«О приложении» + напоминание</h2>
+      <p class="why">Страница в меню «Ещё» с вашими контактами, плюс редкая всплывашка с крестиком.</p>
+      <div class="phone">
+        <div class="scroll about">
+          <div class="h">Ещё</div>
+          <div class="menu">
+            <div><script>document.write(ic('info'))</script>О приложении<span class="go"><script>document.write(ic('next'))</script></span></div>
+            <div><script>document.write(ic('book'))</script>Читалка<span class="go"><script>document.write(ic('next'))</script></span></div>
+          </div>
+          <h3 style="margin-top:22px">О приложении</h3>
+          <p>Ассаляму алейкум! Меня зовут Абу Суфьян, я создал это приложение для канала Bayt al-Magrifa.</p>
+          <div class="links">
+            <a class="lnk" href="#"><span class="bub"><script>document.write(ic('send'))</script></span><span><div class="l1">Написать мне</div><div class="l2">Telegram</div></span><span class="go"><script>document.write(ic('next'))</script></span></a>
+            <a class="lnk" href="#"><span class="bub"><script>document.write(ic('mega'))</script></span><span><div class="l1">Мой канал</div><div class="l2">Telegram</div></span><span class="go"><script>document.write(ic('next'))</script></span></a>
+          </div>
+        </div>
+        <div class="toast" id="t5"><span style="color:var(--accent)"><script>document.write(ic('star'))</script></span><span>Сделано <b>Абу Суфьяном</b>. Нужно такое же? <a href="#" style="color:var(--accent);font-weight:600">Написать</a></span><button class="x" onclick="this.parentNode.style.display='none'"><script>document.write(ic('close'))</script></button></div>
+        <div class="tabbar"><div><script>document.write(ic('home'))</script>Главная</div><div><script>document.write(ic('lib'))</script>Полка</div><div class="on"><script>document.write(ic('info'))</script>Ещё</div></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+<script>
+  // условные книги для фона
+  const books = [['Три основы','Мухаммад ибн Абдульваххаб','#4E5A2B'],['Шесть основ','Мухаммад ибн Абдульваххаб','#7A5A2B'],['Кашф уш-шубухат','Мухаммад ибн Абдульваххаб','#2B4A5A'],['Сунны пророка','Сборник','#5A2B3A']];
+  const rows = books.map(b => `<div class="row"><div class="cov" style="background:${b[2]}"></div><div><div class="rt">${b[0]}</div><div class="rs">${b[1]}</div></div></div>`).join('');
+  ['rows1','rows3','rows4'].forEach(id => document.getElementById(id).innerHTML = rows);
+  document.getElementById('thm').onclick = e => {
+    const d = document.body.dataset.theme === 'light';
+    document.body.dataset.theme = d ? 'dark' : 'light';
+    e.target.textContent = d ? 'Светлая тема' : 'Тёмная тема';
+  };
+  document.getElementById('rp4').onclick = () => { const s = document.getElementById('sp4'); s.style.animation = 'none'; void s.offsetWidth; s.style.animation = ''; };
+</script>
+</body>
+</html>

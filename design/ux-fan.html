@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Веер: удобство — было и стало</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700&family=Onest:wght@400;500;600&family=Literata:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#141B17; --surface:#1D2620; --text:#E8DDC7; --muted:#9C9482; --line:#2C3830; --accent:#C7A35A; --on:#17140E; --chip:#24302A; --bad:#C9715E; --good:#8DB56A; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:#0E1310; color:var(--text); font:15px/1.5 Onest,system-ui,sans-serif; padding:24px 16px 80px; }
+.wrap { max-width:760px; margin:0 auto; }
+h1 { font:700 30px Alegreya,Georgia,serif; margin-bottom:6px; }
+.lead { color:var(--muted); margin-bottom:28px; }
+.item { border-top:1px solid var(--line); padding:30px 0 10px; }
+.item h2 { font:700 22px Alegreya,Georgia,serif; margin-bottom:4px; }
+.item h2 span { color:var(--accent); margin-right:8px; }
+.why { color:var(--muted); font-size:14px; margin-bottom:16px; max-width:620px; }
+.pair { display:flex; flex-wrap:wrap; gap:22px; }
+.col { flex:1 1 300px; max-width:340px; }
+.tag { display:inline-block; font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+.was .tag { background:#3A2420; color:var(--bad); } .now .tag { background:#24331F; color:var(--good); }
+.cap { font-size:13px; color:var(--muted); margin-top:8px; }
+.btnrow { display:flex; gap:8px; margin-top:8px; }
+.btnrow button { flex:1; background:var(--chip); color:var(--text); border:0; border-radius:10px; height:38px; font:inherit; cursor:pointer; }
+.status { font-size:13px; margin-top:8px; padding:8px 10px; border-radius:10px; background:var(--surface); min-height:36px; }
+
+/* телефон */
+.ph { position:relative; width:100%; max-width:320px; height:520px; border-radius:26px; border:6px solid #000; background:var(--bg); overflow:hidden; box-shadow:0 20px 40px -20px #000; }
+.ph.mini { height:auto; min-height:0; padding-bottom:14px; }
+.ph.paper { background:#FAF6EC; color:#2B2620; }
+.scr { position:absolute; inset:0; overflow-y:auto; overflow-anchor:none; padding:0 16px 70px; }
+.ph.mini .scr { position:static; padding:14px 14px 0; overflow:visible; }
+.top { display:flex; align-items:center; justify-content:space-between; height:48px; position:relative; }
+.top b { font:500 12px Onest; color:#8A8070; position:absolute; left:50px; right:50px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ic { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font:600 14px Literata,serif; color:inherit; background:transparent; border:0; }
+.ic.dis { opacity:.35; }
+.txt p { font:400 var(--f,17px)/1.6 Literata,Georgia,serif; margin-bottom:12px; }
+.txt p b { color:#8A6A2A; }
+.prog { position:absolute; left:0; right:0; bottom:0; padding:10px 16px 12px; display:flex; gap:10px; align-items:center; font-size:11px; color:#8A8070; background:#FAF6EC; border-top:1px solid #E6DECA; }
+.prog i { flex:1; height:3px; background:#E6DECA; border-radius:3px; position:relative; } .prog i u { position:absolute; left:0; top:0; bottom:0; width:50%; background:#2B2620; border-radius:3px; }
+.over { position:absolute; left:0; right:0; background:#FAF6EC; transition:transform .25s; z-index:5; }
+.over.t { top:0; padding:0 10px; border-bottom:1px solid #E6DECA; height:48px; } .over.t.hide { transform:translateY(-100%); }
+.sheet { position:absolute; left:0; right:0; bottom:0; background:#F1EBDA; border-radius:20px 20px 0 0; padding:10px 16px 16px; transform:translateY(105%); transition:transform .28s; z-index:7; box-shadow:0 -10px 30px -10px rgba(0,0,0,.3); }
+.sheet.open { transform:none; }
+.grab { width:38px; height:4px; border-radius:4px; background:#CFC6AE; margin:0 auto 10px; }
+.sheet h4 { font:600 13px Onest; color:#6B6252; margin:8px 0 6px; display:flex; justify-content:space-between; }
+.sw { display:flex; gap:8px; } .sw span { flex:1; height:34px; border-radius:9px; border:1px solid #D8CFB8; display:grid; place-items:center; font:12px Onest; }
+.stepper { display:flex; align-items:center; gap:10px; }
+.stepper button { width:42px; height:40px; border-radius:10px; border:0; background:#E4DCC6; font:Literata; cursor:pointer; }
+.stepper input[type=range] { flex:1; accent-color:#2B2620; }
+.scrim { position:absolute; inset:0; background:rgba(0,0,0,.3); opacity:0; pointer-events:none; transition:.25s; z-index:6; } .scrim.on { opacity:1; pointer-events:auto; }
+.hint { font-size:11px; background:#2B2620; color:#FAF6EC; padding:5px 9px; border-radius:8px; position:absolute; left:50%; transform:translateX(-50%); bottom:62px; z-index:4; white-space:nowrap; }
+.toast { position:absolute; left:14px; right:14px; bottom:58px; background:#2B2620; color:#FAF6EC; border-radius:12px; padding:10px 14px; font-size:13px; display:flex; justify-content:space-between; align-items:center; z-index:8; transition:.25s; }
+.toast.off { opacity:0; transform:translateY(10px); pointer-events:none; }
+.toast a { color:#E3C77E; font-weight:600; cursor:pointer; }
+
+/* карточки главной */
+.sec { font:700 20px Alegreya,serif; margin:16px 0 8px; }
+.soonp { color:var(--muted); font-size:13.5px; padding:8px 0; }
+.demo { border:1px solid var(--line); border-radius:14px; padding:10px 12px; background:var(--surface); font-size:12.5px; color:var(--muted); display:flex; gap:10px; justify-content:space-between; }
+.demo b { color:var(--text); display:block; font-size:13.5px; }
+.strip { display:flex; gap:10px; overflow:hidden; }
+.bc { flex:none; width:84px; } .bc i { display:block; aspect-ratio:2/3; border-radius:5px; margin-bottom:5px; } .bc span { font-size:11px; line-height:1.25; display:block; color:var(--muted); }
+.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.grid .bc { width:auto; }
+.row { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); align-items:center; } .row i { width:34px; height:50px; border-radius:4px; flex:none; } .row div { font-size:13px; line-height:1.3; } .row small { color:var(--muted); display:block; font-size:11.5px; }
+.btnm { height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:600; background:var(--accent); color:var(--on); }
+.btnm.s { background:var(--chip); color:var(--text); }
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; } .chips b { font-weight:500; font-size:12.5px; padding:6px 11px; border-radius:10px; background:var(--chip); } .chips b.on { background:var(--accent); color:var(--on); }
+.cont { background:var(--surface); border-radius:14px; padding:10px; display:flex; gap:10px; margin-bottom:8px; } .cont i { width:42px; height:62px; border-radius:4px; flex:none; } .cont .bar { height:3px; background:var(--line); border-radius:3px; margin:6px 0 3px; } .cont .bar u { display:block; height:100%; background:var(--accent); border-radius:3px; }
+.cont div { font-size:13px; flex:1; line-height:1.3; } .cont small { color:var(--muted); font-size:11.5px; }
+.note { margin-top:30px; padding:14px 16px; border:1px dashed var(--line); border-radius:14px; color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Веер удобства: было и стало</h1>
+<p class="lead">Это только образцы, настоящее приложение не изменено. Красные «Было» — как сейчас. Зелёные «Стало» — как предлагаю. Там, где есть кнопки или прокрутка, всё можно потрогать. Скажите, какие пункты утверждаете, и я перенесу их в приложение.</p>
+
+<!-- 1 -->
+<section class="item">
+<h2><span>1</span>Кнопка «Aa» всегда под рукой</h2>
+<p class="why">Сейчас шапка с «Aa» остаётся в начале книги. На середине её нет. Предлагаю: шапка прячется, когда листаешь вниз, и возвращается, когда листнул чуть вверх или коснулся текста.</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span>
+  <div class="ph paper"><div class="scr txt" id="r1a"><div class="top"><button class="ic">‹</button><b>Книга поднятия рук в намазе</b><button class="ic">Aa</button></div></div>
+  <div class="prog"><span>Стр. 1</span><i><u></u></i><span>0%</span></div></div>
+  <p class="cap">Пролистайте вниз: шапка и «Aa» уезжают, вернуться можно только промоткой в самое начало.</p></div>
+ <div class="col now"><span class="tag">Стало</span>
+  <div class="ph paper"><div class="over t" id="r1bt"><div class="top"><button class="ic">‹</button><b>Книга поднятия рук в намазе</b><button class="ic" id="r1bAa">Aa</button></div></div>
+  <div class="scr txt" id="r1b" style="padding-top:56px"></div>
+  <div class="prog"><span>Стр. 1</span><i><u></u></i><span>0%</span></div>
+  <div class="scrim" id="r1bs"></div>
+  <div class="sheet" id="r1bsh"><div class="grab"></div><h4>Шрифт</h4><div class="stepper"><button>А</button><input type="range" min="14" max="26" value="18"><button style="font-size:20px">А</button></div><h4>Фон</h4><div class="sw"><span style="background:#FAF6EC">Слоновая кость</span><span style="background:#fff">Белая</span></div></div></div>
+  <p class="cap">Листайте вниз — шапка прячется. Чуть вверх или нажмите на текст — шапка возвращается. «Aa» открывает панель.</p></div>
+</div></section>
+
+<!-- 2 -->
+<section class="item">
+<h2><span>2</span>Смена шрифта не сбивает место</h2>
+<p class="why">Пролистайте до абзаца 40–60 и нажмите «А+». Слева браузер без защиты (как на iPhone): текст сдвигается, и вы теряете место. Справа приложение запоминает абзац у верха и возвращает его на то же место.</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было (iPhone)</span>
+  <div class="ph paper"><div class="scr txt" id="r2a"></div></div>
+  <div class="btnrow"><button data-t="r2a" data-d="-2">А −</button><button data-t="r2a" data-d="2">А +</button></div><div class="status" id="s2a">Листайте и нажимайте А+</div></div>
+ <div class="col now"><span class="tag">Стало</span>
+  <div class="ph paper"><div class="scr txt" id="r2b"></div></div>
+  <div class="btnrow"><button data-t="r2b" data-d="-2" data-keep="1">А −</button><button data-t="r2b" data-d="2" data-keep="1">А +</button></div><div class="status" id="s2b">Листайте и нажимайте А+</div></div>
+</div></section>
+
+<!-- 3 -->
+<section class="item">
+<h2><span>3</span>Главная без пустых разделов</h2>
+<p class="why">Сейчас три раздела подряд говорят «Здесь появятся книги». Пустые разделы прячем, пока в них ничего нет.</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini"><div class="scr">
+  <div class="demo"><div><b>Демо-версия</b>Это пробная версия приложения. Подборки, категории и описания заполнены не полностью и могут быть неточными…</div></div>
+  <div class="sec">Категории</div><div class="chips"><b>Хадисы</b><b>Фикх</b><b>Акыда</b><b>Тафсир</b></div>
+  <div class="sec">С чего начать</div><p class="soonp">Здесь, ин ша Аллах, появятся книги.</p>
+  <div class="sec">Новинки</div><p class="soonp">Здесь, ин ша Аллах, появятся книги.</p>
+  <div class="sec">Популярное</div><p class="soonp">Здесь, ин ша Аллах, появятся книги.</p>
+  <div class="sec">Все книги</div><div class="strip"><div class="bc"><i style="background:#5E6B2E"></i></div><div class="bc"><i style="background:#6B4A2A"></i></div><div class="bc"><i style="background:#2E4A5E"></i></div></div></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini"><div class="scr">
+  <div class="demo"><div><b>Демо-версия</b>Подборки пока неполные.</div><span>×</span></div>
+  <div class="sec">Категории</div><div class="chips"><b>Хадисы</b><b>Фикх</b><b>Акыда</b><b>Тафсир</b></div>
+  <div class="sec">Все книги</div><div class="grid"><div class="bc"><i style="background:#5E6B2E"></i><span>Название</span></div><div class="bc"><i style="background:#6B4A2A"></i><span>Название</span></div><div class="bc"><i style="background:#2E4A5E"></i><span>Название</span></div></div></div></div>
+  <p class="cap">Библиотека выше, плашка короче и закрывается крестиком.</p></div>
+</div></section>
+
+<!-- 4 -->
+<section class="item">
+<h2><span>4</span>«Все книги»: не лента из 122 обложек</h2>
+<p class="why">Горизонтальную ленту невозможно пролистать до конца. Показываем сетку из 6–9 книг и кнопку «Все 122».</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini"><div class="scr"><div class="sec">Все книги</div><div class="strip"><div class="bc"><i style="background:#5E6B2E"></i></div><div class="bc"><i style="background:#6B4A2A"></i></div><div class="bc"><i style="background:#2E4A5E"></i></div><div class="bc"><i style="background:#7A3E36"></i></div></div><p class="cap">…и ещё 118 обложек вправо, без счётчика и без конца.</p></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini"><div class="scr"><div class="sec">Все книги</div><div class="grid"><div class="bc"><i style="background:#5E6B2E"></i></div><div class="bc"><i style="background:#6B4A2A"></i></div><div class="bc"><i style="background:#2E4A5E"></i></div><div class="bc"><i style="background:#7A3E36"></i></div><div class="bc"><i style="background:#4A5E2E"></i></div><div class="bc"><i style="background:#5A3E6B"></i></div></div><div class="btnm s" style="margin-top:12px">Все 122 книги →</div></div></div></div>
+</div></section>
+
+<!-- 5 -->
+<section class="item">
+<h2><span>5</span>«Продолжить»: последние 1–3 книги</h2>
+<p class="why">Сейчас книги идут по номеру и копятся без конца. Нужны последние читаемые, самая свежая первой.</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini"><div class="scr"><div class="sec">Продолжить</div>
+  <div class="cont"><i style="background:#6B4A2A"></i><div>Книга №3<small>Прочитано 1%</small><div class="bar"><u style="width:1%"></u></div></div></div>
+  <div class="cont"><i style="background:#2E4A5E"></i><div>Книга №9<small>Прочитано 4%</small><div class="bar"><u style="width:4%"></u></div></div></div>
+  <div class="cont"><i style="background:#5E6B2E"></i><div>Книга №57 (читаю сейчас)<small>Прочитано 62%</small><div class="bar"><u style="width:62%"></u></div></div></div>
+  <p class="cap">…ещё 5 книг, которые просто открыли.</p></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini"><div class="scr"><div class="sec">Продолжить</div>
+  <div class="cont"><i style="background:#5E6B2E"></i><div>Книга №57<small>Стр. 41 из 66 · 62%</small><div class="bar"><u style="width:62%"></u></div></div></div>
+  <div class="cont"><i style="background:#2E4A5E"></i><div>Книга №9<small>4%</small><div class="bar"><u style="width:4%"></u></div></div></div>
+  <p class="cap" style="padding-bottom:6px">Книга считается начатой после 2% или 1 минуты чтения. Свежая сверху.</p></div></div></div>
+</div></section>
+
+<!-- 6 -->
+<section class="item">
+<h2><span>6</span>Страница книги знает, что вы её читали</h2>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini"><div class="scr"><div class="sec">Книга поднятия рук</div><div style="display:flex;gap:8px"><div class="btnm" style="flex:1.6">Читать</div><div class="btnm s" style="flex:1">На полку</div></div></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini"><div class="scr"><div class="sec">Книга поднятия рук</div><div style="display:flex;gap:8px"><div class="btnm" style="flex:1.6">Продолжить · 62%</div><div class="btnm s" style="flex:1">На полку</div></div><p class="cap">«Читать с начала» — маленькой ссылкой ниже.</p></div></div></div>
+</div></section>
+
+<!-- 7 -->
+<section class="item">
+<h2><span>7</span>Поиск: счётчик и сортировка</h2>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini"><div class="scr"><div class="sec">Поиск</div><div class="chips"><b class="on">Все</b><b>Хадисы</b><b>Фикх</b></div><div class="sec" style="font-size:16px">Все книги</div><div class="row"><i style="background:#5E6B2E"></i><div>19 вопросов об Исламе<small>Акыда</small></div></div><div class="row"><i style="background:#6B4A2A"></i><div>7 основных вопросов<small>Акыда</small></div></div></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini"><div class="scr"><div class="sec">Поиск</div><div class="chips"><b class="on">Все</b><b>Хадисы</b><b>Фикх</b></div><div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)"><span>122 книги</span><span style="color:var(--accent)">А–Я ▾</span></div><div class="row"><i style="background:#5E6B2E"></i><div>19 вопросов об Исламе<small>Акыда</small></div></div><div class="row"><i style="background:#6B4A2A"></i><div>7 основных вопросов<small>Акыда</small></div></div></div></div>
+ <p class="cap">Сортировка: по алфавиту, по автору, по размеру, «читаю сейчас».</p></div>
+</div></section>
+
+<!-- 8 -->
+<section class="item">
+<h2><span>8</span>Переход по книге: ползунок и «вернуться назад»</h2>
+<p class="why">Потяните ползунок: над ним появляется страница, а после прыжка внизу — кнопка «Вернуться на стр. N».</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini paper"><div class="scr txt" style="padding-bottom:8px"><p style="font-size:15px"><b>41.</b> Текст книги…</p></div><div class="prog" style="position:static"><span>Стр. 41 из 66</span><i><u style="width:62%"></u></i><span>62%</span></div></div><p class="cap">Полоска только показывает. Тянуть её нельзя.</p></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini paper" id="r8"><div class="scr txt" style="padding-bottom:8px"><p style="font-size:15px"><b id="r8t">41.</b> Текст книги…</p></div>
+  <div style="padding:0 16px;font-size:12px;color:#6B6252;text-align:center" id="r8b">Стр. 41 из 66</div>
+  <div style="padding:6px 16px 0"><input type="range" id="r8s" min="1" max="66" value="41" style="width:100%;accent-color:#2B2620"></div>
+  <div class="toast off" id="r8toast" style="position:static;margin:10px 14px 0"><span id="r8m"></span><a id="r8back">Вернуться</a></div></div></div>
+</div></section>
+
+<!-- 9–10 -->
+<section class="item">
+<h2><span>9–10</span>Панель настроек: понятные названия и закрытие</h2>
+<p class="why">«Aa» → «Оформление». Внутри: «Шрифт» и «Фон». Закрыть можно крестиком, потянув за полоску вниз или нажав на затемнённый фон.</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini paper" style="padding:12px 0"><div style="padding:0 16px"><div class="sw"><span style="background:#FAF6EC">Слоновая кость</span><span style="background:#fff">Белая</span></div><div class="stepper" style="margin-top:10px"><button>А</button><span style="font-size:13px">18</span><button style="font-size:20px">А</button></div></div></div><p class="cap">Подписи нет. Закрыть можно только касанием по тексту.</p></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini paper" style="padding:10px 0 4px"><div style="padding:0 16px"><div class="grab"></div><div style="display:flex;justify-content:space-between;font:600 15px Onest"><span>Оформление</span><span>×</span></div><h4 style="font:600 12px Onest;color:#6B6252;margin:10px 0 6px">Фон</h4><div class="sw"><span style="background:#FAF6EC">Слоновая кость</span><span style="background:#fff">Белая</span></div><h4 style="font:600 12px Onest;color:#6B6252;margin:10px 0 6px">Шрифт · 18</h4><div class="stepper"><button>А</button><input type="range" min="14" max="26" value="18"><button style="font-size:20px">А</button></div></div></div></div>
+</div></section>
+
+<!-- 11 -->
+<section class="item">
+<h2><span>11</span>Размер шрифта: ползунок вместо 12 нажатий</h2>
+<p class="why">Ползунок плюс кнопки «А−/А+» с шагом 2. Во время движения число и пример текста меняются сразу.</p>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini paper"><div class="scr"><div class="stepper"><button>А</button><span>18</span><button style="font-size:20px">А</button></div><p class="cap">С 14 до 26 — 12 нажатий по одному пикселю.</p></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini paper"><div class="scr"><div class="stepper"><button>А</button><input type="range" id="r11" min="14" max="26" step="2" value="18"><button style="font-size:20px">А</button></div><p id="r11t" style="font:18px/1.6 Literata,serif;margin-top:10px">Образец текста для проверки размера.</p></div></div></div>
+</div></section>
+
+<!-- 12 -->
+<section class="item">
+<h2><span>12</span>«Вернуться на место» после прыжка</h2>
+<p class="why">Показан в пункте 8 (потяните ползунок). После прыжка внизу на несколько секунд появляется «Вы перешли со стр. 41 · Вернуться».</p>
+</section>
+
+<!-- 13 -->
+<section class="item">
+<h2><span>13</span>Подсказка про арабский текст не пропадает</h2>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini paper"><div class="scr"><p style="font:13px Onest;color:#8A8070">Нажмите на предложение, чтобы увидеть его по-арабски</p><p style="font-size:15px">Текст… (подсказка осталась в начале книги)</p></div></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini paper"><div class="over t" style="position:static;height:44px"><div class="top" style="height:44px"><button class="ic">‹</button><b>Название книги</b><span style="display:flex"><button class="ic">?</button><button class="ic">Aa</button></span></div></div><div class="scr"><p style="font-size:15px">Подсказка живёт за кнопкой «?» в шапке и всегда доступна.</p></div></div></div>
+</div></section>
+
+<!-- 14 -->
+<section class="item">
+<h2><span>14</span>Детские книги: понятно, почему «Aa» не работает</h2>
+<div class="pair">
+ <div class="col was"><span class="tag">Было</span><div class="ph mini paper"><div class="over t" style="position:static;height:44px"><div class="top" style="height:44px"><button class="ic">‹</button><b>Детская книга</b><span class="ic"></span></div></div><p class="cap" style="padding:8px 14px 0">Справа пустое место, непонятно почему.</p></div></div>
+ <div class="col now"><span class="tag">Стало</span><div class="ph mini paper"><div class="over t" style="position:static;height:44px"><div class="top" style="height:44px"><button class="ic">‹</button><b>Детская книга</b><button class="ic dis">Aa</button></div></div><p class="cap" style="padding:8px 14px 0">Значок виден, но неактивный. Нажатие: «В этой книге размер задан самой книгой».</p></div></div>
+</div></section>
+
+<!-- 15 -->
+<section class="item">
+<h2><span>15</span>Плашка «Демо-версия» компактнее</h2>
+<p class="why">Показана в пункте 3 (справа). Одна строка и крестик. Закрытая больше не появляется.</p>
+</section>
+
+<div class="note">Если нравится — скажите «берём 1, 2, 3…» (или «всё»). Если что-то хочется иначе (например, шапку, которая не прячется, а остаётся постоянно), скажите, и я покажу ещё образцы.</div>
+</div>
+
+<script>
+const P = n => { let s=''; for (let i=1;i<=n;i++) s += `<p data-n="${i}"><b>${i}.</b> Рассказал нам ${'Мухаммад ибн Мукатиль, а ему сообщил Абдуллах, а ему рассказал Асым ибн Кулейб аль-Джарми, а тому его отец '.slice(0, 40 + (i*37)%80)}, что посланник Аллаха, да благословит его Аллах и приветствует, сказал слова, которые передали дальше.</p>`; return s; };
+// 1 была
+document.getElementById('r1a').insertAdjacentHTML('beforeend', P(40));
+// 1 стала
+const r1 = document.getElementById('r1b'), t1 = document.getElementById('r1bt'), sh = document.getElementById('r1bsh'), sc = document.getElementById('r1bs');
+r1.innerHTML = P(40);
+let last = 0;
+r1.addEventListener('scroll', () => { const y = r1.scrollTop; if (y > last + 6 && y > 60) t1.classList.add('hide'); else if (y < last - 6) t1.classList.remove('hide'); last = y; });
+r1.addEventListener('click', () => t1.classList.toggle('hide'));
+const open = o => { sh.classList.toggle('open', o); sc.classList.toggle('on', o); };
+document.getElementById('r1bAa').onclick = () => open(true); sc.onclick = () => open(false);
+// 2
+['r2a','r2b'].forEach(id => document.getElementById(id).innerHTML = P(120));
+const fsz = {r2a:17, r2b:17};
+const topPara = el => { const r = el.getBoundingClientRect(); for (const p of el.children) { const b = p.getBoundingClientRect(); if (b.bottom > r.top + 6) return [p, (r.top - b.top) / b.height]; } return [el.children[0], 0]; };
+document.querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
+  const el = document.getElementById(b.dataset.t), id = b.dataset.t, keep = b.dataset.keep;
+  const [p, f] = topPara(el), y = el.scrollTop, before = p.dataset.n;
+  fsz[id] = Math.max(13, Math.min(26, fsz[id] + Number(b.dataset.d))); el.style.setProperty('--f', fsz[id] + 'px');
+  if (keep) el.scrollTop += p.getBoundingClientRect().top - el.getBoundingClientRect().top + f * p.getBoundingClientRect().height; else el.scrollTop = y;
+  const [q] = topPara(el);
+  document.getElementById('s2' + id.slice(-1)).innerHTML = `Было у верха: абзац <b>${before}</b> → стало: абзац <b>${q.dataset.n}</b> ` + (q.dataset.n === before ? '✓ место сохранено' : '✗ место потеряно');
+});
+// 8
+const s8 = document.getElementById('r8s'), m = document.getElementById('r8m'), tb = document.getElementById('r8toast'); let from = 41, tm;
+s8.oninput = () => { document.getElementById('r8b').textContent = `Стр. ${s8.value} из 66`; document.getElementById('r8t').textContent = s8.value + '.'; };
+s8.onchange = () => { if (Math.abs(s8.value - from) > 3) { m.textContent = `Вы перешли со стр. ${from}`; tb.classList.remove('off'); clearTimeout(tm); tm = setTimeout(() => tb.classList.add('off'), 6000); window._from = from; } from = Number(s8.value); };
+document.getElementById('r8back').onclick = () => { s8.value = window._from; s8.oninput(); from = Number(s8.value); tb.classList.add('off'); };
+// 11
+document.getElementById('r11').oninput = e => document.getElementById('r11t').style.fontSize = e.target.value + 'px';
+</script>
+</body>
+</html>

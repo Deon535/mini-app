@@ -10,7 +10,7 @@
 window.TEXTS = window.TEXTS || {};
 window.TEXTS[61] = {
   style: 'pg',
-  theme: {"pw":411,"text":"#000000","head":"#4C4C4C","bg":"#F5EEDF","ar":"#C00000","k":1,"lh":1.25,"ind":"1.2em","gap":"1.42em","nfs":"0.83em","nlh":1.2,"sup":"0.58em","body":12},
+  theme: {"pw":411,"text":"#000000","head":"#4C4C4C","bg":"#F5EEDF","ar":"#C00000","k":1,"lh":1.25,"ind":"1.2em","gap":"1.42em","nfs":"0.83em","nlh":1.2,"sup":"0.58em","body":12,"arwrap":"balance"},
   pages: [
     {
       front: true, 

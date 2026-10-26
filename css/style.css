@@ -116,8 +116,8 @@ a { color: inherit; text-decoration: none; }
 /* Обложка-образец, нарисованная кодом (пока нет настоящей картинки) */
 .cover.drawn {
   color: #EFE3C6;
-  display: flex; flex-direction: column; justify-content: space-between;
-  padding: calc(var(--cw)*.16) calc(var(--cw)*.12) calc(var(--cw)*.12) calc(var(--cw)*.16);
+  display: flex; flex-direction: column; justify-content: flex-end; /* всё снизу: название, черта, автор */
+  padding: calc(var(--cw)*.14) calc(var(--cw)*.075) calc(var(--cw)*.105) calc(var(--cw)*.14);
 }
 .cover.drawn::before {
   content: ""; position: absolute; inset: 6% 6% 6% 10%;
@@ -127,9 +127,17 @@ a { color: inherit; text-decoration: none; }
   content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 7%;
   background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0));
 }
-.cv-ar { font-family: "Amiri", serif; font-size: calc(var(--cw)*var(--af, .125)); line-height: 1.3; direction: rtl; text-align: right; position: relative; }
-.cv-t { font-family: var(--head); font-weight: var(--head-w); font-size: calc(var(--cw)*var(--tf, .12)); line-height: 1.05; letter-spacing: var(--head-track); position: relative; }
-.cv-a { display: block; font-family: var(--ui); font-size: calc(var(--cw)*.07); opacity: .75; margin-top: calc(var(--cw)*.05); font-weight: 500; }
+.cv-t {
+  position: relative; font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track);
+  font-size: calc(var(--cw)*var(--tk, .1)); line-height: 1.08; hyphens: manual; -webkit-hyphens: manual; overflow-wrap: normal;
+}
+.cover.drawn[data-any] .cv-t { overflow-wrap: anywhere; } /* крайний случай: слово длиннее строки на любой ступени */
+.cv-a {
+  position: relative; margin-top: calc(var(--cw)*.055); padding-top: calc(var(--cw)*.045); min-height: calc(var(--cw)*.1);
+  border-top: 1px solid rgba(239,227,198,.36);
+  font-family: var(--ui); font-weight: 500; font-size: calc(var(--cw)*.065); line-height: 1.25; opacity: .82;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
 
 /* ---- Лента обложек (Новинки, Популярное) ---- */
 .shelf-row {
@@ -254,7 +262,6 @@ body.tg [data-action="back"] { visibility: hidden; }
 .bk-cover .cover { --cw: 160px; }
 .bk-meta { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
 .bk-cat { font-size: 13px; color: var(--muted); }
-.bk-ar { font-family: "Amiri", serif; font-size: 20px; line-height: 1.4; color: var(--muted); direction: rtl; text-align: right; }
 .bk-title {
   font-family: var(--head); font-weight: var(--head-w); letter-spacing: var(--head-track);
   font-size: 28px; line-height: 1.1; margin: 6px 0 8px; text-wrap: balance;
@@ -284,11 +291,11 @@ body.tg [data-action="back"] { visibility: hidden; }
 .shelf-opt[aria-pressed="true"] .ic:last-child { opacity: 1; }
 
 /* ---- Переключатель-сегменты (вкладки полки) ---- */
-.seg { display: flex; gap: 2px; padding: 3px; border-radius: var(--r-btn); background: var(--chip); }
+.seg { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; padding: 3px; border-radius: var(--r-btn); background: var(--chip); }
 .seg button {
-  flex: 1; min-width: 0; height: 36px; padding: 0 6px;
+  flex: 1 0 auto; min-width: 0; height: 36px; padding: 0 8px;
   border-radius: calc(var(--r-btn) - 3px);
-  font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap;
+  font-size: 12.5px; font-weight: 500; color: var(--muted); white-space: nowrap;
   transition: background .2s, color .2s;
 }
 .seg button[aria-selected="true"] { background: var(--seg-on); color: var(--text); }
@@ -341,6 +348,7 @@ body[data-rt] #app { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 /* Русская часть */
 .rd-h { font-weight: 600; font-size: calc(var(--fs) * 1.3); line-height: 1.2; color: var(--rr); margin: 32px 0 14px; text-wrap: balance; }
 .rd-p { font-size: var(--fs); line-height: 1.65; margin-bottom: 14px; hyphens: auto; }
+.rd-p.rd-caps, .tr-b { hyphens: manual; -webkit-hyphens: manual; } /* заголовок прописными: слова не переносятся («МИЛОСТИ-ВОГО» недопустимо) */
 .rd-p b { font-weight: 600; }
 .rd-p i { font-style: normal; font-weight: 400; color: var(--rm); } /* слова в скобках от переводчика */
 .hon { font-family: "Amiri", serif; font-weight: 400; font-size: .9em; white-space: nowrap; }
@@ -404,16 +412,15 @@ body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35;
   font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif; font-size: calc(var(--fs) * var(--bm-k, 1)); line-height: var(--bm-lh, 1.22); color: var(--bm-text, #2C2E35);
 }
 .bm-page { position: relative; padding: 1.4em 0 1.8em; background: var(--bm-top, #EBF2F1); overflow: hidden; container-type: inline-size; }
-/* Нижняя часть страницы чуть темнее, граница плавной волной (как в PDF) */
+/* Нижняя часть страницы чуть темнее, граница плавной волной (кривая из PDF, см. bmWave в app.js).
+   Волна — маска: картинка с кривой (ширина = ширине страницы, форма не растягивается) + сплошная заливка под ней.
+   Верх области — на той же доле высоты страницы, что и в PDF (--bm-wy). */
 .bm-page::before {
-  content: ""; position: absolute; inset: 0;
-  background: var(--bm-low, #DDE9E7); clip-path: var(--bm-wave);
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: var(--bm-wy, 45%);
+  background: var(--bm-low, #DDE9E7);
+  -webkit-mask: var(--bm-wm) 0 0 / 100% auto no-repeat, linear-gradient(#000, #000) 0 100% / 100% max(0px, calc(100% - 100cqw * var(--bm-wr, 1))) no-repeat;
+  mask: var(--bm-wm) 0 0 / 100% auto no-repeat, linear-gradient(#000, #000) 0 100% / 100% max(0px, calc(100% - 100cqw * var(--bm-wr, 1))) no-repeat;
 }
-/* Волна идёт через весь разворот буклета, поэтому у 1-й, 2-й и 3-й страницы разворота она разная.
-   Точки сняты с PDF через каждые 10 pt, в процентах от ширины и высоты страницы */
-.bm-page[data-wave="0"] { --bm-wave: polygon(0.0% 52.6%, 3.6% 50.6%, 7.1% 48.7%, 10.7% 47.2%, 14.3% 45.9%, 17.8% 44.5%, 21.4% 43.3%, 24.9% 42.5%, 28.5% 41.7%, 32.1% 41.0%, 35.6% 40.3%, 39.2% 39.8%, 42.8% 39.3%, 46.3% 39.0%, 49.9% 38.6%, 53.5% 38.5%, 57.0% 38.3%, 60.6% 38.2%, 64.1% 38.2%, 67.7% 38.3%, 71.3% 38.5%, 74.8% 38.6%, 78.4% 38.8%, 82.0% 39.0%, 85.5% 39.3%, 89.1% 39.6%, 92.6% 40.1%, 96.2% 40.5%, 100% 41.0%, 100% 100%, 0% 100%); }
-.bm-page[data-wave="1"] { --bm-wave: polygon(0.0% 41.0%, 3.6% 41.6%, 7.1% 42.1%, 10.7% 42.7%, 14.3% 43.3%, 17.8% 43.8%, 21.4% 44.3%, 24.9% 44.9%, 28.5% 45.4%, 32.1% 45.9%, 35.6% 46.4%, 39.2% 46.7%, 42.8% 47.0%, 46.3% 47.4%, 49.9% 47.8%, 53.5% 48.2%, 57.0% 48.5%, 60.6% 48.9%, 64.1% 49.1%, 67.7% 49.5%, 71.3% 49.6%, 74.8% 49.9%, 78.4% 50.1%, 82.0% 50.2%, 85.5% 50.5%, 89.1% 50.6%, 92.6% 50.7%, 96.2% 50.7%, 100% 50.8%, 100% 100%, 0% 100%); }
-.bm-page[data-wave="2"] { --bm-wave: polygon(0.0% 50.8%, 3.6% 50.9%, 7.1% 51.0%, 10.7% 51.1%, 14.3% 51.1%, 17.8% 51.1%, 21.4% 51.0%, 24.9% 50.8%, 28.5% 50.6%, 32.1% 50.4%, 35.6% 50.1%, 39.2% 49.9%, 42.8% 49.6%, 46.3% 49.4%, 49.9% 49.1%, 53.5% 48.6%, 57.0% 48.2%, 60.6% 47.8%, 64.1% 47.2%, 67.7% 46.7%, 71.3% 46.1%, 74.8% 45.4%, 78.4% 44.7%, 82.0% 43.7%, 85.5% 42.5%, 89.1% 41.3%, 92.6% 39.8%, 96.2% 38.0%, 100% 35.8%, 100% 100%, 0% 100%); }
 .bm-page > * { position: relative; }
 /* Шапка страницы: мятная полоса, фонарь, название, номер и стрелка.
    Шапка зависит от ширины страницы, а не от шрифта (как колонтитул в книге): 1em здесь = 1 pt страницы PDF,
@@ -451,7 +458,7 @@ body[data-rt="bm"] { --rb: #EBF2F1; --rt: #2C2E35; --rm: #5F6569; --rr: #2C2E35;
 .bm-notes { list-style: none; font-size: var(--bm-nfs, .833em); line-height: var(--bm-nlh, 1.5); margin-top: 1.1em; padding-top: .7em; position: relative; }
 .bm-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 9em; border-top: 1px solid var(--bm-text, #2C2E35); }
 .bm-notes li { display: flex; }
-.bm-notes li span { flex: none; width: 1.75em; }
+.bm-notes li > span { flex: none; width: 1.75em; }
 
 /* ---- Книги «одна страница PDF = одна страница на экране» (оформление 'pg', серия А и др.) ----
    Размеры блоков в em от размера текста (--fs): «Аа» увеличивает страницу целиком. Шапка и номер зависят от ширины страницы
@@ -464,14 +471,16 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
   font-family: var(--pg-font, "Source Serif 4"), "Source Serif Pro", Georgia, serif; font-size: var(--u); line-height: var(--pg-lh, 1.25); color: var(--pg-text, #000);
 }
 .pg-page { position: relative; background: var(--pg-bg, #fff); container-type: inline-size; padding-bottom: .4em; }
-.pg-page + .pg-page { border-top: 1px solid color-mix(in srgb, var(--pg-text, #000) 12%, var(--pg-bg, #fff)); }
+.pg-page { border-top: 1px solid color-mix(in srgb, var(--pg-text, #000) 12%, var(--pg-bg, #fff)); } /* линия сверху у каждой, кроме первой (правило «+ соседняя» замедляло вставку страницы в 5 раз) */
+.pg-page:first-child { border-top: 0; }
 .pg-ph { box-sizing: border-box; padding: 0; container-type: normal; } /* заготовка страницы нарезанной книги: пустая, нужной высоты (mountChunked) */
 .rd-pg { display: flow-root; } /* «невидимая страница» Word-книги: группа абзацев, отступы внутри неё не уходят наружу (режем только там, где верхнего отступа нет) */
 .pg-lazy { overflow-anchor: none; } /* прокрутку при подмене страниц выравниваем сами, браузерная подстройка не нужна */
 .pg-front { min-height: calc(100cqw * 1.41); }
 .pg-head { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 28) 20px 0; text-align: center; }
-.pg-head span { display: block; font-size: calc(var(--pt) * 9); line-height: 1.2; color: var(--pg-head, #4C4C4C); }
+.pg-head > span { display: block; font-size: calc(var(--pt) * 9); line-height: 1.2; color: var(--pg-head, #4C4C4C); }
 .pg-head img { display: block; width: 100%; height: auto; margin-top: calc(var(--pt) * 4); }
+.pg-head .hi { --hf: 1.4; width: calc(var(--w) * 1.4 * .83 * 1em); vertical-align: calc(var(--dy) * 1.4 * 1em - .2em); } /* значок ﷺ в шапке (№37): в PDF крупнее и ниже, чем в тексте при том же размере шрифта (замер по 41 месту: PDF/наш высота ×1,48, ширина ×1,5, низ ниже на 0,27 em) */
 .pg-body { padding: calc(var(--u) * .7) 20px 0; }
 .pg-body { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); --b0: calc(var(--u) * .7); position: relative; } /* 1 pt страницы PDF в пикселях (для картинок «art» на любой странице) */
 .pg-front .pg-body { padding-top: 0; --b0: 0px; display: flow-root; } /* отступ первого блока остаётся внутри тела (не «выдавливает» тело вниз) */
@@ -487,10 +496,13 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-p { text-indent: var(--pg-ind, 1.2em); text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin-top: var(--pg-gap, .47em); }
 .pg-p.pg-cont { text-indent: 0; margin-top: 0; }
 .pg-p.pg-flat { text-indent: 0; }
+.pg-hd.pg-hr { text-align: right; text-wrap: wrap; text-indent: 0; }
+.pg-hd.pg-hc { text-align: center; text-wrap: wrap; } /* центрированный абзац-заголовок: строки не выравниваются «ёлочкой», как в PDF */
+.pg-hd { text-align: left; hyphens: manual; -webkit-hyphens: manual; text-wrap: balance; } /* заголовок прописными (capsHead в app.js): во всю ширину, слова не переносятся */
 /* Арабская строка поэмы («Поэма Нуния», №61): шрифт Комплекса короля Фахда, как в PDF (грузится только на этой книге), красный цвет из PDF, строка справа налево.
    Размер (z) и межстрочие (lh) задаёт сама книга. Не влезла — переносится на вторую строку. Номер бейта и тире перед текстом (.ar-n, .ar-d) стоят как в PDF. */
 @font-face { font-family: "KFGQPC Naskh"; src: url(../fonts/UthmanTN_v2-0.ttf) format("truetype"); font-display: block; }
-.pg-ar { direction: rtl; text-align: right; font-family: "KFGQPC Naskh", "Amiri", serif; color: var(--pg-ar, #C00000); text-indent: 0; margin-bottom: 0; overflow-wrap: break-word; }
+.pg-ar { direction: rtl; text-align: right; font-family: "KFGQPC Naskh", "Amiri", serif; color: var(--pg-ar, #C00000); text-indent: 0; margin-bottom: 0; overflow-wrap: break-word; text-wrap: var(--pg-arwrap, wrap); } /* --pg-arwrap: balance у №61 — длинное полустишие делится на две ровные строки, а не «строка + одно слово» */
 .pg-ar .ar-d { font-family: "Source Serif 4", serif; font-weight: 300; font-variation-settings: "opsz" 20; line-height: 0; margin: 0 -.05em; } /* тире в PDF — Source Serif Pro Light 20 pt: длина и толщина подобраны по оптическому размеру; line-height 0 — тире другого шрифта не делает строку выше; margin −0,05em: пробелы вокруг тире в PDF 2,9 pt, а не 3,9 */
 .pg-h, .pg-p { overflow-wrap: break-word; } /* слово, которое иначе не влезает в экран (длинный заголовок при крупном шрифте, адрес в сноске), переносится по буквам, а не вылезает вбок */
 .pg b { font-weight: 700; }
@@ -498,6 +510,24 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg sup { font-size: var(--pg-sup, .58em); line-height: 0; vertical-align: .55em; font-style: normal; font-weight: 400; }
 .pg u { text-decoration: underline; text-decoration-thickness: .055em; text-underline-offset: .17em; text-decoration-skip-ink: none; } /* подчёркнутые слова, как в PDF: тонкая линия (0,6 pt при тексте 11 pt) */
 .pg .hon { font-family: "Amiri", serif; font-weight: 400; font-size: .9em; white-space: nowrap; }
+/* Значки почтения-картинки (honHtml в app.js): форма из PDF, цвет — цвет текста (маска). Размер и сдвиг в долях размера текста вокруг; --hf — во сколько раз знак крупнее текста (по книге) */
+.nw { white-space: nowrap; } /* слово + значок + знак после него не рвутся на разные строки (honHtml) */
+.hi { display: inline-block; flex: none; background: currentColor; -webkit-mask: var(--hm) center / 100% 100% no-repeat; mask: var(--hm) center / 100% 100% no-repeat;
+  width: calc(var(--w) * var(--hf, 1) * 1em); height: calc(var(--h) * var(--hf, 1) * 1em); vertical-align: calc(var(--dy) * var(--hf, 1) * 1em); margin: 0 calc(var(--dx) * var(--hf, 1) * 1em); }
+.ha072 { --hm: url(../img/hon/aga-072.webp); --w: 0.767; --h: 0.8125; --dy: -0.1385; --dx: 0.004; }
+.ha074 { --hm: url(../img/hon/aga-074.webp); --w: 0.964; --h: 0.7115; --dy: -0.1073; --dx: -0.0155; }
+.ha079 { --hm: url(../img/hon/aga-079.webp); --w: 0.7864; --h: 0.7968; --dy: -0.1333; --dx: 0.0021; }
+.hbarial { --hm: url(../img/hon/bm-arial.webp); --w: 0.7393; --h: 0.7241; --dy: 0.0717; --dx: 0.0122; }
+.hbtnr { --hm: url(../img/hon/bm-tnr.webp); --w: 0.7343; --h: 0.7135; --dy: 0.075; --dx: 0.0125; }
+.hk067 { --hm: url(../img/hon/kf-067.webp); --w: 0.934; --h: 0.9784; --dy: -0.2356; --dx: 0.018; }
+.hk068 { --hm: url(../img/hon/kf-068.webp); --w: 0.942; --h: 0.7992; --dy: -0.2018; --dx: 0.0268; }
+.hk069 { --hm: url(../img/hon/kf-069.webp); --w: 0.8974; --h: 0.7634; --dy: -0.2018; --dx: 0.0206; }
+.hk06a { --hm: url(../img/hon/kf-06a.webp); --w: 1.1206; --h: 0.7813; --dy: -0.1884; --dx: 0.025; }
+.hk06b { --hm: url(../img/hon/kf-06b.webp); --w: 0.9286; --h: 0.7813; --dy: -0.1928; --dx: 0.0161; }
+.hk06e { --hm: url(../img/hon/kf-06e.webp); --w: 0.9101; --h: 0.707; --dy: -0.0922; --dx: 0.0328; }
+.hk070 { --hm: url(../img/hon/kf-070.webp); --w: 0.9085; --h: 0.7175; --dy: -0.1216; --dx: 0.0278; }
+.hk071 { --hm: url(../img/hon/kf-071.webp); --w: 0.8779; --h: 0.7093; --dy: -0.0863; --dx: 0.0149; }
+.hk072 { --hm: url(../img/hon/kf-072.webp); --w: 0.8572; --h: 0.6429; --dy: -0.1035; --dx: 0.0268; }
 .pg-topnum { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); padding: calc(var(--pt) * 24) 20px 0; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
 .pg-topnum.pg-r { text-align: right; }
 .pg-img { text-align: center; margin-top: calc(var(--u) * 1.2); }
@@ -552,12 +582,14 @@ body[data-rt="pg"] { --rb: #fff; --rt: #000; --rm: #4C4C4C; --rr: #000; }
 .pg-notes { list-style: none; font-size: var(--pg-nfs, .83em); line-height: var(--pg-nlh, 1.48); margin-top: calc(var(--u) * 1.3); padding-top: .6em; position: relative; }
 .pg-notes::before { content: ""; position: absolute; top: 0; left: 0; width: 36%; border-top: 1px solid var(--pg-text, #000); }
 .pg-notes li { display: flex; }
-.pg-notes li span { flex: none; width: var(--pg-nw, 1.8em); } /* nw книги — шире, если в сносках трёхзначные номера (№9) */
+.pg-notes li > span { flex: none; width: var(--pg-nw, 1.8em); } /* nw книги — шире, если в сносках трёхзначные номера (№9) */
+.pg-notes[data-d="3"] li > span { width: max(var(--pg-nw, 1.8em), 2.4em); } /* на странице есть трёхзначные номера сносок — колонка шире, номер не липнет к тексту */
+.pg-notes[data-d="4"] li > span { width: max(var(--pg-nw, 1.8em), 3em); }
 .pg-notes li > div, .bm-notes li > div { min-width: 0; overflow-wrap: anywhere; } /* текст сноски одним блоком; длинная ссылка переносится, а не вылезает вбок */
 .pg-foot { --pt: calc(100cqw / var(--pg-pw, 411) * 1.25); display: flex; align-items: center; gap: calc(var(--pt) * 12); padding: calc(var(--pt) * 10) 20px calc(var(--pt) * 12); }
 .pg-foot span { flex: none; min-width: 2.2em; font-size: calc(var(--pt) * 11); color: var(--pg-text, #000); }
 .pg-foot i { flex: 1; height: 3px; border-block: 1px solid color-mix(in srgb, var(--pg-text, #000) 18%, var(--pg-bg, #fff)); }
-.pg-head.pg-hl span { display: table; margin: 0 auto; padding-bottom: calc(var(--pt) * 3); border-bottom: 1px solid var(--pg-head, #4C4C4C); }
+.pg-head.pg-hl > span { display: table; margin: 0 auto; padding-bottom: calc(var(--pt) * 3); border-bottom: 1px solid var(--pg-head, #4C4C4C); }
 /* номер в цвете и короткая черта под ним справа (например, №119) */
 .pg-foot.pg-bar { display: block; text-align: right; }
 .pg-hr { padding-top: calc(var(--pt) * 31); } /* шапка «как в PDF» (№69): строка, линия с завитками, вторая строка */
@@ -653,3 +685,100 @@ body[data-rt="kid"] { --rb: #fff; --rt: #2D251C; --rm: #6B6B6B; --rr: #2D251C; }
 .kid-page text { white-space: pre; }
 .kid-page .kid-s { filter: url(#kid-sh); } /* тень под буквами, как в PDF */
 .kid-page .kid-g { filter: url(#kid-gl); } /* белое свечение под буквами, как в PDF */
+
+/* ---- UX-доработки (план: ПЛАН-удобство.md) ---- */
+/* Главная: «Все книги» сеткой 3 в ряд */
+.book-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 12px; }
+.book-grid .bcard { width: auto; min-width: 0; }
+.all-books { margin-top: 18px; width: 100%; }
+.all-books .ic { width: 18px; height: 18px; }
+/* Книги, которые можно зажать и переставить («Продолжить», вкладка «Читаю») */
+.ro-list { display: flex; flex-direction: column; gap: 8px; }
+.ro-list .row { gap: 14px; }
+.ro { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none; position: relative; }
+.ro .bar { margin-top: 8px; }
+.ro-list.ro-on .ro { transition: none; }
+.ro.ro-drag { z-index: 5; background: var(--surface); border-radius: var(--r-card); box-shadow: 0 14px 30px -12px rgba(0,0,0,.55); padding-left: 10px; padding-right: 10px; transition: box-shadow .2s !important; }
+/* «Читать с начала» под кнопками на странице книги */
+.restart { display: block; margin: 12px auto 0; font-size: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Читалка: шапка прилипает к верху и прячется при листании вниз */
+.rd-top {
+  position: sticky; top: 0; z-index: 12; background: var(--rb);
+  margin: -20px calc(var(--side) * -1) 6px; padding: 14px calc(var(--side) - 4px) 0;
+  transition: transform .25s cubic-bezier(.2,.8,.2,1);
+}
+.rd-top.hide { transform: translateY(-110%); }
+.rd-right { display: flex; align-items: center; }
+.rd-top .rd-book { top: 14px; line-height: 44px; }
+.rd-top.has-hint .rd-book { left: calc(var(--side) + 84px); right: calc(var(--side) + 84px); }
+.rd-right .btn-icon[data-action="rd-hint"] { font: 600 18px Literata, serif; }
+.btn-icon.dim { opacity: .35; pointer-events: none; }
+.tr-s { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+/* Панель «Оформление» */
+.rd-scrim { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.28); opacity: 0; pointer-events: none; transition: opacity .25s; }
+body.rd-panel-open .rd-scrim { opacity: 1; pointer-events: auto; }
+.rd-grab { width: 38px; height: 4px; border-radius: 4px; background: var(--rline); margin: -6px auto 8px; }
+.rd-ph { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.rd-ph b { font-size: 16px; font-weight: 600; }
+.rd-ph .btn-icon { background: transparent; color: var(--rt); width: 40px; height: 40px; margin-right: -10px; }
+.rd-sub { font-size: 12.5px; font-weight: 600; color: var(--rm); margin: 10px 0 8px; }
+.themes { margin-bottom: 6px; }
+.sizes input[type="range"] { flex: 1; min-width: 0; accent-color: var(--rt); height: 32px; }
+
+/* Нижняя полоска: ползунок по книге */
+.rd-prog .rd-seekbar { position: relative; overflow: visible; height: 4px; }
+.rd-seekbar input {
+  position: absolute; left: -9px; top: -14px; width: calc(100% + 18px); height: 32px; margin: 0;
+  -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer;
+}
+.rd-seekbar input::-webkit-slider-runnable-track { height: 32px; background: transparent; }
+.rd-seekbar input::-moz-range-track { height: 32px; background: transparent; }
+.rd-seekbar input::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: 8px; border-radius: 50%; background: var(--rr); border: 2px solid var(--rb); box-shadow: 0 0 0 1px var(--rline); }
+.rd-seekbar input::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--rr); border: 2px solid var(--rb); }
+.rd-bubble {
+  position: fixed; left: 50%; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 13; transform: translate(-50%, 6px);
+  padding: 7px 14px; border-radius: 12px; background: var(--rt); color: var(--rb); font-size: 13px; font-weight: 500; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; font-variant-numeric: tabular-nums;
+}
+.rd-bubble.on { opacity: 1; transform: translate(-50%, 0); }
+.rd-back {
+  position: fixed; left: 50%; bottom: calc(60px + env(safe-area-inset-bottom)); z-index: 13; width: calc(100% - 28px); max-width: 452px;
+  transform: translate(-50%, 8px); display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--rt); color: var(--rb); font-size: 13.5px;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+.rd-back.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.rd-back button { flex: none; padding: 7px 14px; border-radius: 10px; background: var(--rb); color: var(--rt); font-weight: 600; font-size: 13.5px; }
+
+.btn[hidden] { display: none; }
+/* Поиск: счётчик и порядок */
+.sr-head { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.sr-head .found { margin: 14px 0 2px; }
+.sr-head select { appearance: none; -webkit-appearance: none; background: var(--chip); color: var(--text); border: 0; border-radius: var(--r-chip); font: 500 13px var(--ui); padding: 7px 12px; }
+
+.bk-actions .btn-main { white-space: nowrap; padding: 0 12px; }
+.bk-actions .btn-second { flex: none; }
+
+/* Страница книги: подзаголовок (что было в скобках) и плашка «Параллельный перевод» */
+.bk-sub { color: var(--muted); font-size: 15px; line-height: 1.4; margin: -2px 0 10px; text-wrap: balance; }
+.bk-note + .bk-par { margin-top: -8px; }
+.bk-par .ic { color: var(--accent); }
+.cv-a:empty { border-top-color: transparent; }
+/* Пометка «параллельный перевод» в строке книги */
+.par-tag { display: inline-block; margin-top: 5px; padding: 2px 8px; border-radius: 7px; font-size: 11px; font-weight: 500; line-height: 1.4; color: var(--muted); background: var(--chip); }
+
+/* ---- Вкладка «Ещё»: строки меню без рамок, «О разработчике», «О приложении» ---- */
+.mrow { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px 2px; border-bottom: 1px solid var(--line); font-size: 16px; text-align: left; }
+.mrow > .ic:last-child { width: 18px; height: 18px; margin-left: auto; color: var(--muted); }
+.mr-t { display: block; }
+.mr-t b { display: block; font-weight: 600; line-height: 1.3; }
+.mr-t small { display: block; color: var(--muted); font-size: 13px; line-height: 1.3; margin-top: 1px; }
+.dev-h { margin-top: 34px; }
+.dev-t { color: var(--muted); font-size: 15px; line-height: 1.6; margin-bottom: 10px; }
+.ab-t { color: var(--muted); font-size: 15px; line-height: 1.6; margin-bottom: 14px; }
+.ab-web { display: flex; gap: 12px; align-items: flex-start; }
+.ab-web .ic { margin-top: 3px; }
+.ab-web p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+.ab-wish { text-align: center; font-family: var(--head); font-style: italic; font-weight: 500; font-size: 20px; line-height: 1.4; margin: 28px 8px 8px; }

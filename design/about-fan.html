@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Веер: страница О приложении</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;1,500&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Цвета как в приложении (design/design-system.md) */
+body[data-theme="light"] { --bg:#F6F1E8; --surface:#FCF9F3; --text:#2A231C; --muted:#7A6E60; --line:#E6DED1; --accent:#4E5A2B; --on-accent:#F8F4EA; --chip:#EDE6D9; --page:#E9E2D4; }
+body[data-theme="dark"]  { --bg:#141B17; --surface:#1D2620; --text:#E8DDC7; --muted:#9C9482; --line:#2C3830; --accent:#C7A35A; --on-accent:#17140E; --chip:#24302A; --page:#0E1310; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--page); color:var(--text); font:15px/1.5 Onest,system-ui,sans-serif; padding:20px 16px 80px; -webkit-font-smoothing:antialiased; }
+a { color:inherit; text-decoration:none; } button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+.wrap { max-width:1100px; margin:0 auto; }
+h1.pg { font:700 28px Alegreya,Georgia,serif; } .lead { color:var(--muted); margin:4px 0 12px; max-width:640px; }
+.theme { background:var(--chip); border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500; }
+.grid { display:flex; flex-wrap:wrap; gap:28px; margin-top:18px; }
+.var { flex:1 1 340px; max-width:380px; }
+.var h2 { font:700 20px Alegreya,Georgia,serif; margin-bottom:2px; } .var h2 .n { color:var(--accent); margin-right:6px; }
+.rec { display:inline-block; background:var(--accent); color:var(--on-accent); font:600 11px Onest; letter-spacing:.04em; text-transform:uppercase; padding:2px 9px; border-radius:20px; margin-left:6px; vertical-align:3px; }
+.why { color:var(--muted); font-size:13.5px; margin-bottom:10px; min-height:60px; }
+.phone { width:100%; max-width:375px; height:660px; background:var(--bg); border:1px solid var(--line); border-radius:26px; overflow:hidden; position:relative; display:flex; flex-direction:column; box-shadow:0 14px 34px -16px rgba(0,0,0,.45); }
+.scroll { flex:1; overflow:auto; padding:18px 18px 24px; }
+.ic { width:22px; height:22px; flex:none; stroke-width:1.75; fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; }
+.hello { color:var(--muted); font-size:14px; } .title { font:700 26px Alegreya,Georgia,serif; letter-spacing:-.015em; line-height:1.15; }
+.home-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.hbtns { display:flex; gap:8px; }
+.btn-icon { width:44px; height:44px; border-radius:12px; background:var(--chip); display:grid; place-items:center; flex:none; }
+.search { display:flex; gap:10px; align-items:center; margin-top:14px; padding:12px 14px; border-radius:12px; background:var(--chip); color:var(--muted); }
+.sec-h { font:700 19px Alegreya,Georgia,serif; margin:20px 0 8px; }
+.row { display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+.cov { width:44px; height:60px; border-radius:5px; flex:none; } .rt { font-weight:600; font-size:14.5px; } .rs { color:var(--muted); font-size:12.5px; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; } .chip { background:var(--chip); border-radius:10px; padding:6px 12px; font-size:13.5px; }
+/* нижнее меню */
+.tabbar { height:64px; border-top:1px solid var(--line); display:flex; background:var(--bg); flex:none; }
+.tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; color:var(--muted); gap:2px; }
+.tab.on { color:var(--accent); font-weight:600; }
+/* экран «О приложении» */
+.about .top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.about .top .title { font-size:24px; }
+.about p { margin-bottom:12px; font-size:15px; line-height:1.6; }
+.about .sal { font:700 21px Alegreya,Georgia,serif; margin-bottom:8px; }
+.about .facts { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:14px 0 16px; }
+.fact { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 12px; }
+.fact b { display:block; font:700 22px Alegreya,Georgia,serif; color:var(--accent); line-height:1.1; } .fact span { color:var(--muted); font-size:12.5px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; margin:16px 0 12px; }
+.card .t { font-weight:600; margin-bottom:2px; } .card .d { color:var(--muted); font-size:13.5px; margin-bottom:10px; }
+.links { display:flex; flex-direction:column; gap:8px; }
+.lnk { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:12px; background:var(--chip); }
+.lnk .bub { width:38px; height:38px; border-radius:10px; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; flex:none; }
+.lnk .l1 { font-weight:600; font-size:14.5px; line-height:1.25; } .lnk .l2 { color:var(--muted); font-size:12.5px; } .lnk .go { margin-left:auto; color:var(--muted); } .lnk .go .ic { width:18px; height:18px; }
+.share { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px; border-radius:12px; background:var(--accent); color:var(--on-accent); font-weight:600; margin-top:6px; }
+.wish { text-align:center; font:italic 500 18px/1.45 Alegreya,Georgia,serif; color:var(--accent); margin:22px 6px 6px; }
+/* панель «Оформление» (вариант 4) */
+.sheet-bg { position:absolute; inset:0; background:rgba(0,0,0,.4); z-index:5; display:flex; align-items:flex-end; }
+.sheet { background:var(--surface); width:100%; border-radius:20px 20px 0 0; padding:18px; }
+.sheet h3 { font:700 20px Alegreya,Georgia,serif; margin-bottom:10px; }
+.opt { display:flex; align-items:center; gap:12px; padding:13px 2px; border-top:1px solid var(--line); }
+.hint { position:absolute; left:50%; transform:translateX(-50%); bottom:74px; font-size:11.5px; color:var(--muted); background:var(--chip); border-radius:12px; padding:3px 10px; white-space:nowrap; pointer-events:none; }
+</style>
+</head>
+<body data-theme="light">
+<div class="wrap">
+  <h1 class="pg">Страница «О приложении»: где разместить кнопку</h1>
+  <p class="lead">Макеты живые: нажимайте на вкладки, значки и кнопку «Назад». На странице «О приложении» везде есть «Назад», он возвращает на главную. Текст пока черновой, ссылки условные.</p>
+  <button class="theme" id="thm">Тёмная тема</button>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const P = {
+  home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  lib:'<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  sunMoon:'<path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+  back:'<path d="m15 18-6-6 6-6"/>', next:'<path d="m9 18 6-6-6-6"/>',
+  send:'<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>',
+  mega:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+  share:'<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
+  more:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  star:'<path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6L12 3z"/>'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+const books = [['Три основы','Мухаммад ибн Абдульваххаб','#4E5A2B'],['Шесть основ','Мухаммад ибн Абдульваххаб','#7A5A2B'],['Кашф уш-шубухат','Мухаммад ибн Абдульваххаб','#2B4A5A']];
+
+const ABOUT_TEXT = `
+  <div class="sal">Ассаляму алейкум!</div>
+  <p>Это бесплатная библиотека исламских книг на русском языке для канала Bayt al-Magrifa. Читайте прямо в Telegram, выбирайте цвет страницы и размер шрифта: приложение запомнит, где вы остановились. В части книг арабский оригинал открывается удержанием предложения.</p>
+  <div class="facts"><div class="fact"><b>122</b><span>книги</span></div><div class="fact"><b>7</b><span>категорий</span></div></div>
+  <p>Меня зовут Абу Суфьян, я создал это приложение. Нужно такое же для вашего канала или проекта? Напишите мне.</p>
+  <div class="links">
+    <a class="lnk" href="#"><span class="bub">${ic('send')}</span><span><div class="l1">Написать мне</div><div class="l2">Личные сообщения в Telegram</div></span><span class="go">${ic('next')}</span></a>
+    <a class="lnk" href="#"><span class="bub">${ic('mega')}</span><span><div class="l1">Мой канал</div><div class="l2">Новости и новые работы</div></span><span class="go">${ic('next')}</span></a>
+  </div>
+  <div class="wish">Распространяйте это приложение во благо и будьте причиной распространения знаний.</div>
+  <a class="share" href="#">${ic('share')}Поделиться приложением</a>`;
+
+const homeBody = (iBtn) => `
+  <div class="home-head"><div><div class="hello">Ассаляму алейкум</div><h1 class="title">Библиотека</h1></div>
+    <div class="hbtns">${iBtn ? `<button class="btn-icon" data-go="about" aria-label="О приложении">${ic('info')}</button>` : ''}<button class="btn-icon" data-sheet="1" aria-label="Оформление">${ic('sunMoon')}</button></div></div>
+  <div class="search">${ic('search')}Название или автор</div>
+  <div class="sec-h">Категории</div><div class="chips">${['Акыда','Фикх','Нравственность','Хадисы'].map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+  <div class="sec-h">С чего начать</div>${books.map(b=>`<div class="row"><div class="cov" style="background:${b[2]}"></div><div><div class="rt">${b[0]}</div><div class="rs">${b[1]}</div></div></div>`).join('')}`;
+
+const aboutBody = `<div class="about"><div class="top"><button class="btn-icon" data-go="home" aria-label="Назад">${ic('back')}</button><h1 class="title">О приложении</h1></div>${ABOUT_TEXT}</div>`;
+const moreBody = `<h1 class="title" style="margin-bottom:12px">Ещё</h1>
+  <div class="opt" data-sheet="1">${ic('sunMoon')}Оформление<span style="margin-left:auto;color:var(--muted)">${ic('next')}</span></div>
+  <div class="opt" data-go="about">${ic('info')}О приложении<span style="margin-left:auto;color:var(--muted)">${ic('next')}</span></div>
+  <div class="opt">${ic('share')}Поделиться приложением<span style="margin-left:auto;color:var(--muted)">${ic('next')}</span></div>`;
+
+const VARS = [
+  { n:1, name:'Четвёртая вкладка', rec:true, why:'Вкладка «О приложении» в нижнем меню рядом с остальными. Видна на каждом экране. 4 вкладки на телефоне помещаются свободно (по 94 px).',
+    tabs:[['home','Главная'],['search','Поиск'],['lib','Моя полка'],['info','О приложении']], iBtn:false },
+  { n:2, name:'Значок «i» в шапке', why:'Меню остаётся из 3 вкладок. Рядом с кнопкой «Оформление» появляется значок «i». Виден сразу на главной, но только на ней.',
+    tabs:[['home','Главная'],['search','Поиск'],['lib','Моя полка']], iBtn:true },
+  { n:3, name:'Вкладка «Ещё»', why:'Четвёртая вкладка «Ещё» собирает «Оформление», «О приложении» и «Поделиться». Место на вырост, если потом добавятся настройки. На один шаг дальше.',
+    tabs:[['home','Главная'],['search','Поиск'],['lib','Моя полка'],['more','Ещё']], iBtn:false, more:true },
+  { n:4, name:'Внутри «Оформления»', why:'Пункт «О приложении» в панели, которая выезжает по кнопке солнца и луны. Меню не меняется, но найти сложнее: прячется за значком, который про тему.',
+    tabs:[['home','Главная'],['search','Поиск'],['lib','Моя полка']], iBtn:false, sheetAbout:true }
+];
+
+const grid = document.getElementById('grid');
+VARS.forEach(v => {
+  const s = document.createElement('section'); s.className = 'var';
+  s.innerHTML = `<h2><span class="n">${v.n}</span>${v.name}${v.rec ? '<span class="rec">рекомендую</span>' : ''}</h2><p class="why">${v.why}</p><div class="phone"></div>`;
+  grid.appendChild(s);
+  const ph = s.querySelector('.phone'); let screen = 'home', sheet = false;
+  const draw = () => {
+    const activeTab = screen === 'about' && !v.more && !v.iBtn && !v.sheetAbout ? 3 : screen === 'more' ? 3 : screen === 'about' && v.more ? 3 : 0;
+    const body = screen === 'about' ? aboutBody : screen === 'more' ? moreBody : homeBody(v.iBtn);
+    ph.innerHTML = `<div class="scroll">${body}</div>
+      <div class="tabbar">${v.tabs.map((t,i)=>`<a class="tab ${i===activeTab?'on':''}" data-tab="${i}">${ic(t[0])}${t[1]}</a>`).join('')}</div>
+      ${sheet ? `<div class="sheet-bg" data-close="1"><div class="sheet"><h3>Оформление</h3>
+        <div class="opt">${ic('sunMoon')}Как в Telegram</div><div class="opt">${ic('star')}Светлая</div><div class="opt">${ic('star')}Тёмная</div>
+        ${v.sheetAbout ? `<div class="opt" data-go="about">${ic('info')}О приложении<span style="margin-left:auto;color:var(--muted)">${ic('next')}</span></div>` : ''}</div></div>` : ''}`;
+  };
+  ph.addEventListener('click', e => {
+    const g = e.target.closest('[data-go]'), t = e.target.closest('[data-tab]'), sh = e.target.closest('[data-sheet]');
+    if (g) { screen = g.dataset.go; sheet = false; }
+    else if (t) { const i = +t.dataset.tab; const last = v.tabs.length - 1; screen = i === 0 ? 'home' : (i === last && v.tabs[last][0] === 'info') ? 'about' : (i === last && v.more) ? 'more' : 'home'; sheet = false; }
+    else if (sh) sheet = true;
+    else if (e.target.closest('.sheet-bg') && !e.target.closest('.sheet')) sheet = false;
+    else return;
+    draw(); ph.querySelector('.scroll') && (ph.querySelector('.scroll').scrollTop = 0);
+  });
+  draw();
+});
+document.getElementById('thm').onclick = e => { const d = document.body.dataset.theme === 'light'; document.body.dataset.theme = d ? 'dark' : 'light'; e.target.textContent = d ? 'Светлая тема' : 'Тёмная тема'; };
+</script>
+</body>
+</html>

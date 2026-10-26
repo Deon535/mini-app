@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Веер: обложки-заглушки</title>
+<link rel="stylesheet" href="/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700&family=Onest:wght@400;500;600&family=Amiri&display=swap" rel="stylesheet">
+<style>
+body { padding: 20px 16px 60px; max-width: 900px; margin: 0 auto; background: #141B17; color: #E8DDC7; }
+#app, .x { all: unset; }
+h1 { font: 700 28px Alegreya, serif; margin-bottom: 6px; }
+.lead { color: #9C9482; max-width: 640px; margin-bottom: 18px; font-size: 14px; }
+h2 { font: 700 20px Alegreya, serif; margin: 28px 0 4px; }
+.cap { color: #9C9482; font-size: 13px; margin-bottom: 12px; max-width: 640px; }
+.grid { display: flex; flex-wrap: wrap; gap: 18px 14px; }
+.cell { font: 11px Onest, sans-serif; color: #7d7765; }
+.cell small { display: block; margin-top: 4px; max-width: 150px; line-height: 1.3; }
+.pair { display: flex; gap: 8px; align-items: flex-start; }
+.vs { display: flex; gap: 22px; flex-wrap: wrap; }
+.tag { display: inline-block; font: 600 11px Onest; letter-spacing: .04em; text-transform: uppercase; padding: 2px 9px; border-radius: 12px; margin-bottom: 8px; }
+.was .tag { background: #3A2420; color: #C9715E; } .now .tag { background: #24331F; color: #8DB56A; }
+
+/* ---- НОВАЯ обложка-заглушка (образец) ---- */
+.cover.v2 {
+  color: #EFE3C6; display: flex; flex-direction: column; justify-content: space-between;
+  padding: calc(var(--cw)*.15) calc(var(--cw)*.07) calc(var(--cw)*.10) calc(var(--cw)*.14);
+}
+.cover.v2::before { content: ""; position: absolute; inset: 6% 6% 6% 10%; border: 1px solid rgba(239,227,198,.32); pointer-events: none; }
+.cover.v2::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 7%; background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0)); }
+.cover.v2 .t2 { position: relative; font-family: "Alegreya", Georgia, serif; font-weight: 700; line-height: 1.08; letter-spacing: -.01em; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
+.cover.v2 .a2 { position: relative; font-family: "Onest", sans-serif; font-weight: 500; font-size: calc(var(--cw)*.066); line-height: 1.25; opacity: .78; padding-top: calc(var(--cw)*.05); border-top: 1px solid rgba(239,227,198,.28); min-height: calc(var(--cw)*.06); }
+.cover.v2 .a2.none { border-top-color: transparent; }
+.sh { color: #8DB56A; }
+</style>
+</head>
+<body data-theme="dark">
+<h1>Веер: обложки без картинки</h1>
+<p class="lead">Показаны самые проблемные обложки (слева «Было», справа «Стало»). Новое: одна раскладка для всех, шрифт подбирается под название, слово больше не обрезается, арабского нет, автор внизу в одной строке стиля. Зелёным помечены короткие названия — это мои предложения, сверьте.</p>
+<div id="out"></div>
+
+<script src="/data/books.js"></script>
+<script>
+const B = window.BOOKS;
+// мои предложения коротких названий для обложки (полное название остаётся на странице книги)
+const SHORT = {
+  4: 'Достаточное из двух Сахихов', 8: 'Достоинства дня Арафата', 13: 'Добровольные ночные намазы', 14: 'Намаз витр', 15: 'Намаз таравих',
+  16: 'Разъяснение «Условий молитвы»', 22: 'Условия молитвы', 43: 'Смысл двух свидетельств', 46: 'О ложном приписывании экстремизма',
+  47: 'Истинная суть суфизма', 49: 'Книга единобожия (Ибн Хузейма)', 53: 'Обязательность следования за Сунной', 58: 'Предостережение от разделения',
+  73: 'Раскрытие невежества аль-Ульвана', 76: 'Словарь религиозных новшеств', 120: 'Веление одобряемого и запрещение порицаемого'
+};
+const AUTH = { 82: 'аль-Барбахари' };
+function old(b, cw) {
+  const tf = b.title.length > 75 ? .082 : b.title.length > 55 ? .098 : .12, af = (b.titleAr || '').length > 30 ? .09 : .125;
+  return `<div class="cover drawn" style="--cw:${cw}px;--c:${b.color};--tf:${tf};--af:${af}"><div class="cv-ar">${b.titleAr || ''}</div><div class="cv-t">${b.title}<span class="cv-a">${b.author}</span></div></div>`;
+}
+function neu(b, cw) {
+  const t = SHORT[b.id] || b.title, a = b.author || '';
+  return `<div class="cover v2" style="--cw:${cw}px;--c:${b.color}" lang="ru"><div class="t2">${t}</div><div class="a2 ${a ? '' : 'none'}">${a || '&nbsp;'}</div></div>`;
+}
+const HR = (() => { const a = '[а-яё]', g = '[аеёиоуыэюя]', s = '[бвгджзклмнпрстфхцчшщ]', x = '[йъь]'; return [`(${x})(${a}${a})`, `(${g})(${g}${a})`, `(${g}${s})(${s}${g})`, `(${s}${g})(${s}${g})`, `(${g}${s})(${s}${s}${g})`, `(${g}${s}${s})(${s}${s}${g})`].map(r => new RegExp(r, 'gi')); })();
+const softHyph = t => { for (let k = 0; k < 2; k++) HR.forEach(r => { t = t.replace(r, '$1­$2'); }); return t; };
+// подгонка: самый крупный шрифт (из ступеней), при котором ни одно слово не режется и текст влезает по высоте
+function fit(root) {
+  root.querySelectorAll('.cover.v2').forEach(c => {
+    const cw = parseFloat(getComputedStyle(c).getPropertyValue('--cw')), t = c.querySelector('.t2'), a = c.querySelector('.a2');
+    const cs = getComputedStyle(c), room = c.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - a.offsetHeight - cw * .04;
+    const LADDER = [.14, .125, .11, .1, .09]; // ступени размера: у всех обложек одни и те же
+    t.style.hyphens = 'manual'; t.style.overflowWrap = 'normal';
+    const bad = () => t.scrollWidth > t.clientWidth + 0.5 || t.offsetHeight > room;
+    const tryLadder = from => { for (const k of LADDER.filter(k => k <= from)) { t.style.fontSize = cw * k + 'px'; if (!bad()) return true; } return false; };
+    if (!tryLadder(.14)) { // самое длинное слово не влезает целиком: разрешаем перенос по слогам (как в тексте книг) и берём крупнее
+      t.innerHTML = softHyph(t.textContent);
+      if (!tryLadder(.115)) { t.style.hyphens = 'auto'; t.style.overflowWrap = 'break-word'; }
+    }
+    // если даже на минимуме слово не влезает, разрешаем перенос по слогам (hyphens: auto уже включён)
+  });
+}
+const sections = [
+  ['Слова обрезаются по краю', [37, 38, 10, 39, 41, 42, 107, 118], 'Длинные слова («Вероубеждение», «Законоположения») вылезали за правый край и обрезались.'],
+  ['Очень длинные названия → короткие', [4, 8, 13, 16, 22, 46, 47, 49, 53, 58, 73, 76, 120, 43], 'Зелёные названия — сокращения для обложки. На странице книги остаётся полное.'],
+  ['Арабский и длинные авторы', [2, 31, 95, 82, 66, 103], 'Арабский убран. Автор в одной раскладке, до двух строк.'],
+  ['Обычные, как должны выглядеть все', [5, 17, 99, 121, 97, 85, 100, 65], 'Короткие названия: крупно и ровно.']
+];
+let html = '';
+for (const [h, ids, cap] of sections) {
+  html += `<h2>${h}</h2><p class="cap">${cap}</p><div class="grid">` + ids.map(id => {
+    const b = B.find(x => x.id === id), isSh = SHORT[id];
+    return `<div class="cell"><div class="pair">${old(b, 118)}${neu(b, 118)}</div><small>${id}${isSh ? ' <span class="sh">· короче</span>' : ''}</small></div>`;
+  }).join('') + '</div>';
+}
+document.getElementById('out').innerHTML = html;
+document.fonts.ready.then(() => { fit(document); setTimeout(() => fit(document), 400); });
+</script>
+</body>
+</html>
