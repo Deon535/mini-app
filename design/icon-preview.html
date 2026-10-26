@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Значок приложения: как будет на телефоне</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+/* Только для показа на этой странице */
+body { background: #ddd5c6; }
+body[data-theme="dark"] { background: #0c110e; }
+.stage { max-width: 900px; margin: 0 auto; padding: 22px 16px 80px; }
+.pg { font: 700 28px Alegreya, Georgia, serif; }
+.lead { color: var(--muted); margin: 6px 0 14px; max-width: 700px; }
+.mini { height: 38px; padding: 0 16px; font-size: 14px; }
+.grid { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 22px; }
+.cell { flex: 1 1 260px; max-width: 280px; }
+.cell h2 { font: 700 20px Alegreya, Georgia, serif; margin-bottom: 2px; }
+.cell p.cap { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; min-height: 40px; line-height: 1.45; }
+.wall { border-radius: 24px; padding: 18px 14px 14px; background: #cfc6b4; }
+body[data-theme="dark"] .wall { background: #1b2420; }
+.row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+.app { text-align: center; font-size: 11px; color: #2a231c; }
+body[data-theme="dark"] .app { color: #e8ddc7; }
+.app img, .app .ph { display: block; width: 100%; aspect-ratio: 1; margin-bottom: 5px; }
+.app .ph { background: rgba(0,0,0,.18); }
+body[data-theme="dark"] .app .ph { background: rgba(255,255,255,.14); }
+.ios img, .ios .ph { border-radius: 22.37%; }
+.circ img, .circ .ph { border-radius: 50%; }
+.sq img, .sq .ph { border-radius: 32%; }
+.sizes { display: flex; gap: 16px; align-items: end; margin-top: 18px; flex-wrap: wrap; }
+.sizes figure { margin: 0; text-align: center; font-size: 12px; color: var(--muted); }
+.sizes img { display: block; margin: 0 auto 4px; }
+.note { max-width: 700px; margin-top: 26px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.note b { color: var(--text); }
+</style>
+</head>
+<body data-theme="light">
+<div class="stage">
+  <h1 class="pg">Значок приложения</h1>
+  <p class="lead">Рисунок из присланной картинки: бежевая вязь на тёмно-зелёном. Ниже, как телефон обрежет углы: iPhone скругляет квадрат, Android рисует круг или скруглённый квадрат.</p>
+  <button class="btn btn-second mini" id="thm">Тёмные обои</button>
+  <div class="grid" id="grid"></div>
+  <div class="sizes">
+    <figure><img src="../img/app/icon-512.png" width="128" height="128" alt=""><figcaption>512 px</figcaption></figure>
+    <figure><img src="../img/app/icon-192.png" width="96" height="96" alt=""><figcaption>192 px</figcaption></figure>
+    <figure><img src="../img/app/apple-touch-icon.png" width="90" height="90" alt=""><figcaption>180 px, iPhone</figcaption></figure>
+    <figure><img src="../img/app/icon-192.png" width="48" height="48" alt=""><figcaption>мелко, 48 px</figcaption></figure>
+    <figure><img src="../img/app/icon-192.png" width="29" height="29" alt=""><figcaption>29 px</figcaption></figure>
+  </div>
+  <p class="note"><b>Файлы:</b> <code>img/app/icon-512.png</code>, <code>icon-192.png</code>, <code>apple-touch-icon.png</code> (iPhone), <code>icon-maskable-512.png</code> (Android обрезает его по своей форме, рисунок лежит ближе к центру).</p>
+</div>
+<script>
+const SETS = [
+  { t: 'iPhone', c: 'Квадрат со скруглёнными углами.', cls: 'ios', img: 'apple-touch-icon.png' },
+  { t: 'Android, круг', c: 'Версия для обрезки по форме.', cls: 'circ', img: 'icon-maskable-512.png' },
+  { t: 'Android, скруглённый квадрат', c: 'Так у части телефонов (Samsung и др.).', cls: 'sq', img: 'icon-maskable-512.png' }
+];
+const NEIGH = n => Array.from({ length: n }, () => '<div class="app"><div class="ph"></div>&nbsp;</div>').join('');
+SETS.forEach(s => {
+  const el = document.createElement('div'); el.className = 'cell';
+  el.innerHTML = `<h2>${s.t}</h2><p class="cap">${s.c}</p><div class="wall ${s.cls}"><div class="row">${NEIGH(2)}<div class="app"><img src="../img/app/${s.img}" alt="">Книги</div>${NEIGH(3)}</div></div>`;
+  document.getElementById('grid').appendChild(el);
+});
+document.getElementById('thm').onclick = e => { const d = document.body.dataset.theme === 'light'; document.body.dataset.theme = d ? 'dark' : 'light'; e.target.textContent = d ? 'Светлые обои' : 'Тёмные обои'; };
+</script>
+</body>
+</html>

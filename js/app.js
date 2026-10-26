@@ -141,7 +141,7 @@ const soon = (text = SOON) => `<p class="soon">${text}</p>`;
    look: 'auto' (как в Telegram) / 'light' / 'dark'.
    Пока мы в обычном браузере, 'auto' повторяет тему устройства.
    На Этапе 3 здесь будем спрашивать тему у Telegram. */
-let look = store.get('look', 'auto');
+let look = store.get('look', 'light'); // по умолчанию светлая; «как в Telegram» человек выбирает сам
 const deviceDark = matchMedia('(prefers-color-scheme: dark)');
 
 function applyTheme() {
@@ -439,7 +439,10 @@ function homeScreen() {
   return `
     <div class="home-head">
       <div><div class="hello">Ассаляму алейкум</div><h1 class="title">Библиотека</h1></div>
-      <button class="btn btn-icon" data-action="open-look" aria-label="Оформление">${icon('sunMoon')}</button>
+      <div class="head-btns">
+        ${canAddToHome() ? `<button class="btn btn-icon" data-action="add-home" aria-label="Добавить на экран «Домой»">${icon('smartphone')}</button>` : ''}
+        <button class="btn btn-icon" data-action="open-look" aria-label="Оформление">${icon('sunMoon')}</button>
+      </div>
     </div>
     <a class="search" href="#/search">${icon('search')}Название или автор</a>
     ${continueBlock}
@@ -449,31 +452,45 @@ function homeScreen() {
     <div class="sec-h"><h2>Все книги</h2></div>
     <div class="book-grid">${BOOKS.slice(0, 9).map(bookCard).join('')}</div>
     <a class="btn btn-second btn-wide all-books" href="#/search">Все книги (${BOOKS.length})${icon('next')}</a>
-    <div id="home-screen"></div>
   `;
 }
 
-// «На экран Домой»: показываем предложение, только если телефон это умеет и значка ещё нет
 function mountHome() {
   const ro = document.getElementById('ro-home');
-  const stop = ro ? mountReorder(ro, ids => { reorderReading(ids); router(); }, openReadingMenu) : null;
-  if (!tgCan('8.0')) return stop;
-  tg.checkHomeScreenStatus(status => {
-    const box = document.getElementById('home-screen');
-    if (!box || (status !== 'missed' && status !== 'unknown')) return;
-    box.innerHTML = `<div class="demo-note home-add">
-      ${icon('smartphone')}
-      <div><b>Значок на экране телефона</b>
-      <p>Библиотека будет открываться в одно касание, как обычное приложение.</p>
-      <button class="btn btn-second" data-action="home-screen">Добавить</button></div>
-    </div>`;
-  });
-  return stop;
+  return ro ? mountReorder(ro, ids => { reorderReading(ids); router(); }, openReadingMenu) : null;
 }
-if (inTG) tg.onEvent('homeScreenAdded', () => {
-  const box = document.getElementById('home-screen');
-  if (box) box.innerHTML = '';
-});
+
+/* ---------- Веб-приложение: «На экран Домой» ----------
+   Не ярлык Telegram, а настоящее веб-приложение: человек открывает сайт в браузере телефона
+   и добавляет его на экран «Домой». Дальше оно открывается само, без Telegram (manifest.webmanifest + значки в img/app). */
+const isInstalled = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; // уже запущено с экрана «Домой»
+// iPhone или Android: в Telegram по его данным, в обычном браузере по типу устройства; на компьютере null
+function phoneOS() {
+  const p = inTG ? tg.platform : '';
+  if (p === 'ios') return 'ios';
+  if (p === 'android' || p === 'android_x') return 'android';
+  if (inTG && p !== 'weba' && p !== 'webk' && p !== 'web') return null; // Telegram на компьютере
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return null;
+}
+const canAddToHome = () => !isInstalled() && phoneOS() !== null;
+
+const HOME_STEPS = {
+  ios: ['Внизу экрана нажмите «Поделиться»', 'Выберите «На экран “Домой”»'],
+  android: ['Вверху справа нажмите три точки', 'Выберите «Добавить на главный экран»']
+};
+function openHomeSheet() {
+  const os = phoneOS() || 'ios';
+  // в Telegram первым шагом «Открыть» (страница откроется в браузере); если мы уже в браузере, этот шаг не нужен
+  const steps = inTG ? ['Нажмите «Открыть»: страница откроется в браузере', ...HOME_STEPS[os]] : HOME_STEPS[os];
+  openSheet(`
+    <div class="sheet-h">Добавить на экран «Домой»</div>
+    <div class="sheet-sub">Приложение будет открываться как обычное, без Telegram.</div>
+    <ol class="steps">${steps.map(s => `<li>${s}</li>`).join('')}</ol>
+    <button class="btn btn-main sheet-go" data-action="${inTG ? 'open-web' : 'close-sheet'}">${inTG ? 'Открыть' : 'Понятно'}</button>`);
+}
 
 // Поиск
 // Приводим текст к простому виду, чтобы «Ё», «е», дефисы и регистр не мешали искать
@@ -1796,7 +1813,9 @@ document.addEventListener('click', e => {
   const t = e.target;
   if (t.closest(TAPPABLE)) haptic();
   if (t.closest('[data-action="open-look"]')) return openLookSheet();
-  if (t.closest('[data-action="home-screen"]')) return tg.addToHomeScreen();
+  if (t.closest('[data-action="add-home"]')) return openHomeSheet();
+  if (t.closest('[data-action="open-web"]')) { closeSheet(); return tg.openLink(location.origin + '/'); } // внешний браузер, без хвоста Telegram в адресе
+  if (t.closest('[data-action="close-sheet"]')) return closeSheet();
   if (t.closest('#scrim')) return closeSheet();
   if (t.closest('[data-action="back"]')) return goBack();
 
